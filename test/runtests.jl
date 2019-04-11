@@ -5,5 +5,5 @@ using Test
     # Write your own tests here.
 
     include("name2dim.jl")
-
+    include("wrapper_array.jl")
 end
