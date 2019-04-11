@@ -1,5 +1,7 @@
 module NamedDims
 
-greet() = print("Hello World!")
+export name2dim
+
+include("name2dim.jl")
 
 end # module
