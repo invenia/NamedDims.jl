@@ -6,4 +6,5 @@ using Test
 
     include("name2dim.jl")
     include("wrapper_array.jl")
+    include("base_functions.jl")
 end
