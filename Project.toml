@@ -1,6 +1,6 @@
 name = "NamedDims"
 uuid = "356022a1-0364-5f58-8944-0da4b18d706f"
-authors = ["Lyndon White <lyndon.white@invenialabs.co.uk>"]
+authors = ["Invenia Technical Computing Corporation"]
 version = "0.1.0"
 
 [extras]
