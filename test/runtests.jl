@@ -6,5 +6,5 @@ using Test
 
     include("name_core.jl")
     include("wrapper_array.jl")
-    #include("base_functions.jl")
+    include("functions.jl")
 end
