@@ -1,4 +1,5 @@
 module NamedDims
+using Base: @propagate_inbounds
 using Statistics
 
 export NamedDimsArray, name2dim, dim_names

@@ -19,8 +19,25 @@ end
     @test nda[x=1, y=1] == nda[y=1, x=1] == nda[1, 1] == 10
     @test nda[y=end,x=end] == nda[end, end] == 40
 
-    # Missing dims become slices
+    # Unspecified dims become slices
     @test nda[y=1] == nda[y=1, x=:] == nda[:, 1] == [10; 30]
+
+    @testset "name preservation" begin
+        @test dim_names(nda[y=1]) == (:x,)
+        @test dim_names(nda[y=1:1]) == (:x, :y)
+    end
+end
+
+
+@testset "views" begin
+    nda = NamedDimsArray([10 20; 30 40], (:x, :y))
+
+    @test @view(nda[y=1]) == @view(nda[y=1, x=:]) == @view(nda[:, 1]) == [10; 30]
+
+    @testset "name preservation" begin
+        @test dim_names(nda[y=1]) == (:x,)
+        @test dim_names(nda[y=1:1]) == (:x, :y)
+    end
 end
 
 @testset "setindex!" begin
@@ -30,9 +47,8 @@ end
         nda[x=1, y=1] = 100
         @test nda == [100 20; 30 40]
 
-        # WORKWORK OUT WHY this is an error
-        #nda[x=1] .= 1000
-        #@test nda == [1000 1000; 30 40]
+        nda[x=1] .= 1000
+        @test nda == [1000 1000; 30 40]
     end
 
     @testset "by position" begin

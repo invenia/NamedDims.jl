@@ -1,5 +1,5 @@
 using NamedDims
-using NamedDims: order_named_inds
+using NamedDims: order_named_inds, determine_remaining_dim
 using Test
 
 
@@ -35,4 +35,10 @@ end
     @test order_named_inds((:x, :y); y=2, ) == (:, 2)
     @test order_named_inds((:x, :y); y=20, x=30) == (30, 20)
     @test order_named_inds((:x, :y); x=30, y=20) == (30, 20)
+end
+
+@testset "determine_remaining_dim" begin
+    @test determine_remaining_dim((:a, :b, :c), (10,20,30)) == tuple()
+    @test determine_remaining_dim((:a, :b, :c), (10,:,30)) == (:b,)
+    @test determine_remaining_dim((:a, :b, :c), (1:1, [true], [20])) == (:a, :b, :c)
 end

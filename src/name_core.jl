@@ -77,3 +77,21 @@ function order_named_inds(dimnames::Tuple; named_inds...)
     full_named_inds = merge(slice_everything, named_inds)
     inds = Tuple(full_named_inds)
 end
+
+"""
+    determine_remaining_dim(dimnames::Tuple, inds...)
+Given a tuple of dimension names, e.g.
+and a set of index expressesion e.g `1, :, 1:3, [true, false]`,
+determine which are not dropped.
+Dimensions indexed with scalars are dropped
+"""
+@generated function determine_remaining_dim(dimnames::Tuple, inds)
+    # TODO: This still allocates once, and it shouldn't have to
+    # See: #@btime (()->determine_remaining_dim((:a, :b, :c), (:,390,:)))()
+    ind_types = inds.parameters
+    kept_dims = findall(keep_dim_ind_type, ind_types)
+    keep_names = [:(getfield(dimnames, $ii)) for ii in kept_dims]
+    return Expr(:tuple, keep_names...)
+end
+keep_dim_ind_type(::Type{<:Integer}) = false
+keep_dim_ind_type(::Any) = true
