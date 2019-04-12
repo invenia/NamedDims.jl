@@ -1,4 +1,4 @@
-# `L` is for labels, it should be a `Tuple` of `Symbol`s
+# `L` is for labels, it should be an `NTuple{N, Symbol}`
 struct NamedDimsArray{L, T, N, A<:AbstractArray{T,N}} <: AbstractArray{T,N}
     data::A
 end

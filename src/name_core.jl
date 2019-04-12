@@ -4,7 +4,7 @@
 
 For `dimnames` being a tuple of dimnames (symbols) for dimenensions.
 If called with just the tuple,
-returns a named tuple, with each name maps to a dimension.
+returns a named tuple, with each name mapped to a dimension.
 e.g `name2dim((:a, :b)) == (a=1, b=2)`.
 
 If the second `name` argument is given, them the dimension corresponding to that `name`,
@@ -47,7 +47,7 @@ end
 
 """
     default_inds(dimnames::Tuple)
-This is the defult value for all indexing expressions using the given dimnames.
+This is the default value for all indexing expressions using the given dimnames.
 Which is to say: take a full slice on everything
 """
 function default_inds(dimnames::Tuple)
