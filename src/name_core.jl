@@ -37,7 +37,7 @@ function name2dim(dimnames::Tuple, names)
 end
 
 function name2dim(dimnames::Tuple, dim::Union{Integer, Colon})
-    # This is the fallback that allows `NamedDimsArray`'s to be have dimenstions
+    # This is the fallback that allows `NamedDimsArray`'s to be have dimensions
     # referred to by number. This is required to allow functions on `AbstractArray`s
     # and that use function like `sum(xs; dims=2)` to continue to work without changes
     # `:` is the default for most methods that take `dims`
