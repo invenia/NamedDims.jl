@@ -1,7 +1,7 @@
 """
     dim(dimnames, [name])
 
-For `dimnames` being a tuple of dimnames (symbols) for dimensions.
+For `dimnames` being a tuple of names (symbols) for the dimensions.
 If called with just the tuple,
 returns a named tuple, with each name mapped to a dimension.
 e.g `dim((:a, :b)) == (a=1, b=2)`.

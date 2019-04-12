@@ -1,7 +1,30 @@
-# `L` is for labels, it should be an `NTuple{N, Symbol}`
+"""
+    NamedDimsArray{L,T,N,A}(data)
+
+A `NamedDimsArray` is a wrapper array type, that provides a view onto  the
+orignal array, which can have its dimensions refer to name rather than by
+position.
+
+For example:
+```
+xs = NamedDimsArray{(:features, :observations)}(data);
+
+n_obs = size(xs, :observations)
+feature_totals = sum(xs; dims=:observations)
+
+first_obs_vector = xs[observations=1]
+x = x[observations=15, features=2]  # 2nd feature in 15th observation.
+```
+
+`NamedDimsArray`s are normally a (near) zero-cost abstraction.
+They generally resolve most dimension name related operations at compile
+time.
+"""
 struct NamedDimsArray{L, T, N, A<:AbstractArray{T,N}} <: AbstractArray{T,N}
+    # `L` is for labels, it should be an `NTuple{N, Symbol}`
     data::A
 end
+
 
 function NamedDimsArray{L}(orig::AbstractArray{T,N}) where {L, T, N}
     if !(L isa NTuple{N, Symbol})
