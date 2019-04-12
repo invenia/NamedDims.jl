@@ -20,15 +20,15 @@ Base.parent(x::NamedDimsArray) = x.data
 
 
 """
-    dim_names(A)
+    names(A)
 
 Returns a tuple of containing the names of all the dimensions of the array `A`.
 """
-dim_names(::Type{<:NamedDimsArray{L}}) where L = L
-dim_names(x::T) where T<:NamedDimsArray = dim_names(T)
+names(::Type{<:NamedDimsArray{L}}) where L = L
+names(x::T) where T<:NamedDimsArray = names(T)
 
 
-name2dim(a::NamedDimsArray{L}, name) where L = name2dim(L, name)
+dim(a::NamedDimsArray{L}, name) where L = dim(L, name)
 
 
 
@@ -38,7 +38,7 @@ name2dim(a::NamedDimsArray{L}, name) where L = name2dim(L, name)
 
 ## Minimal
 Base.size(a::NamedDimsArray) = size(parent(a))
-Base.size(a::NamedDimsArray, dim) = size(parent(a), name2dim(a, dim))
+Base.size(a::NamedDimsArray, d) = size(parent(a), dim(a, d))
 
 
 ## optional
@@ -47,7 +47,7 @@ Base.IndexStyle(::Type{A}) where A<:NamedDimsArray = Base.IndexStyle(parent_type
 Base.length(a::NamedDimsArray) = length(parent(a))
 
 Base.axes(a::NamedDimsArray) = axes(parent(a))
-Base.axes(a::NamedDimsArray, dim) = axes(parent(a), name2dim(a, dim))
+Base.axes(a::NamedDimsArray, d) = axes(parent(a), dim(a, d))
 
 
 function Base.similar(a::NamedDimsArray{L}, args...) where L
@@ -76,7 +76,7 @@ order_named_inds(A; y=5) == (:, 5)
 
 This provides the core indexed lookup for `getindex` and `setindex` on the Array `A`
 """
-order_named_inds(A::AbstractArray; named_inds...) = order_named_inds(dim_names(A); named_inds...)
+order_named_inds(A::AbstractArray; named_inds...) = order_named_inds(names(A); named_inds...)
 
 ###################
 # getindex / view / dotview
@@ -97,7 +97,7 @@ for f in (:getindex, :view, :dotview)
         @propagate_inbounds function Base.$f(a::NamedDimsArray, inds...)
             # Some nonscalar case, will return an array, so need to give that names.
             data = Base.$f(parent(a), inds...)
-            L = determine_remaining_dim(dim_names(a), inds)
+            L = determine_remaining_dim(names(a), inds)
             return NamedDimsArray{L}(data)
         end
     end
@@ -105,9 +105,9 @@ end
 
 ############################################
 # setindex!
-@propagate_inbounds function Base.setindex!(A::NamedDimsArray, value; named_inds...)
-    inds = order_named_inds(A; named_inds...)
-    return setindex!(A, value, inds...)
+@propagate_inbounds function Base.setindex!(a::NamedDimsArray, value; named_inds...)
+    inds = order_named_inds(a; named_inds...)
+    return setindex!(a, value, inds...)
 end
 
 @propagate_inbounds function Base.setindex!(a::NamedDimsArray, value, inds...)

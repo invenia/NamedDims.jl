@@ -1,47 +1,45 @@
-
 """
-    name2dim(dimnames, [name])
+    dim(dimnames, [name])
 
 For `dimnames` being a tuple of dimnames (symbols) for dimenensions.
 If called with just the tuple,
 returns a named tuple, with each name mapped to a dimension.
-e.g `name2dim((:a, :b)) == (a=1, b=2)`.
+e.g `dim((:a, :b)) == (a=1, b=2)`.
 
 If the second `name` argument is given, them the dimension corresponding to that `name`,
 is returned.
-e.g. `name2dim((:a, :b), :b) == 2`
+e.g. `dim((:a, :b), :b) == 2`
 If that `name` is not found then `0` is returned.
 """
-function name2dim(dimnames::Tuple)
+function dim(dimnames::Tuple)
     # Note: This code is runnable at compile time if input is a constant
     # If modified, make sure to recheck that it still can run at compile time
-    # e.g. via `@code_llvm (()->name2dim((:a, :b)))()` which should be very short
+    # e.g. via `@code_llvm (()->dim((:a, :b)))()` which should be very short
     ndims = length(dimnames)
     return NamedTuple{dimnames, NTuple{ndims, Int}}(1:ndims)
 end
 
-function name2dim(dimnames::Tuple, name::Symbol)
+function dim(dimnames::Tuple, name::Symbol)
     # Note: This code is runnable at compile time if inputs are constants
     # If modified, make sure to recheck that it still can run at compile time
-    # e.g. via `@code_llvm (()->name2dim((:a, :b), :a))()` which should just say `return 1`
+    # e.g. via `@code_llvm (()->dim((:a, :b), :a))()` which should just say `return 1`
     this_namemap = NamedTuple{(name,), Tuple{Int}}((0,))  # 0 is default we will overwrite
-    full_namemap = name2dim(dimnames)
-    dim = first(merge(this_namemap, full_namemap))
-    return dim
+    full_namemap = dim(dimnames)
+    return first(merge(this_namemap, full_namemap))
 end
 
-function name2dim(dimnames::Tuple, names)
+function dim(dimnames::Tuple, names)
     # This handles things like `(:x, :y)` or `[:x, :y]`
     # or via the fallbacks `(1,2)`, or `1:5`
-    return map(name->name2dim(dimnames, name), names)
+    return map(name->dim(dimnames, name), names)
 end
 
-function name2dim(dimnames::Tuple, dim::Union{Integer, Colon})
+function dim(dimnames::Tuple, d::Union{Integer, Colon})
     # This is the fallback that allows `NamedDimsArray`'s to be have dimensions
     # referred to by number. This is required to allow functions on `AbstractArray`s
     # and that use function like `sum(xs; dims=2)` to continue to work without changes
     # `:` is the default for most methods that take `dims`
-    return dim
+    return d
 end
 
 
@@ -50,12 +48,11 @@ end
 This is the default value for all indexing expressions using the given dimnames.
 Which is to say: take a full slice on everything
 """
-function default_inds(dimnames::Tuple)
+function default_inds(dimnames::NTuple{N}) where N
     # Note: This code is runnable at compile time if input is a constant
     # If modified, make sure to recheck that it still can run at compile time
-    ndims = length(dimnames)
-    values = ntuple(_->Colon(), ndims)
-    return NamedTuple{dimnames, NTuple{ndims, Colon}}(values)
+    values = ntuple(_->Colon(), N)
+    return NamedTuple{dimnames, NTuple{N, Colon}}(values)
 end
 
 
@@ -69,13 +66,14 @@ An error is thrown if any dimnames are given in `named_inds` that do not occur i
 function order_named_inds(dimnames::Tuple; named_inds...)
     # Note: This code is runnable at compile time if input is a constant
     # If modified, make sure to recheck that it still can run at compile time
-    keys(named_inds) ⊆ dimnames || throw(
-        DimensionMismatch("Expected $(dimnames), got $(keys(named_inds))")
-    )
 
     slice_everything = default_inds(dimnames)
     full_named_inds = merge(slice_everything, named_inds)
+    if length(full_named_inds) != length(dimnames)
+        throw(DimensionMismatch("Expected $(dimnames), got $(keys(named_inds))"))
+    end
     inds = Tuple(full_named_inds)
+    return inds
 end
 
 """

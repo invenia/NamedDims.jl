@@ -9,7 +9,7 @@ for (mod, funs) in (
 )
     for fun in funs
         @eval function $mod.$fun(a::NamedDimsArray; dims=:, kwargs...)
-            new_dims = name2dim(a, dims)
+            new_dims = dim(a, dims)
             return $mod.$fun(parent(a); dims=new_dims, kwargs...)
         end
     end
@@ -21,7 +21,7 @@ for (mod, funs) in (
 )
     for fun in funs
         @eval function $mod.$fun(f, a::NamedDimsArray; dims=:, kwargs...)
-            new_dims = name2dim(a, dims)
+            new_dims = dim(a, dims)
             return $mod.$fun(f, parent(a); dims=new_dims, kwargs...)
         end
     end
@@ -33,7 +33,7 @@ for (mod, funs) in (
 )
     for fun in funs
         @eval function $mod.$fun(f1, f2, a::NamedDimsArray; dims=:, kwargs...)
-            new_dims = name2dim(a, dims)
+            new_dims = dim(a, dims)
             return $mod.$fun(f1, f2, parent(a); dims=new_dims, kwargs...)
         end
     end

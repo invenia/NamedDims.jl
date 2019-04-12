@@ -1,6 +1,8 @@
 using NamedDims
+using NamedDims: names
 using SparseArrays
 using Test
+
 
 @testset "get the parent array that was wrapped" begin
     orig = [1 2; 3 4]
@@ -9,7 +11,7 @@ end
 
 
 @testset "get the named array that was wrapped" begin
-    @test dim_names(NamedDimsArray([10 20; 30 40], (:x, :y))) === (:x, :y)
+    @test names(NamedDimsArray([10 20; 30 40], (:x, :y))) === (:x, :y)
 end
 
 
@@ -23,8 +25,8 @@ end
     @test nda[y=1] == nda[y=1, x=:] == nda[:, 1] == [10; 30]
 
     @testset "name preservation" begin
-        @test dim_names(nda[y=1]) == (:x,)
-        @test dim_names(nda[y=1:1]) == (:x, :y)
+        @test names(nda[y=1]) == (:x,)
+        @test names(nda[y=1:1]) == (:x, :y)
     end
 end
 
@@ -35,8 +37,8 @@ end
     @test @view(nda[y=1]) == @view(nda[y=1, x=:]) == @view(nda[:, 1]) == [10; 30]
 
     @testset "name preservation" begin
-        @test dim_names(nda[y=1]) == (:x,)
-        @test dim_names(nda[y=1:1]) == (:x, :y)
+        @test names(nda[y=1]) == (:x,)
+        @test names(nda[y=1:1]) == (:x, :y)
     end
 end
 
