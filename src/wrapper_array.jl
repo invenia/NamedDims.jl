@@ -1,14 +1,11 @@
 
-struct NamedDimsArray{L<:Tuple, T, N, A<:AbstractArray{T,N}} <: AbstractArray{T,N}
+# `L` is for labels, it should be a `Tuple` of `Symbol`s
+struct NamedDimsArray{L, T, N, A<:AbstractArray{T,N}} <: AbstractArray{T,N}
     data::A
 end
 
-function NamedDimsArray(orig::AbstractArray{T,N}, names) where {T, N}
-    if length(names) != N
-        throw(ArgumentError("A $N dimentional array, need $N dimension names. Got: $names"))
-    end
-    names_tt = Tuple{names...}
-    return NamedDimsArray{names_tt, T, N, typeof(orig)}(orig)
+function NamedDimsArray(orig::AbstractArray{T,N}, names::NTuple{N, Symbol}) where {T, N}
+    return NamedDimsArray{names, T, N, typeof(orig)}(orig)
 end
 
 
@@ -20,7 +17,7 @@ Base.parent(x::NamedDimsArray) = x.data
 
 Returns a tuple of containing the names of all the dimensions of the array `A`.
 """
-dim_names(::Type{<:NamedDimsArray{L}}) where L = Tuple(L.parameters)
+dim_names(::Type{<:NamedDimsArray{L}}) where L = L
 dim_names(x::T) where T = dim_names(T)
 
 
@@ -58,16 +55,7 @@ order_named_inds(A; y=5) == (:, 5)
 
 This provides the core indexed lookup for `getindex` and `setindex` on the Array `A`
 """
-function order_named_inds(A; named_inds...)
-    keys(named_inds) ⊆ dim_names(A) || throw(
-        DimensionMismatch("Expected $(dim_names(A)), got $(keys(named_inds))")
-    )
-
-
-    inds = map(dim_names(A)) do name
-        get(named_inds, name, :)  # default to slicing
-    end
-end
+order_named_inds(A::AbstractArray; named_inds...) = order_named_inds(dim_names(A); named_inds...)
 
 function Base.getindex(A::NamedDimsArray; named_inds...)
     inds = order_named_inds(A; named_inds...)
