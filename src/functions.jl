@@ -1,3 +1,20 @@
+# This file is for functions that just need simple standard overloading.
+
+## Helpers:
+
+function nameddimsarray_result(original_nda, reduced_data, reduction_dims)
+    L = names(original_nda)
+    return NamedDimsArray{L}(reduced_data)
+end
+
+# if reducing over `:` then results is a scalar
+function nameddimsarray_result(original_nda, reduced_data, reduction_dims::Colon)
+    return reduced_data
+end
+
+
+###################################################################################
+# Overloads
 
 # 1 Arg
 for (mod, funs) in (
@@ -9,8 +26,9 @@ for (mod, funs) in (
 )
     for fun in funs
         @eval function $mod.$fun(a::NamedDimsArray; dims=:, kwargs...)
-            new_dims = dim(a, dims)
-            return $mod.$fun(parent(a); dims=new_dims, kwargs...)
+            numerical_dims = dim(a, dims)
+            data = $mod.$fun(parent(a); dims=numerical_dims, kwargs...)
+            return nameddimsarray_result(a, data, numerical_dims)
         end
     end
 end
@@ -21,8 +39,9 @@ for (mod, funs) in (
 )
     for fun in funs
         @eval function $mod.$fun(f, a::NamedDimsArray; dims=:, kwargs...)
-            new_dims = dim(a, dims)
-            return $mod.$fun(f, parent(a); dims=new_dims, kwargs...)
+            numerical_dims = dim(a, dims)
+            data = $mod.$fun(f, parent(a); dims=numerical_dims, kwargs...)
+            return nameddimsarray_result(a, data, numerical_dims)
         end
     end
 end
@@ -33,8 +52,9 @@ for (mod, funs) in (
 )
     for fun in funs
         @eval function $mod.$fun(f1, f2, a::NamedDimsArray; dims=:, kwargs...)
-            new_dims = dim(a, dims)
-            return $mod.$fun(f1, f2, parent(a); dims=new_dims, kwargs...)
+            numerical_dims = dim(a, dims)
+            data = $mod.$fun(f1, f2, parent(a); dims=numerical_dims, kwargs...)
+            return nameddimsarray_result(a, data, numerical_dims)
         end
     end
 end
