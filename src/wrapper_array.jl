@@ -73,7 +73,7 @@ Base.axes(a::NamedDimsArray) = axes(parent(a))
 Base.axes(a::NamedDimsArray, d) = axes(parent(a), dim(a, d))
 
 
-function Base.similar(a::NamedDimsArray{L}, args...) where L
+function Base.similar(a::NamedDimsArray{L}, args::Type...) where L
     return NamedDimsArray{L}(similar(parent(a), args...))
 end
 
