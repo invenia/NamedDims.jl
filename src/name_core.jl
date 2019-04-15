@@ -77,15 +77,16 @@ function order_named_inds(dimnames::Tuple; named_inds...)
 end
 
 """
-    determine_remaining_dim(dimnames::Tuple, inds...)
-Given a tuple of dimension names, e.g.
+    remaining_dimnames_from_indexing(dimnames::Tuple, inds...)
+Given a tuple of dimension names
 and a set of index expressesion e.g `1, :, 1:3, [true, false]`,
 determine which are not dropped.
 Dimensions indexed with scalars are dropped
 """
-@generated function determine_remaining_dim(dimnames::Tuple, inds)
+@generated function remaining_dimnames_from_indexing(dimnames::Tuple, inds)
     # Note: This allocates once, and it shouldn't have to
     # See: #@btime (()->determine_remaining_dim((:a, :b, :c), (:,390,:)))()
+    # this is because returning tuple of symbols allocates.
     # See: https://discourse.julialang.org/t/zero-allocation-tuple-subsetting/23122/8
     # In general this allocation should be optimised out anyway, when not benchmarking
     # just this.
@@ -96,3 +97,35 @@ Dimensions indexed with scalars are dropped
 end
 keep_dim_ind_type(::Type{<:Integer}) = false
 keep_dim_ind_type(::Any) = true
+
+
+"""
+    remaining_dimnames_after_dropping(dimnames::Tuple, dropped_dims)
+Given a tuple of dimension names, and either a collection of dimensions,
+or a single dimension, expressed as a number,
+Returns the dimension names with those dimensions dropped.
+"""
+function remaining_dimnames_after_dropping(dimnames::Tuple, dropped_dim::Integer)
+    return remaining_dimnames_after_dropping(dimnames, (dropped_dim,))
+end
+
+function remaining_dimnames_after_dropping(dimnames::Tuple, dropped_dims)
+    # Note: This allocates once, and it shouldn't have to. Reason is same as for
+    # remaining_dimnames_from_indexing. I.e. returning tuple of symbols allocates.
+    # see `@btime remaining_dims_names_from_reducing((:a,:b, :c, :d, :e), (1,2,))
+
+
+    anti_names = identity_namedtuple(map(x->dimnames[x], dropped_dims))
+    full_names = identity_namedtuple(dimnames)
+
+    # Now we construct a new named tuple, with all the names we want to remove at the start
+    combined_names = merge(anti_names, full_names)
+    n_skip = length(anti_names)
+    ntuple(length(full_names) - n_skip) do ii
+        combined_names[ii + n_skip]  # Skip over the ones we left as the start
+    end
+end
+
+function identity_namedtuple(tup::NTuple{N, Symbol}) where N
+    return NamedTuple{tup, typeof(tup)}(tup)
+end

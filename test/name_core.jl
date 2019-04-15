@@ -1,5 +1,8 @@
 using NamedDims
-using NamedDims: order_named_inds, determine_remaining_dim
+using NamedDims:
+    order_named_inds,
+    remaining_dimnames_from_indexing,
+    remaining_dimnames_after_dropping
 using Test
 
 
@@ -37,8 +40,17 @@ end
     @test order_named_inds((:x, :y); x=30, y=20) == (30, 20)
 end
 
-@testset "determine_remaining_dim" begin
-    @test determine_remaining_dim((:a, :b, :c), (10,20,30)) == tuple()
-    @test determine_remaining_dim((:a, :b, :c), (10,:,30)) == (:b,)
-    @test determine_remaining_dim((:a, :b, :c), (1:1, [true], [20])) == (:a, :b, :c)
+@testset "remaining_dimnames_from_indexing" begin
+    @test remaining_dimnames_from_indexing((:a, :b, :c), (10,20,30)) == tuple()
+    @test remaining_dimnames_from_indexing((:a, :b, :c), (10,:,30)) == (:b,)
+    @test remaining_dimnames_from_indexing((:a, :b, :c), (1:1, [true], [20])) == (:a, :b, :c)
+end
+
+
+@testset "remaining_dimnames_after_dropping" begin
+    @test remaining_dimnames_after_dropping((:a, :b, :c), 1) == (:b, :c)
+    @test remaining_dimnames_after_dropping((:a, :b, :c), 3) == (:a, :b)
+    @test remaining_dimnames_after_dropping((:a, :b, :c), (1,3)) == (:b,)
+    @test remaining_dimnames_after_dropping((:a, :b, :c), (3,1)) == (:b,)
+
 end

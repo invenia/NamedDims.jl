@@ -120,7 +120,7 @@ for f in (:getindex, :view, :dotview)
         @propagate_inbounds function Base.$f(a::NamedDimsArray, inds...)
             # Some nonscalar case, will return an array, so need to give that names.
             data = Base.$f(parent(a), inds...)
-            L = determine_remaining_dim(names(a), inds)
+            L = remaining_dimnames_from_indexing(names(a), inds)
             return NamedDimsArray{L}(data)
         end
     end
