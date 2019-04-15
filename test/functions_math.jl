@@ -44,6 +44,14 @@ using Test
         @test names(rhs_sum) == (:w,:x,:y,:z)
 
 
+        casts = (NamedDimsArray{(:foo, :bar)}, identity)
+        for (T1,T2,T3,T4) in Iterators.product(casts, casts, casts, casts)
+            all(isequal(identity), (T1,T2,T3,T4)) && continue
+            total = T1(ones(3,6)) + T2(2*ones(3,6)) + T3(3*ones(3,6)) + T4(4*ones(3,6))
+            @test total == 10*ones(3,6)
+            @test names(total) == (:foo, :bar)
+        end
+
 
     end
 end
