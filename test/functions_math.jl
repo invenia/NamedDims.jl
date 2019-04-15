@@ -51,7 +51,27 @@ using Test
             @test total == 10*ones(3,6)
             @test names(total) == (:foo, :bar)
         end
+    end
+end
 
 
+
+@testset "*" begin
+    nda = NamedDimsArray{(:a,:b)}(ones(2,3))
+    ndb = NamedDimsArray{(:b,:c)}(ones(3,2))
+
+    @testset "correct" begin
+        @test nda * ndb == 3*ones(2,2)
+        @test names(nda * ndb) == (:a,:c)
+
+        @test ones(4,3) * ndb == 3*ones(4,2)
+        @test names(ones(4,3) * ndb) == (:_,:c)
+
+        @test nda * ones(3,7) == 3*ones(2,7)
+        @test names(nda * ones(3,7)) == (:a,:_)
+    end
+
+    @testset "Dimension disagreement" begin
+        @test_throws DimensionMismatch ndb * nda
     end
 end
