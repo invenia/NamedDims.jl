@@ -20,7 +20,7 @@ using Test
         @test dim((:x, :y), :y)==2
         @test dim((:x, :y), :z)==0  # not found
     end
-    @testset "large case that" begin
+    @testset "large case" begin
         @test dim((:x, :y, :a, :b, :c, :d), :x)==1
         @test dim((:x, :y, :a, :b, :c, :d), :a)==3
         @test dim((:x, :y, :a, :b, :c, :d), :d)==6
