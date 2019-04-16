@@ -73,9 +73,39 @@ Base.axes(a::NamedDimsArray) = axes(parent(a))
 Base.axes(a::NamedDimsArray, d) = axes(parent(a), dim(a, d))
 
 
-function Base.similar(a::NamedDimsArray{L}, args::Type...) where L
-    return NamedDimsArray{L}(similar(parent(a), args...))
+named_size(a::NamedDimsArray{L,T,N}) where {L,T,N} = NamedTuple{L, NTuple{N,Int}}(size(a))
+
+function Base.similar(
+    a::NamedDimsArray{L,T},
+    eltype::Type=T,
+    dims::NamedTuple{new_names}=named_size(a)
+    ) where {L,T,new_names}
+
+    new_sizes = values(dims)
+    return NamedDimsArray{new_names}(similar(parent(a), eltype, new_sizes))
 end
+
+function Base.similar(
+    a::NamedDimsArray{L,T,N},
+    eltype::Type,
+    new_names::NTuple{N,Symbol}
+    ) where {T,N,L}
+
+    dims = NamedTuple{new_names, NTuple{N,Int}}(size(a))
+    return similar(a, eltype, dims)
+end
+
+
+function Base.similar(
+    a::NamedDimsArray{L,T,N},
+    eltype::Type,
+    new_sizes::NTuple{N,Int}
+    ) where {L,T,N}
+
+    dims = NamedTuple{L, NTuple{N,Int}}(new_sizes)
+    return similar(a, eltype, dims)
+end
+
 
 
 ###############################
