@@ -66,6 +66,14 @@ using Test
 end
 
 
+@testset "-" begin
+    # This is actually covered by the tests for + above, since that uses the same code
+    # just one extra as a sensability check
+    nda = NamedDimsArray{(:a,:b)}(ones(3,100))
+    @test nda - nda == zeros(3, 100)
+    @test names(nda - nda) == (:a, :b)
+end
+
 
 
 @testset "*" begin

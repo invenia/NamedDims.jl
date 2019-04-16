@@ -1,19 +1,23 @@
-# This supports no broadcasting math on NamedDimArrays
-function Base.:+(a::NamedDimsArray{A}, b::NamedDimsArray{B}) where {A,B}
-    L = combine_names(A, B)
-    data = +(parent(a), parent(b))
-    return NamedDimsArray{L}(data)
-end
-function Base.:+(a::NamedDimsArray{L}, b::AbstractArray) where {L}
-    data = +(parent(a), b)
-    return NamedDimsArray{L}(data)
-end
-function Base.:+(a::AbstractArray, b::NamedDimsArray{L}) where {L}
-    data = +(a, parent(b))
-    return NamedDimsArray{L}(data)
+# This supports nonbroadcasting math on NamedDimArrays
+
+for op in (:+, :-)
+    @eval function Base.$op(a::NamedDimsArray{A}, b::NamedDimsArray{B}) where {A,B}
+        L = combine_names(A, B)
+        data = $op(parent(a), parent(b))
+        return NamedDimsArray{L}(data)
+    end
+    @eval function Base.$op(a::NamedDimsArray{L}, b::AbstractArray) where {L}
+        data = $op(parent(a), b)
+        return NamedDimsArray{L}(data)
+    end
+    @eval function Base.$op(a::AbstractArray, b::NamedDimsArray{L}) where {L}
+        data = $op(a, parent(b))
+        return NamedDimsArray{L}(data)
+    end
 end
 
 
+# Matrix product
 matrix_prod_error(A, B) = throw(DimensionMismatch(
     "Cannot take matrix product of arrays with different inner dimension names. $A vs $B"
 ))
