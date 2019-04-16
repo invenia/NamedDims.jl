@@ -15,6 +15,16 @@ using Test
         @test names(+(nda, nda, nda)) == (:a,)
     end
 
+    @testset "partially named dims" begin
+        ndx = NamedDimsArray{(:x,:_)}(ones(3,5))
+        ndy = NamedDimsArray{(:_,:y)}(ones(3,5))
+
+        lhs = ndx + ndy
+        rhs = ndy + ndx
+        @test names(lhs) == (:x, :y) == names(rhs)
+        @test lhs == 2*ones(3,5) == rhs 
+    end
+
     @testset "Dimension disagreement" begin
         @test_throws DimensionMismatch +(
             NamedDimsArray{(:a,:b,:c,:d)}(zeros(3,3,3,3)),

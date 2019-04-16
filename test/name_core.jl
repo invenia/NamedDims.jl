@@ -1,5 +1,6 @@
 using NamedDims
 using NamedDims:
+    combine_names,
     order_named_inds,
     remaining_dimnames_from_indexing,
     remaining_dimnames_after_dropping
@@ -28,6 +29,20 @@ using Test
     end
 end
 
+@testset "combine_names" begin
+    @test combine_names((:a,), (:a,)) == (:a,)
+    @test combine_names((:a,:b), (:a,:b)) == (:a,:b)
+    @test combine_names((:a,:_), (:a,:b)) == (:a,:b)
+    @test combine_names((:a,:_), (:a,:_)) == (:a,:_)
+
+    @test combine_names((:a,:b,:c), (:_,:_,:_)) == (:a,:b,:c)
+    @test combine_names((:a,:_,:c), (:_,:b,:_)) == (:a,:b,:c)
+    @test combine_names((:_,:_,:_), (:_,:_,:_)) == (:_,:_,:_)
+
+    @test_throws DimensionMismatch combine_names((:a,), (:b,))
+    @test_throws DimensionMismatch combine_names((:a,), (:a, :b,))
+    @test_throws DimensionMismatch combine_names((:a,:b,:c), (:_,:_,:d))
+end
 
 @testset "order_named_inds" begin
     @test order_named_inds((:x,)) == (:,)
@@ -52,5 +67,4 @@ end
     @test remaining_dimnames_after_dropping((:a, :b, :c), 3) == (:a, :b)
     @test remaining_dimnames_after_dropping((:a, :b, :c), (1,3)) == (:b,)
     @test remaining_dimnames_after_dropping((:a, :b, :c), (3,1)) == (:b,)
-
 end

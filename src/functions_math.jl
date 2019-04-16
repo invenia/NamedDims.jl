@@ -1,14 +1,9 @@
 # This supports no broadcasting math on NamedDimArrays
 
 function Base.:+(a::NamedDimsArray{A}, b::NamedDimsArray{B}) where {A,B}
-    if A !== B
-        throw(DimensionMismatch(
-            "Attempted to add arrays with different dimension names. $A ≠ $B."
-        ))
-    end
-
+    L = combine_names(A, B)
     data = +(parent(a), parent(b))
-    return NamedDimsArray{A}(data)
+    return NamedDimsArray{L}(data)
 end
 function Base.:+(a::NamedDimsArray{L}, b::AbstractArray) where {L}
     data = +(parent(a), b)

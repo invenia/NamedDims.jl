@@ -88,9 +88,9 @@ function order_named_inds(dimnames::Tuple; named_inds...)
     return inds
 end
 
-function combined_names(names_a, names_b)
+function combine_names(names_a, names_b)
     # 0-Allocations if inputs are the same
-    # 1-Allocation, if has a `:)_` see  `@btime (()->combined_names((:a, :b), (:a, :_)))()``
+    # 1-Allocation, if has a `:)_` see  `@btime (()->combine_names((:a, :b), (:a, :_)))()``
 
     names_a == names_b && return names_a
 
@@ -145,9 +145,9 @@ function remaining_dimnames_after_dropping(dimnames::Tuple, dropped_dims)
     full_names = identity_namedtuple(dimnames)
 
     # Now we construct a new named tuple, with all the names we want to remove at the start
-    combined_names = merge(anti_names, full_names)
+    combine_names = merge(anti_names, full_names)
     n_skip = length(anti_names)
     ntuple(length(full_names) - n_skip) do ii
-        combined_names[ii + n_skip]  # Skip over the ones we left as the start
+        combine_names[ii + n_skip]  # Skip over the ones we left as the start
     end
 end
