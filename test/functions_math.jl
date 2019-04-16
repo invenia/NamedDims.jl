@@ -1,4 +1,5 @@
 using NamedDims
+using NamedDims: matrix_prod_names
 using Test
 
 @testset "+" begin
@@ -22,7 +23,7 @@ using Test
         lhs = ndx + ndy
         rhs = ndy + ndx
         @test names(lhs) == (:x, :y) == names(rhs)
-        @test lhs == 2*ones(3,5) == rhs 
+        @test lhs == 2*ones(3,5) == rhs
     end
 
     @testset "Dimension disagreement" begin
@@ -66,22 +67,59 @@ end
 
 
 
+
 @testset "*" begin
-    nda = NamedDimsArray{(:a,:b)}(ones(2,3))
-    ndb = NamedDimsArray{(:b,:c)}(ones(3,2))
+    @testset "matrix_prod_names" begin
+        @test matrix_prod_names((:foo, :bar), (:bar, :buzz)) == (:foo, :buzz)
+        @test matrix_prod_names((:foo, :bar), (:_, :buzz)) == (:foo, :buzz)
+        @test matrix_prod_names((:foo, :_), (:bar, :buzz)) == (:foo, :buzz)
+        @test matrix_prod_names((:foo, :_), (:_, :buzz)) == (:foo, :buzz)
+        @test_throws DimensionMismatch matrix_prod_names((:foo, :bar), (:nope, :buzz))
 
-    @testset "correct" begin
-        @test nda * ndb == 3*ones(2,2)
-        @test names(nda * ndb) == (:a,:c)
+        @test matrix_prod_names((:foo,), (:bar, :buzz)) == (:foo, :buzz)
+        @test matrix_prod_names((:foo,), (:_, :buzz)) == (:foo, :buzz)
+        # No error case with name mismatch here, as a Vector has "virtual" wildcard second dimension
 
-        @test ones(4,3) * ndb == 3*ones(4,2)
-        @test names(ones(4,3) * ndb) == (:_,:c)
-
-        @test nda * ones(3,7) == 3*ones(2,7)
-        @test names(nda * ones(3,7)) == (:a,:_)
+        @test matrix_prod_names((:foo, :bar), (:bar,)) == (:foo,)
+        @test matrix_prod_names((:foo, :bar), (:_, )) == (:foo,)
+        @test matrix_prod_names((:foo, :_), (:bar,)) == (:foo,)
+        @test matrix_prod_names((:foo, :_), (:_,)) == (:foo,)
+        @test_throws DimensionMismatch matrix_prod_names((:foo, :bar), (:nope,))
     end
 
-    @testset "Dimension disagreement" begin
-        @test_throws DimensionMismatch ndb * nda
+    @testset "Matrix-Matrix" begin
+        nda = NamedDimsArray{(:a,:b)}(ones(2,3))
+        ndb = NamedDimsArray{(:b,:c)}(ones(3,2))
+
+        @testset "correct" begin
+            @test nda * ndb == 3*ones(2,2)
+            @test names(nda * ndb) == (:a,:c)
+
+            @test ones(4,3) * ndb == 3*ones(4,2)
+            @test names(ones(4,3) * ndb) == (:_,:c)
+
+            @test nda * ones(3,7) == 3*ones(2,7)
+            @test names(nda * ones(3,7)) == (:a,:_)
+        end
+
+        @testset "Dimension disagreement" begin
+            @test_throws DimensionMismatch ndb * nda
+        end
+    end
+
+    @testset "Matrix-Vector" begin
+        ndm = NamedDimsArray{(:a,:b)}(ones(1,1))
+        ndv = NamedDimsArray{(:b, )}(ones(1))
+
+        @test ndm * ndv == ones(1)
+        @test names(ndm * ndv) == (:a,)
+    end
+
+    @testset "Vector-Matrix" begin
+        ndm = NamedDimsArray{(:a,:b)}(ones(1,1))
+        ndv = NamedDimsArray{(:a, )}(ones(1))
+
+        @test ndv * ndm == ones(1,1)
+        @test names(ndv * ndm) == (:a,:b)
     end
 end
