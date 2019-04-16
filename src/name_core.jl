@@ -138,8 +138,7 @@ function remaining_dimnames_after_dropping(dimnames::Tuple, dropped_dim::Integer
 end
 
 function remaining_dimnames_after_dropping(dimnames::Tuple, dropped_dims)
-    # 1-Alocation see: `@btime remaining_dimnames_after_dropping((:a,:b,:c,:d,:e), (1,2,))
-
+    # 1-Allocation see: `@btime remaining_dimnames_after_dropping((:a,:b,:c,:d,:e), (1,2,))
 
     anti_names = identity_namedtuple(map(x->dimnames[x], dropped_dims))
     full_names = identity_namedtuple(dimnames)
