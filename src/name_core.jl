@@ -138,16 +138,16 @@ function remaining_dimnames_after_dropping(dimnames::Tuple, dropped_dim::Integer
 end
 
 function remaining_dimnames_after_dropping(dimnames::Tuple, dropped_dims)
-    # 1-Allcoation see: `@btime remaining_dimnames_after_dropping((:a,:b,:c,:d,:e), (1,2,))
+    # 1-Alocation see: `@btime remaining_dimnames_after_dropping((:a,:b,:c,:d,:e), (1,2,))
 
 
     anti_names = identity_namedtuple(map(x->dimnames[x], dropped_dims))
     full_names = identity_namedtuple(dimnames)
 
     # Now we construct a new named tuple, with all the names we want to remove at the start
-    combine_names = merge(anti_names, full_names)
+    combined_names = merge(anti_names, full_names)
     n_skip = length(anti_names)
     ntuple(length(full_names) - n_skip) do ii
-        combine_names[ii + n_skip]  # Skip over the ones we left as the start
+        combined_names[ii + n_skip]  # Skip over the ones we left as the start
     end
 end
