@@ -1,5 +1,12 @@
 module NamedDims
+using Base: @propagate_inbounds
+using Statistics
 
-greet() = print("Hello World!")
+export NamedDimsArray, dim
+
+include("name_core.jl")
+include("wrapper_array.jl")
+include("functions.jl")
+include("functions_dims.jl")
 
 end # module
