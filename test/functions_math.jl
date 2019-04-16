@@ -5,7 +5,7 @@ using Test
 @testset "+" begin
     nda = NamedDimsArray{(:a,)}(ones(3))
 
-    @testset "correct" begin
+    @testset "standard case" begin
         @test +(nda) == ones(3)
         @test names(+(nda)) == (:a,)
 
@@ -99,7 +99,7 @@ end
         nda = NamedDimsArray{(:a,:b)}(ones(2,3))
         ndb = NamedDimsArray{(:b,:c)}(ones(3,2))
 
-        @testset "correct" begin
+        @testset "standard case" begin
             @test nda * ndb == 3*ones(2,2)
             @test names(nda * ndb) == (:a,:c)
 
