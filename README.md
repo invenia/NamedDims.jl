@@ -30,11 +30,20 @@ You can use this to bypass the protection,
 
 To allow for arrays where only some dimensions have names,
 the name `:_` is treated as a wildcard.
-Dimensions named with `:_` will not be protected against operating between dimensions of different names; in these cases the result will take the name from the nonwildcard name, if any of the operands had such a concrete name.
+Dimensions named with `:_` will not be protected against operating between dimensions of different names; in these cases the result will take the name from the non-wildcard name, if any of the operands had such a concrete name.
 For example:
 `NamedDimsArray{(:time,:_)}(ones(5,2)) + NamedDimsArray{(:_, :place,)}(ones(5,2))`
 is allowed. and would have a result of:
 `NamedDimsArray{(:time,:place)}(2*ones(5,2))`
+As such, unless you want this wildcard behaviour, you should *not* use `:_` as a dimension name.
+(Also that is a terrible dimension name, and goes against the whole point of this package.)
 
- When you perform matrix multiplication between a `AbstractArray` and a `NamedDimsArray`
- then the new dimensions name is given as the wildcard `:_`.
+
+When you perform matrix multiplication between a `AbstractArray` and a `NamedDimsArray`
+then the new dimensions name is given as the wildcard `:_`.
+Similarly, when you take the transpose of a `AbstractVector`, the new first dimension
+is named `:_`.
+
+Currently, if you have more than one wildcard dimension name,
+functionality for referring to dimensions by name will not work.
+See [issue #8](https://github.com/invenia/NamedDims.jl/issues/8).
