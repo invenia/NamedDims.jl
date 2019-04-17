@@ -7,6 +7,7 @@ export NamedDimsArray, dim
 
 include("name_core.jl")
 include("wrapper_array.jl")
+include("broadcasting.jl")
 include("functions.jl")
 include("functions_dims.jl")
 include("functions_math.jl")

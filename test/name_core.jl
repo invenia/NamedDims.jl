@@ -2,6 +2,7 @@ using NamedDims
 using NamedDims:
     names,
     combine_names,
+    combine_names_longest,
     order_named_inds,
     permute_dimnames,
     remaining_dimnames_from_indexing,
@@ -31,19 +32,26 @@ using Test
     end
 end
 
-@testset "combine_names" begin
-    @test combine_names((:a,), (:a,)) == (:a,)
-    @test combine_names((:a,:b), (:a,:b)) == (:a,:b)
-    @test combine_names((:a,:_), (:a,:b)) == (:a,:b)
-    @test combine_names((:a,:_), (:a,:_)) == (:a,:_)
-
-    @test combine_names((:a,:b,:c), (:_,:_,:_)) == (:a,:b,:c)
-    @test combine_names((:a,:_,:c), (:_,:b,:_)) == (:a,:b,:c)
-    @test combine_names((:_,:_,:_), (:_,:_,:_)) == (:_,:_,:_)
-
-    @test_throws DimensionMismatch combine_names((:a,), (:b,))
+@testset "combine_names/combine_names_longest" begin
     @test_throws DimensionMismatch combine_names((:a,), (:a, :b,))
-    @test_throws DimensionMismatch combine_names((:a,:b,:c), (:_,:_,:d))
+
+    @test combine_names_longest((:a,), (:a, :b,)) == (:a, :b)
+    @test combine_names_longest((:a,), (:a,:_)) == (:a,:_)
+    @test combine_names_longest((:a,:b), (:a,:_,:c)) == (:a,:b,:c)
+
+    for combine in (combine_names, combine_names_longest)
+        @test combine((:a,), (:a,)) == (:a,)
+        @test combine((:a,:b), (:a,:b)) == (:a,:b)
+        @test combine((:a,:_), (:a,:b)) == (:a,:b)
+        @test combine((:a,:_), (:a,:_)) == (:a,:_)
+
+        @test combine((:a,:b,:c), (:_,:_,:_)) == (:a,:b,:c)
+        @test combine((:a,:_,:c), (:_,:b,:_)) == (:a,:b,:c)
+        @test combine((:_,:_,:_), (:_,:_,:_)) == (:_,:_,:_)
+
+        @test_throws DimensionMismatch combine((:a,), (:b,))
+        @test_throws DimensionMismatch combine((:a,:b,:c), (:_,:_,:d))
+    end
 end
 
 @testset "order_named_inds" begin

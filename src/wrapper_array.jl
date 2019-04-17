@@ -73,8 +73,10 @@ Base.axes(a::NamedDimsArray) = axes(parent(a))
 Base.axes(a::NamedDimsArray, d) = axes(parent(a), dim(a, d))
 
 
-named_size(a::NamedDimsArray{L,T,N}) where {L,T,N} = NamedTuple{L, NTuple{N,Int}}(size(a))
-
+function named_size(a::AbstractArray{T,N}) where {T,N}
+    L = names(a)
+    NamedTuple{L, NTuple{N,Int}}(size(a))
+end
 function Base.similar(
     a::NamedDimsArray{L,T},
     eltype::Type=T,
@@ -147,9 +149,9 @@ for f in (:getindex, :view, :dotview)
             return Base.$f(parent(a), inds...)
         end
 
-        @propagate_inbounds function Base.$f(a::NamedDimsArray, ind::CartesianIndex)
+        @propagate_inbounds function Base.$f(a::NamedDimsArray, ci::CartesianIndex)
             # Easy scalar case, will just return the element
-            return Base.$f(parent(a), ind)
+            return Base.$f(parent(a), ci)
         end
 
         @propagate_inbounds function Base.$f(a::NamedDimsArray, inds...)

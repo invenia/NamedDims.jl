@@ -152,6 +152,27 @@ function combine_names(names_a, names_b)
     return compile_time_return_hack(ret)
 end
 
+combine_names_longest(name, ::Tuple{}) = name
+combine_names_longest(::Tuple{}, name) = name
+combine_names_longest(::Tuple{}, ::Tuple{}) = tuple()
+function combine_names_longest(a_names, b_names)
+    # 1 Allocation: @btime (()-> combine_names_longest((:a,:b), (:a,)))()
+
+    length(a_names) == length(b_names) && return combine_names(a_names, b_names)
+    long, short = length(a_names) > length(b_names) ? (a_names, b_names) : (b_names, a_names)
+
+    short_names = identity_namedtuple(short)
+    return ntuple(length(long)) do ii
+        a = getfield(long, ii)
+        b = get(short_names, ii, :_)
+        a === :_ && return b
+        b === :_ && return a
+        a === b && return a
+        throw(DimensionMismatch(err_msg * "$names_a ≠ $names_b."))
+    end
+end
+
+
 """
     remaining_dimnames_from_indexing(dimnames::Tuple, inds...)
 Given a tuple of dimension names
