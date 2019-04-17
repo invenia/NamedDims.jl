@@ -117,6 +117,11 @@ for f in (:getindex, :view, :dotview)
             return Base.$f(parent(a), inds...)
         end
 
+        @propagate_inbounds function Base.$f(a::NamedDimsArray, ind::CartesianIndex)
+            # Easy scalar case, will just return the element
+            return Base.$f(parent(a), ind)
+        end
+
         @propagate_inbounds function Base.$f(a::NamedDimsArray, inds...)
             # Some nonscalar case, will return an array, so need to give that names.
             data = Base.$f(parent(a), inds...)

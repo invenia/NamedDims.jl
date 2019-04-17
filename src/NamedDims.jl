@@ -1,5 +1,6 @@
 module NamedDims
 using Base: @propagate_inbounds
+using LinearAlgebra
 using Statistics
 
 export NamedDimsArray, dim

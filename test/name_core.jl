@@ -1,5 +1,6 @@
 using NamedDims
 using NamedDims:
+    names,
     combine_names,
     order_named_inds,
     remaining_dimnames_from_indexing,
