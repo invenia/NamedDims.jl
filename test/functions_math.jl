@@ -1,5 +1,5 @@
 using NamedDims
-using NamedDims: matrix_prod_names
+using NamedDims: matrix_prod_names, names
 using Test
 
 @testset "+" begin
@@ -74,6 +74,12 @@ end
     @test names(nda - nda) == (:a, :b)
 end
 
+
+@testset "scalar product" begin
+    nda = NamedDimsArray{(:a, :b, :c, :d, :e)}(ones(10,20,30,40,50))
+    @test 10*nda == 10*ones(10,20,30,40,50)
+    @test names(10*nda) == (:a, :b, :c, :d, :e)
+end
 
 
 @testset "matmul" begin

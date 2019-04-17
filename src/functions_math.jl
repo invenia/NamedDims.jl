@@ -1,22 +1,5 @@
 # This supports nonbroadcasting math on NamedDimArrays
 
-for op in (:+, :-)
-    @eval function Base.$op(a::NamedDimsArray{A}, b::NamedDimsArray{B}) where {A,B}
-        L = combine_names(A, B)
-        data = $op(parent(a), parent(b))
-        return NamedDimsArray{L}(data)
-    end
-    @eval function Base.$op(a::NamedDimsArray{L}, b::AbstractArray) where {L}
-        data = $op(parent(a), b)
-        return NamedDimsArray{L}(data)
-    end
-    @eval function Base.$op(a::AbstractArray, b::NamedDimsArray{L}) where {L}
-        data = $op(a, parent(b))
-        return NamedDimsArray{L}(data)
-    end
-end
-
-
 # Matrix product
 valid_matmul_dims(a::Tuple{Symbol}, b::Tuple{Vararg{Symbol}}) = true
 function valid_matmul_dims(a::Tuple{Symbol, Symbol}, b::Tuple{Vararg{Symbol}})
