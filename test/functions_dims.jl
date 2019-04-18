@@ -15,25 +15,33 @@ using Test
     @test names(dropdims(nda; dims=(:b,:c))) == (:a, :d) == names(dropdims(nda; dims=(2,3)))
 end
 
-@testset "adjoint" begin
-    @testset "Vector adjoint" begin
+@testset "$f" for f in (adjoint, transpose, permutedims)
+    @testset "Vector $f" begin
         ndv = NamedDimsArray{(:foo,)}([10,20,30])
-        @test ndv' == [10 20 30]
-        @test names(ndv') == (:_, :foo)
+        @test f(ndv) == [10 20 30]
+        @test names(f(ndv)) == (:_, :foo)
 
-        # Make sure vector double adjoint gets you back to the start.
-        @test (ndv')' == [10, 20, 30]
-        @test names((ndv')') == (:foo,)
+
+        if f === permutedims
+            # unlike adjoint and tranpose, permutedims should not be its own inverse
+            # The new dimension should stick around
+            @test f(f(ndv)) == reshape([10, 20, 30], Val(2))
+            @test names(f(f(ndv))) == (:foo, :_)
+        else
+            # Make sure vector double adjoint gets you back to the start.
+            @test f(f(ndv)) == [10, 20, 30]
+            @test names(f(f(ndv))) == (:foo,)
+        end
     end
 
-    @testset "Matrix adjoint" begin
+    @testset "Matrix $f" begin
         ndm = NamedDimsArray{(:foo,:bar)}([10 20 30; 11 22 33])
-        @test ndm' == [10 11; 20 22; 30 33]
-        @test names(ndm') == (:bar, :foo)
+        @test f(ndm) == [10 11; 20 22; 30 33]
+        @test names(f(ndm)) == (:bar, :foo)
 
         # Make sure implementation of matrix double adjoint is correct
         # since it is easy for the implementation of vector double adjoint broke it
-        @test (ndm')' == [10 20 30; 11 22 33]
-        @test names((ndm')') == (:foo, :bar)
+        @test f(f(ndm)) == [10 20 30; 11 22 33]
+        @test names(f(f(ndm))) == (:foo, :bar)
     end
 end
