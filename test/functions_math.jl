@@ -76,7 +76,7 @@ end
 
 
 
-@testset "*" begin
+@testset "matmul" begin
     @testset "matrix_prod_names" begin
         @test matrix_prod_names((:foo, :bar), (:bar, :buzz)) == (:foo, :buzz)
         @test matrix_prod_names((:foo, :bar), (:_, :buzz)) == (:foo, :buzz)

@@ -18,28 +18,26 @@ end
 
 
 # Matrix product
-matrix_prod_error(A, B) = throw(DimensionMismatch(
-    "Cannot take matrix product of arrays with different inner dimension names. $A vs $B"
-))
-# Matrix*Vector => Vector
-matrix_prod_names(::Type{Tuple{A1,A2}}, ::Type{Tuple{B}}) where {A1,A2,B} = throw(matrix_prod_error(A2, B))
-matrix_prod_names(::Type{Tuple{A,B}}, ::Type{Tuple{B}}) where {A,B} = (A,)
-matrix_prod_names(::Type{Tuple{A,B}}, ::Type{Tuple{:_}}) where {A,B} = (A,)
-matrix_prod_names(::Type{Tuple{A,:_}}, ::Type{Tuple{B}}) where {A,B} = (A,)
-matrix_prod_names(::Type{Tuple{A,:_}}, ::Type{Tuple{:_}}) where {A,} = (A,)
+valid_matmul_dims(a::Tuple{Symbol}, b::Tuple{Vararg{Symbol}}) = true
+function valid_matmul_dims(a::Tuple{Symbol, Symbol}, b::Tuple{Vararg{Symbol}})
+    a_dim = a[end]
+    b_dim = b[1]
 
-#Vector*Matrix => Matrix  (Note in this case the first dim of matrix must have size 1)
-matrix_prod_names(::Type{Tuple{A}}, ::Type{Tuple{B1,B2}}) where {A,B1,B2} = (A,B2)
+    return a_dim === b_dim || a_dim === :_ || b_dim === :_
+end
 
-#Matrix*Matrix => Matrix
-matrix_prod_names(::Type{Tuple{A1,A2}}, ::Type{Tuple{B1,B2}}) where {A1,A2,B1,B2} = throw(matrix_prod_error(A2, B1))
-matrix_prod_names(::Type{Tuple{A1,A2}}, ::Type{Tuple{A2,B2}}) where {A1,A2,B2} = (A1,B2)
-matrix_prod_names(::Type{Tuple{A1,A2}}, ::Type{Tuple{:_,B2}}) where {A1,A2,B2} = (A1,B2)
-matrix_prod_names(::Type{Tuple{A1,:_}}, ::Type{Tuple{B1,B2}}) where {A1,B1,B2} = (A1,B2)
-matrix_prod_names(::Type{Tuple{A1,:_}}, ::Type{Tuple{:_,B2}}) where {A1,B2} = (A1,B2)
+matmul_names((a1,a2)::Tuple{Symbol,Symbol}, (b,)::Tuple{Symbol})=(a1,)
+matmul_names((a1,a2)::Tuple{Symbol,Symbol},(b1,b2)::Tuple{Symbol,Symbol})=(a1,b2)
+matmul_names((a1,)::Tuple{Symbol,},(b1,b2)::Tuple{Symbol,Symbol})=(a1,b2)
 
-
-matrix_prod_names(A::Tuple, B::Tuple) = matrix_prod_names(Tuple{A...}, Tuple{B...})
+function matrix_prod_names(a, b)
+    # 0 Allocations. See `@btime (()-> matrix_prod_names((:foo, :bar),(:bar,)))()`
+    valid_matmul_dims(a, b) || throw(DimensionMismatch(
+            "Cannot take matrix product of arrays with different inner dimension names. $a vs $b"
+        ))
+    res = matmul_names(a, b)
+    compile_time_return_hack(res)
+end
 
 for (NA, NB) in ((1,2), (2,1), (2,2))  #Vector * Vector, is not allowed
     @eval function Base.:*(a::NamedDimsArray{A,T,$NA}, b::NamedDimsArray{B,S,$NB}) where {A,B,T,S}
