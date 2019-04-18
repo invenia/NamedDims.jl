@@ -26,9 +26,9 @@ function valid_matmul_dims(a::Tuple{Symbol, Symbol}, b::Tuple{Vararg{Symbol}})
     return a_dim === b_dim || a_dim === :_ || b_dim === :_
 end
 
-matmul_names((a1,a2)::Tuple{Symbol,Symbol}, (b,)::Tuple{Symbol})=(a1,)
-matmul_names((a1,a2)::Tuple{Symbol,Symbol},(b1,b2)::Tuple{Symbol,Symbol})=(a1,b2)
-matmul_names((a1,)::Tuple{Symbol,},(b1,b2)::Tuple{Symbol,Symbol})=(a1,b2)
+matmul_names((a1, a2)::Tuple{Symbol,Symbol}, (b,)::Tuple{Symbol}) = (a1,)
+matmul_names((a1, a2)::Tuple{Symbol,Symbol}, (b1, b2)::Tuple{Symbol,Symbol}) = (a1, b2)
+matmul_names((a1,)::Tuple{Symbol,},(b1,b2)::Tuple{Symbol,Symbol}) = (a1, b2)
 
 function matrix_prod_names(a, b)
     # 0 Allocations. See `@btime (()-> matrix_prod_names((:foo, :bar),(:bar,)))()`

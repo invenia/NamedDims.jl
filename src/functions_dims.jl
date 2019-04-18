@@ -18,7 +18,7 @@ for f in (:transpose, :adjoint, :permutedims)
     end
 
     if f !==:permutedims
-        # Vector Double Tranpose
+        # Vector Double Transpose
         @eval function Base.$f(nda::NamedDimsArray{L,T,2,A}) where {L,T,A<:CoVector}
             new_names = (last(L),)  # drop the name of the first dimensions
             return NamedDimsArray{new_names}($f(parent(nda)))
