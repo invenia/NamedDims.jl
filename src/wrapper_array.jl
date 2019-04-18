@@ -102,7 +102,7 @@ function Base.similar(
     a::NamedDimsArray{L,T,N},
     eltype::Type,
     new_sizes::NTuple{N,Int}
-    ) where {L,T,N}
+) where {L,T,N}
 
     dims = NamedTuple{L, NTuple{N,Int}}(new_sizes)
     return similar(a, eltype, dims)
