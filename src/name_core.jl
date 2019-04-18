@@ -118,7 +118,7 @@ function combine_names(names_a, names_b)
 
     # Error message should not include names until it is thrown, as othrwise
     # the interpolation allocates and slows everything down a lot.
-    err_msg = "Attempted to combine arrays with incompatible dimension names."
+    err_msg = "Attempted to combine arrays with incompatible dimension names. "
     length(names_a) != length(names_b) && throw(DimensionMismatch(err_msg * "$names_a ≠ $names_b."))
 
     ret = ntuple(length(names_a)) do ii  # remove :_ wildcards
