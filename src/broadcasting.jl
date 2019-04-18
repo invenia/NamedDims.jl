@@ -9,7 +9,6 @@ function Base.similar(
     ::Type{ElType}
 ) where ElType
 
-    # Scan the inputs for the ArrayAndChar:
     L = broadcasted_names(bc)
     data = similar(Array{ElType}, axes(bc))
     return NamedDimsArray{L}(data)
