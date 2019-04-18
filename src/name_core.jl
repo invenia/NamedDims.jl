@@ -1,13 +1,33 @@
 # This is the core functionality for manipulating dimension names as express as a tuple
 # It is central to the performance of this named dimensions as a zero cost abstraction
-# For constant input all functions should either be nonallocting,
-# or single allocation, if the return a tuple of symbols.
-# Each function in this file is annotated with a comment and a benchmark as to which it is.
-# See https://discourse.julialang.org/t/zero-allocation-tuple-subsetting/23122/8
-# By ensuring this, we ensure that constant propagation should remove
-# the computation entirely from most uses.
-# Which lets us write faily naive code elsewhere in the package
+# For constant input all functions should constant propagate to constant output.
+# Each function in this file is annotated with a comment and a benchmark
+# running that benchmark should return 0 allocations,
+# and you can swap its `@btime` for `@code_typed` to check if it is constant propergating
+# This constant propagate lets us write faily naive code elsewhere in the package
 # knowing the creation and destruction of NamedDimsArrays will be optimised away.
+
+"""
+    compile_time_return_hack(x)
+
+This is a cunning hack to strongly encourage the compiler to use constant propagation,
+when returning a `Tuple` of `Symbols`.
+Under normal circumstances, constant propergation will not work to fully compute
+returned tuples of non-bits types.
+But because `Symbol`s are a allowed in type-parameters (unlike other nonbits types),
+we can put them into a type-parameter, which triggers (??different??) constant propergation,
+(for ??Reasons??)
+and once something is a type-parameter, then extracting it and returning it is non-allocating.
+
+See https://discourse.julialang.org/t/zero-allocation-tuple-subsetting/23122/8
+
+The short version of this is:
+if a function returns a tuple of symbols and is allocating when it looks like it shouldn't
+then try wrapping its returned value in `compile_time_return_hack`.
+and then look at the `@code_lowered` again.
+"""
+compile_time_return_hack(x::Tuple{Vararg{Symbol}}) = _compile_time_return_hack(Val{x}())
+_compile_time_return_hack(::Val{X}) where X = X
 
 
 """
@@ -37,8 +57,10 @@ function dim(dimnames::Tuple, name::Symbol)
 end
 
 function dim(dimnames::Tuple, names)
+    # 0-Allocations see: `@btime (()->dim((:a,:b), (:a,:b)))()`
     return map(name->dim(dimnames, name), names)
 end
+
 
 function dim(dimnames::Tuple, d::Union{Integer, Colon})
     # This is the fallback that allows `NamedDimsArray`'s to be have dimensions
@@ -90,23 +112,26 @@ end
 
 function combine_names(names_a, names_b)
     # 0-Allocations if inputs are the same
-    # 1-Allocation, if has a `:)_` see  `@btime (()->combine_names((:a, :b), (:a, :_)))()``
+    # 0-Allocation, if has a `:_` see  `@btime (()->combine_names((:a, :b), (:a, :_)))()`
 
-    names_a == names_b && return names_a
+    names_a === names_b && return names_a
 
     # Error message should not include names until it is thrown, as othrwise
     # the interpolation allocates and slows everything down a lot.
     err_msg = "Attempted to combine arrays with incompatible dimension names."
     length(names_a) != length(names_b) && throw(DimensionMismatch(err_msg * "$names_a ≠ $names_b."))
 
-    return ntuple(length(names_a)) do ii  # remove :_ wildcards
+    ret = ntuple(length(names_a)) do ii  # remove :_ wildcards
         a = getfield(names_a, ii)
         b = names_b[ii]
         a === :_ && return b
         b === :_ && return a
         a === b && return a
-        throw(DimensionMismatch(err_msg * "$names_a ≠ $names_b."))
+
+        return false  # mismatch occured, we mark this with a nonSymbol result
     end
+    ret isa Tuple{Vararg{Symbol}} || throw(DimensionMismatch(err_msg * "$names_a ≠ $names_b."))
+    return compile_time_return_hack(ret)
 end
 
 """
@@ -117,11 +142,12 @@ determine which are not dropped.
 Dimensions indexed with scalars are dropped
 """
 @generated function remaining_dimnames_from_indexing(dimnames::Tuple, inds)
-    # 1-Allocation see: @btime (()->determine_remaining_dim((:a, :b, :c), (:,390,:)))()
+    # 0-Allocation see:
+    # `@btime (()->remaining_dimnames_from_indexing((:a, :b, :c), (:,390,:)))()``
     ind_types = inds.parameters
     kept_dims = findall(keep_dim_ind_type, ind_types)
     keep_names = [:(getfield(dimnames, $ii)) for ii in kept_dims]
-    return Expr(:tuple, keep_names...)
+    return Expr(:call, :compile_time_return_hack, Expr(:tuple, keep_names...))
 end
 keep_dim_ind_type(::Type{<:Integer}) = false
 keep_dim_ind_type(::Any) = true
@@ -134,11 +160,12 @@ or a single dimension, expressed as a number,
 Returns the dimension names with those dimensions dropped.
 """
 function remaining_dimnames_after_dropping(dimnames::Tuple, dropped_dim::Integer)
+    # 0 allocations. See `@btime remaining_dimnames_after_dropping((:a,:b,:c,:d,:e), 4)`
     return remaining_dimnames_after_dropping(dimnames, (dropped_dim,))
 end
 
 function remaining_dimnames_after_dropping(dimnames::Tuple, dropped_dims)
-    # 1-Allocation see: `@btime remaining_dimnames_after_dropping((:a,:b,:c,:d,:e), (1,2,))
+    # 0-Allocations see: `@btime remaining_dimnames_after_dropping((:a,:b,:c,:d,:e), (1,2,))
 
     anti_names = identity_namedtuple(map(x->dimnames[x], dropped_dims))
     full_names = identity_namedtuple(dimnames)
@@ -146,7 +173,8 @@ function remaining_dimnames_after_dropping(dimnames::Tuple, dropped_dims)
     # Now we construct a new named tuple, with all the names we want to remove at the start
     combined_names = merge(anti_names, full_names)
     n_skip = length(anti_names)
-    ntuple(length(full_names) - n_skip) do ii
+    ret = ntuple(length(full_names) - n_skip) do ii
         combined_names[ii + n_skip]  # Skip over the ones we left as the start
     end
+    return compile_time_return_hack(ret)
 end
