@@ -2,7 +2,7 @@ using NamedDims
 using NamedDims: names
 using Test
 
-@testset ".+" begin
+@testset "Binary broadcasting operations (.+)" begin
     nda = NamedDimsArray{(:a,)}(ones(3))
 
     @testset "standard case" begin
@@ -22,7 +22,6 @@ using Test
         @test names(lhs) == (:x, :y) == names(rhs)
         @test lhs == 2ones(3, 5) == rhs
     end
-    #################################
 
     @testset "Dimension disagreement" begin
         @test_throws DimensionMismatch .+(
