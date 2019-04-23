@@ -45,3 +45,21 @@ end
         @test names(f(f(ndm))) == (:foo, :bar)
     end
 end
+
+@testset "permutedims" begin
+    nda = NamedDimsArray{(:w,:x,:y,:z)}(ones(10,20,30,40))
+    @test names(permutedims(nda, (:w,:x,:y,:z))) == (:w,:x,:y,:z) == names(permutedims(nda, 1:4))
+    @test size(permutedims(nda, (:w,:x,:y,:z))) == (10,20,30,40) == size(permutedims(nda, 1:4))
+
+    @test names(permutedims(nda, (:w,:y,:x,:z))) == (:w,:y,:x,:z) == names(permutedims(nda, (1,3,2,4)))
+    @test size(permutedims(nda, (:w,:y,:x,:z))) == (10,30,20,40) == size(permutedims(nda, (1,3,2,4)))
+
+
+    @test_throws Exception permutedims(nda, (:foo,:x,:y,:z))
+    @test_throws Exception permutedims(nda, (:x,:y,:z))
+    @test_throws Exception permutedims(nda, (:x,:x,:y,:z))
+
+    @test_throws Exception permutedims(nda, (0,1,2,3))
+    @test_throws Exception permutedims(nda, (2,3,4))
+    @test_throws Exception permutedims(nda, (2,2,3,4))
+end

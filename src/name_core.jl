@@ -72,6 +72,32 @@ end
 
 
 
+
+function identity_namedtuple(tup::NTuple{N, Symbol}) where N
+    # 0-Allocations
+    return NamedTuple{tup, typeof(tup)}(tup)
+end
+
+"""
+    permute_dimnames(dimnames, perm)
+
+Reorder `dimnames` according `perm`.
+`perm` should be ordered set of numerical indexs for the new position of the name.
+Note: this does not throw errors if you give it a permutation that skips some positions
+and duplicates others.
+"""
+function permute_dimnames(dimnames::NTuple{N, Symbol}, perm) where N
+    # 0-Allocations, but does not seem to fully calculate at compile time
+    # even with the `compile_time_return_hack`, though that is still required to
+    # prevent allocations. `@code_typed permute_dimnames((:a,:b,:c), (1,3,2))`
+
+    new_dimnames = ntuple(length(perm)) do ii
+        ind = perm[ii]
+        dimnames[ind]
+    end
+    return compile_time_return_hack(new_dimnames)
+end
+
 """
     default_inds(dimnames::Tuple)
 This is the default value for all indexing expressions using the given dimnames.
@@ -82,14 +108,6 @@ function default_inds(dimnames::NTuple{N}) where N
     values = ntuple(_->Colon(), N)
     return NamedTuple{dimnames, NTuple{N, Colon}}(values)
 end
-
-
-function identity_namedtuple(tup::NTuple{N, Symbol}) where N
-    # 0-Allocations
-    return NamedTuple{tup, typeof(tup)}(tup)
-end
-
-
 
 """
     order_named_inds(dimnames::Tuple; named_inds...)

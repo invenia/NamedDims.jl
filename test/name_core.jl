@@ -3,6 +3,7 @@ using NamedDims:
     names,
     combine_names,
     order_named_inds,
+    permute_dimnames,
     remaining_dimnames_from_indexing,
     remaining_dimnames_after_dropping
 using Test
@@ -68,4 +69,16 @@ end
     @test remaining_dimnames_after_dropping((:a, :b, :c), 3) == (:a, :b)
     @test remaining_dimnames_after_dropping((:a, :b, :c), (1,3)) == (:b,)
     @test remaining_dimnames_after_dropping((:a, :b, :c), (3,1)) == (:b,)
+end
+
+@testset "permute_dimnames" begin
+    @test permute_dimnames((:a, :b, :c), (1, 2, 3)) == (:a ,:b, :c)
+    @test permute_dimnames((:a, :b, :c), (3, 2, 1)) == (:c ,:b, :a)
+
+    # permute_dimnames allows non-bijective "permutations"
+    @test permute_dimnames((:a, :b, :c), (3, 3, 1)) == (:c ,:c, :a)
+    @test permute_dimnames((:a, :b, :c), (3, 1))== (:c, :a)
+
+    @test_throws BoundsError permute_dimnames((:a, :b, :c), (30, 30, 30))
+    @test_throws BoundsError permute_dimnames((:a, :b), (1, 0))
 end
