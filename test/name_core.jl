@@ -39,6 +39,8 @@ end
     @test combine_names_longest((:a,), (:a, :_)) == (:a, :_)
     @test combine_names_longest((:a, :b), (:a, :_, :c)) == (:a, :b, :c)
 
+    @test DimensionMismatch combine_names_longest((:a, :b, :c), (:b, :a))
+
     for combine in (combine_names, combine_names_longest)
         @test combine((:a,), (:a,)) == (:a,)
         @test combine((:a, :b), (:a, :b)) == (:a, :b)
@@ -50,6 +52,7 @@ end
         @test combine((:_, :_, :_), (:_, :_, :_)) == (:_, :_, :_)
 
         @test_throws DimensionMismatch combine((:a,), (:b,))
+        @test_throws DimensionMismatch combine((:a,:b), (:b, :a))
         @test_throws DimensionMismatch combine((:a, :b, :c), (:_, :_, :d))
     end
 end
