@@ -1,8 +1,6 @@
 # See: https://docs.julialang.org/en/v1/manual/interfaces/#man-interfaces-broadcasting-1
 
-function Base.BroadcastStyle(::Type{<:NamedDimsArray})
-    return Broadcast.ArrayStyle{NamedDimsArray}()
-end
+Base.BroadcastStyle(::Type{<:NamedDimsArray}) = Broadcast.ArrayStyle{NamedDimsArray}()
 
 function Base.similar(
     bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{NamedDimsArray}},
