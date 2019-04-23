@@ -1,5 +1,5 @@
 """
-    NamedDimsArray{L,T,N,A}(data)
+    NamedDimsArray{L, T, N, A}(data)
 
 A `NamedDimsArray` is a wrapper array type, that provides a view onto  the
 orignal array, which can have its dimensions refer to name rather than by
@@ -20,13 +20,13 @@ x = x[observations=15, features=2]  # 2nd feature in 15th observation.
 They generally resolve most dimension name related operations at compile
 time.
 """
-struct NamedDimsArray{L, T, N, A<:AbstractArray{T,N}} <: AbstractArray{T,N}
+struct NamedDimsArray{L, T, N, A<:AbstractArray{T, N}} <: AbstractArray{T, N}
     # `L` is for labels, it should be an `NTuple{N, Symbol}`
     data::A
 end
 
 
-function NamedDimsArray{L}(orig::AbstractArray{T,N}) where {L, T, N}
+function NamedDimsArray{L}(orig::AbstractArray{T, N}) where {L, T, N}
     if !(L isa NTuple{N, Symbol})
         throw(ArgumentError(
             "A $N dimentional array, needs a $N-tuple of dimension names. Got: $L"
@@ -34,11 +34,11 @@ function NamedDimsArray{L}(orig::AbstractArray{T,N}) where {L, T, N}
     end
     return NamedDimsArray{L, T, N, typeof(orig)}(orig)
 end
-function NamedDimsArray(orig::AbstractArray{T,N}, names::NTuple{N, Symbol}) where {T, N}
+function NamedDimsArray(orig::AbstractArray{T, N}, names::NTuple{N, Symbol}) where {T, N}
     return NamedDimsArray{names}(orig)
 end
 
-parent_type(::Type{<:NamedDimsArray{L,T,N,A}}) where {L,T,N,A} = A
+parent_type(::Type{<:NamedDimsArray{L, T, N, A}}) where {L, T, N, A} = A
 Base.parent(x::NamedDimsArray) = x.data
 
 
@@ -48,7 +48,7 @@ Base.parent(x::NamedDimsArray) = x.data
 Returns a tuple of containing the names of all the dimensions of the array `A`.
 """
 names(::Type{<:NamedDimsArray{L}}) where L = L
-names(::Type{<:AbstractArray{T,N}}) where {T,N} = ntuple(_->:_, N)
+names(::Type{<:AbstractArray{T, N}}) where {T,N} = ntuple(_->:_, N)
 names(x::T) where T<:AbstractArray = names(T)
 
 dim(a::NamedDimsArray{L}, name) where L = dim(L, name)
@@ -81,33 +81,32 @@ function Base.similar(
     a::NamedDimsArray{L,T},
     eltype::Type=T,
     dims::NamedTuple{new_names}=named_size(a)
-    ) where {L,T,new_names}
+) where {L,T,new_names}
 
     new_sizes = values(dims)
     return NamedDimsArray{new_names}(similar(parent(a), eltype, new_sizes))
 end
 
 function Base.similar(
-    a::NamedDimsArray{L,T,N},
+    a::NamedDimsArray{L, T, N},
     eltype::Type,
-    new_names::NTuple{N,Symbol}
-    ) where {T,N,L}
+    new_names::NTuple{N, Symbol}
+) where {T,N,L}
 
-    dims = NamedTuple{new_names, NTuple{N,Int}}(size(a))
+    dims = NamedTuple{new_names, NTuple{N,I nt}}(size(a))
     return similar(a, eltype, dims)
 end
 
 
 function Base.similar(
-    a::NamedDimsArray{L,T,N},
+    a::NamedDimsArray{L, T, N},
     eltype::Type,
-    new_sizes::NTuple{N,Int}
+    new_sizes::NTuple{N, Int}
 ) where {L,T,N}
 
-    dims = NamedTuple{L, NTuple{N,Int}}(new_sizes)
+    dims = NamedTuple{L, NTuple{N, Int}}(new_sizes)
     return similar(a, eltype, dims)
 end
-
 
 
 ###############################

@@ -4,11 +4,11 @@ Base.BroadcastStyle(::Type{<:NamedDimsArray}) = Broadcast.ArrayStyle{NamedDimsAr
 
 function Base.similar(
     bc::Broadcast.Broadcasted{Broadcast.ArrayStyle{NamedDimsArray}},
-    ::Type{ElType}
-) where ElType
+    ::Type{T}
+) where T
 
     L = broadcasted_names(bc)
-    data = similar(Array{ElType}, axes(bc))
+    data = similar(Array{T}, axes(bc))
     return NamedDimsArray{L}(data)
 end
 
