@@ -181,17 +181,16 @@ It can also be considered as padding the shorter of the two given tuples of name
 with trailing wildcards (`:_`).
 This is the type of name combination used for broadcating array operations.
 Where the smaller (dimensionally) array is broadcast against the longer, repeating it for
-all entries in the missing trailing dimensions. 
+all entries in the missing trailing dimensions.
 """
-combine_names_longest(name, ::Tuple{}) = name
-combine_names_longest(::Tuple{}, name) = name
+combine_names_longest(names, ::Tuple{}) = names
+combine_names_longest(::Tuple{}, names) = names
 combine_names_longest(::Tuple{}, ::Tuple{}) = tuple()
 function combine_names_longest(a_names, b_names)
     # 1 Allocation: @btime (()-> combine_names_longest((:a,:b), (:a,)))()
 
     length(a_names) == length(b_names) && return combine_names(a_names, b_names)
     long, short = length(a_names) > length(b_names) ? (a_names, b_names) : (b_names, a_names)
-
     short_names = identity_namedtuple(short)
     return ntuple(length(long)) do ii
         a = getfield(long, ii)
@@ -199,7 +198,9 @@ function combine_names_longest(a_names, b_names)
         a === :_ && return b
         b === :_ && return a
         a === b && return a
-        throw(DimensionMismatch(err_msg * "$names_a ≠ $names_b."))
+
+        err_msg = "Attempted to combine arrays with incompatible dimension names. "
+        throw(DimensionMismatch(err_msg * "$a_names ≠ $b_names."))
     end
 end
 

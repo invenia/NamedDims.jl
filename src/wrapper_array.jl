@@ -92,8 +92,7 @@ function Base.similar(
     eltype::Type,
     new_names::NTuple{N, Symbol}
 ) where {T,N,L}
-
-    dims = NamedTuple{new_names, NTuple{N,I nt}}(size(a))
+    dims = NamedTuple{new_names, NTuple{N, Int}}(size(a))
     return similar(a, eltype, dims)
 end
 
