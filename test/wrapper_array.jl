@@ -79,41 +79,41 @@ end
     @test length(nda) == 6
 
     @test axes(nda) == (1:3, 1:2)
-    @test axes(nda,:x) == (1:3) == axes(nda,1)
+    @test axes(nda,:x) == (1:3) == axes(nda, 1)
 
     @test size(nda) == (3,2)
-    @test size(nda,:x) == 3 == size(nda,1)
+    @test size(nda,:x) == 3 == size(nda, 1)
 end
 
 @testset "similar" begin
-    nda = NamedDimsArray{(:a, :b, :c, :d)}(ones(10,20,30,40))
+    nda = NamedDimsArray{(:a, :b, :c, :d)}(ones(10, 20, 30, 40))
 
     @testset "content" begin
         ndb = similar(nda)
         @test parent(ndb) !== parent(nda)
         @test eltype(ndb) == Float64
-        @test size(ndb) == (10,20,30,40)
+        @test size(ndb) == (10, 20 ,30, 40)
         @test names(ndb) == (:a, :b, :c, :d)
     end
     @testset "eltype" begin
         ndb = similar(nda, Char)
         @test parent(ndb) !== parent(nda)
         @test eltype(ndb) == Char
-        @test size(ndb) == (10,20,30,40)
+        @test size(ndb) == (10, 20, 30, 40)
         @test names(ndb) == (:a, :b, :c, :d)
     end
     @testset "size" begin
-        ndb = similar(nda, Float64, (100,200,300,400))
+        ndb = similar(nda, Float64, (100, 200, 300, 400))
         @test parent(ndb) !== parent(nda)
         @test eltype(ndb) == Float64
-        @test size(ndb) == (100,200,300,400)
+        @test size(ndb) == (100, 200, 300, 400)
         @test names(ndb) == (:a, :b, :c, :d)
     end
     @testset "dim names" begin
         ndb = similar(nda, Float64, (:w, :x, :y, :z))
         @test parent(ndb) !== parent(nda)
         @test eltype(ndb) == Float64
-        @test size(ndb) == (10,20,30,40)
+        @test size(ndb) == (10, 20, 30, 40)
         @test names(ndb) == (:w, :x, :y, :z)
     end
 
@@ -124,6 +124,4 @@ end
         @test size(ndb) == (11,22)
         @test names(ndb) == (:w, :x,)
     end
-
-
 end
