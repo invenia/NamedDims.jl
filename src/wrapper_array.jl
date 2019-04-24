@@ -48,8 +48,8 @@ Base.parent(x::NamedDimsArray) = x.data
 Returns a tuple of containing the names of all the dimensions of the array `A`.
 """
 names(::Type{<:NamedDimsArray{L}}) where L = L
-names(x::T) where T<:NamedDimsArray = names(T)
-
+names(::Type{<:AbstractArray{T,N}}) where {T,N} = ntuple(_->:_, N)
+names(x::T) where T<:AbstractArray = names(T)
 
 dim(a::NamedDimsArray{L}, name) where L = dim(L, name)
 
@@ -115,6 +115,11 @@ for f in (:getindex, :view, :dotview)
         @propagate_inbounds function Base.$f(a::NamedDimsArray, inds::Vararg{<:Integer})
             # Easy scalar case, will just return the element
             return Base.$f(parent(a), inds...)
+        end
+
+        @propagate_inbounds function Base.$f(a::NamedDimsArray, ind::CartesianIndex)
+            # Easy scalar case, will just return the element
+            return Base.$f(parent(a), ind)
         end
 
         @propagate_inbounds function Base.$f(a::NamedDimsArray, inds...)
