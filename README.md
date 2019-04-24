@@ -8,13 +8,13 @@
 
 `NamedDimsArray` is a zero-cost abstraction to add names to the dimensions of an array.
 
-<<<<<<< HEAD
 ## Core functionality:
 For `nda = NamedDimsArrays{(:x,:y,:z)}(rand(10,20,30))`.
 
  - Unwrapping: `parent(nda)`: returns the underlying `AbstractArray` that is wrapped by the `NamedDimsArray`
  - Indexing: `nda[y=2]`: the same as `nda[x=:, y=2, z=:]` which is the same as `nda[:,2,:]`
  - Functions taking a dims arg: `sum(nda; dims=:y)` is the same as `sum(nda; dims=2)`
+ - Renaming: `rename(nda, new_names)` returns a new `NamedDimsArray` with the `new_names` but still wrapping the same data.
 
 ### Dimensionally Safe Operations
 
