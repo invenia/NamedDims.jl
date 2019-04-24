@@ -193,11 +193,11 @@ all entries in the missing trailing dimensions.
 unify_names_longest(names, ::Tuple{}) = names
 unify_names_longest(::Tuple{}, names) = names
 unify_names_longest(::Tuple{}, ::Tuple{}) = tuple()
-function unify_names_longest(a_names, b_names)
+function unify_names_longest(names_a, names_b)
     # 0 Allocations: @btime (()-> unify_names_longest((:a,:b), (:a,)))()
 
-    length(a_names) == length(b_names) && return unify_names(a_names, b_names)
-    long, short = length(a_names) > length(b_names) ? (a_names, b_names) : (b_names, a_names)
+    length(names_a) == length(names_b) && return unify_names(names_a, names_b)
+    long, short = length(names_a) > length(names_b) ? (names_a, names_b) : (names_b, names_a)
     short_names = identity_namedtuple(short)
     ret = ntuple(length(long)) do ii
         a = getfield(long, ii)
@@ -207,7 +207,7 @@ function unify_names_longest(a_names, b_names)
         a === b && return a
         return false  # mismatch occured, we mark this with a nonSymbol result
     end
-    ret isa Tuple{Vararg{Symbol}} || incompatible_dimension_error(a_names, b_names)
+    ret isa Tuple{Vararg{Symbol}} || incompatible_dimension_error(names_a, names_b)
     return compile_time_return_hack(ret)
 end
 
