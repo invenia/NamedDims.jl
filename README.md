@@ -47,3 +47,24 @@ is named `:_`.
 Currently, if you have more than one wildcard dimension name,
 functionality for referring to dimensions by name will not work.
 See [issue #8](https://github.com/invenia/NamedDims.jl/issues/8).
+
+
+## Extending support for more functions
+There are two common things to do to make a function support `NamedDimsArray`s.
+These are:
+ - Adding support for referring to a dimension by name to an existing function
+ - Make the operation return a `NamedDimsArray` rather than a `Array`. (Many operations fallback to dropping the names)
+Often they are done together.
+
+They are illustrated by the following example:
+```
+function foo(nda::NamedDimsArray, args...; dims=:)
+    numerical_dims = dim(nda, dims)  # convert any form of dims into numerical dims
+    raw_result = fop(parent(nda), args...; dims=numerical_dims)  # call it on the backed data
+    new_names = determine_foo_names(nda, args...)  # workout what the new names will be
+    return NamedDimsArray{new_names)(raw_result)  # wrap the result up
+end
+```
+
+You can do this to your own functions in your own packages, to add `NamedDimsArray` support.
+If you implement it for any functions in a standard library, a PR would be very appreciated.
