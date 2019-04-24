@@ -194,20 +194,21 @@ unify_names_longest(names, ::Tuple{}) = names
 unify_names_longest(::Tuple{}, names) = names
 unify_names_longest(::Tuple{}, ::Tuple{}) = tuple()
 function unify_names_longest(a_names, b_names)
-    # 1 Allocation: @btime (()-> unify_names_longest((:a,:b), (:a,)))()
+    # 0 Allocations: @btime (()-> unify_names_longest((:a,:b), (:a,)))()
 
     length(a_names) == length(b_names) && return unify_names(a_names, b_names)
     long, short = length(a_names) > length(b_names) ? (a_names, b_names) : (b_names, a_names)
     short_names = identity_namedtuple(short)
-    return ntuple(length(long)) do ii
+    ret = ntuple(length(long)) do ii
         a = getfield(long, ii)
         b = get(short_names, ii, :_)
         a === :_ && return b
         b === :_ && return a
         a === b && return a
-
-        incompatible_dimension_error(a_names, b_names)
+        return false  # mismatch occured, we mark this with a nonSymbol result
     end
+    ret isa Tuple{Vararg{Symbol}} || incompatible_dimension_error(a_names, b_names)
+    return compile_time_return_hack(ret)
 end
 
 
