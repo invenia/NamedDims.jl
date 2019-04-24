@@ -129,6 +129,14 @@ function order_named_inds(dimnames::Tuple; named_inds...)
 end
 
 """
+    incompatible_dimension_error(names_a, names_b)
+Throws a `DimensionMismatch` explaining that these dimension names are not compatible.
+"""
+function incompatible_dimension_error(names_a, names_b)
+    throw(DimensionMismatch("Incompatible dimension names: $names_a \neq $names_b"))
+end
+
+"""
     combine_names(a, b)
 
 Produces the merged set of names for tuples of names `a` and `b`,
@@ -155,8 +163,7 @@ function combine_names(names_a, names_b)
 
     # Error message should not include names until it is thrown, as othrwise
     # the interpolation allocates and slows everything down a lot.
-    err_msg = "Attempted to combine arrays with incompatible dimension names. "
-    length(names_a) != length(names_b) && throw(DimensionMismatch(err_msg * "$names_a ≠ $names_b."))
+    length(names_a) != length(names_b) && incompatible_dimension_error(names_a, names_b)
 
     ret = ntuple(length(names_a)) do ii  # remove :_ wildcards
         a = getfield(names_a, ii)
@@ -167,7 +174,7 @@ function combine_names(names_a, names_b)
 
         return false  # mismatch occured, we mark this with a nonSymbol result
     end
-    ret isa Tuple{Vararg{Symbol}} || throw(DimensionMismatch(err_msg * "$names_a ≠ $names_b."))
+    ret isa Tuple{Vararg{Symbol}} || incompatible_dimension_error(names_a, names_b)
     return compile_time_return_hack(ret)
 end
 
@@ -199,8 +206,7 @@ function combine_names_longest(a_names, b_names)
         b === :_ && return a
         a === b && return a
 
-        err_msg = "Attempted to combine arrays with incompatible dimension names. "
-        throw(DimensionMismatch(err_msg * "$a_names ≠ $b_names."))
+        incompatible_dimension_error(a_names, b_names)
     end
 end
 
