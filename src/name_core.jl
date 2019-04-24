@@ -56,7 +56,7 @@ function dim(dimnames::Tuple, name::Symbol)
     dimnum = first(merge(this_namemap, full_namemap))
     dimnum isa Int && return dimnum
     throw(ArgumentError(
-        "Specified name ($(repr(name))), does not match any dimension name ($dimnames)"
+        "Specified name ($(repr(name))) does not match any dimension name ($dimnames)"
     ))
 end
 
