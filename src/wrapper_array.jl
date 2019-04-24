@@ -19,6 +19,16 @@ x = x[observations=15, features=2]  # 2nd feature in 15th observation.
 `NamedDimsArray`s are normally a (near) zero-cost abstraction.
 They generally resolve most dimension name related operations at compile
 time.
+
+
+The `NamedDimsArray` constructor takes a list of names as `Symbol`s,
+one per dimension, and an array to wrap.
+If the array being wrapped is a `NamedDimsArray` already then the new names
+are combined with the existing names -- to replace wildcards (`:_`).
+This will throw an error if the new names are not compatible with the old names
+(i.e. if the nonwildcards do not match).
+To assign new names to a `NamedDimsArray` without regard to compatibility with the old names
+see `rename`(@ref).
 """
 struct NamedDimsArray{L, T, N, A<:AbstractArray{T, N}} <: AbstractArray{T, N}
     # `L` is for labels, it should be an `NTuple{N, Symbol}`
@@ -34,9 +44,19 @@ function NamedDimsArray{L}(orig::AbstractArray{T, N}) where {L, T, N}
     end
     return NamedDimsArray{L, T, N, typeof(orig)}(orig)
 end
+
 function NamedDimsArray(orig::AbstractArray{T, N}, names::NTuple{N, Symbol}) where {T, N}
     return NamedDimsArray{names}(orig)
 end
+NamedDimsArray(orig::AbstractVector, name::Symbol) = NamedDimsArray(orig, (name,))
+
+# Name-asserting constructor (like renaming, but only for wildcards (`:_`).)
+NamedDimsArray{L}(orig::NamedDimsArray{L}) where L = orig
+function NamedDimsArray{L}(orig::NamedDimsArray{old_names, T, N, A}) where {L, old_names, T, N, A}
+    new_names = combine_names(L, old_names)
+    return NamedDimsArray{new_names, T, N, A}(parent(orig))
+end
+
 
 parent_type(::Type{<:NamedDimsArray{L, T, N, A}}) where {L, T, N, A} = A
 Base.parent(x::NamedDimsArray) = x.data
