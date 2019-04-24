@@ -2,6 +2,7 @@
 
 """
     rename(nda::NamedDimsArray, names)
+
 Returns a new `NameDimsArray` with the given dimension `names`.
 `rename` outright replaces the names; while still wrapping the same backing array.
 Unlike the constructor, it does not require that new names are compatible
