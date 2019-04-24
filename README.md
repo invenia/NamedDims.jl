@@ -8,6 +8,7 @@
 
 `NamedDimsArray` is a zero-cost abstraction to add names to the dimensions of an array.
 
+<<<<<<< HEAD
 ## Core functionality:
 For `nda = NamedDimsArrays{(:x,:y,:z)}(rand(10,20,30))`.
 
@@ -47,3 +48,37 @@ is named `:_`.
 Currently, if you have more than one wildcard dimension name,
 functionality for referring to dimensions by name will not work.
 See [issue #8](https://github.com/invenia/NamedDims.jl/issues/8).
+
+## Usage
+### Writing functions that accept `NamedDimsArray`s or `AbstractArray`s
+
+It is a common desire to be able to write code that anyone can call,
+whether they are using `NamedDimsArray`s or not.
+While also being able to use `NamedDimsArray`s internally in its definition;
+and also getting the assertion when a `NamedDimsArray` _is_  passed in, that it has the
+expected dimensions.
+The way to do this is to call the `NamedDimsArray` constructor, with the expected names
+within the function.
+As in the following example:
+
+```
+function total_variance(data::AbstractMatrix)
+    n_data = NamedDimsArray(data, (:times,:locations))
+    location_variance = var(n_data; dims=:times)  # calculate variance at each location
+    return sum(location_variance; dims=:locations)  # total them
+end
+```
+
+
+If this function is given (say) a `Matrix`, then it will apply the names to it in `n_data`.
+Thus the function will just work on unnamed types.
+If `data` is a `NamedDimsArray`, with incompatible names an error will be thrown.
+For example if it `data` was mistakenly transposed and so had the dimension names:
+`(:locations, :times)` instead of `(:times, :locations)`.
+If `data` was partially named, e.g. `(:_, :locations)`, then that name would be allowed to be
+combined with the named from the constructor; yielding `n_data` with the expected names:
+`(:times, :locations)`.
+This pattern allows both assertions of correctness (for named inputs),
+and convenience and compatibility (for unnamed input).
+And since `NamedDimsArray` is a zero-cost abstraction, this will basically compile out of existence,
+most of the time.

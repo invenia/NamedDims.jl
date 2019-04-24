@@ -4,6 +4,7 @@ using SparseArrays
 using Test
 
 
+
 @testset "get the parent array that was wrapped" begin
     orig = [1 2; 3 4]
     @test parent(NamedDimsArray(orig, (:x, :y))) === orig
@@ -12,6 +13,19 @@ end
 
 @testset "get the named array that was wrapped" begin
     @test names(NamedDimsArray([10 20; 30 40], (:x, :y))) === (:x, :y)
+end
+
+
+@testset "Name-asserting constructor" begin
+    orig_full = NamedDimsArray(ones(3,4,5), (:a, :b, :c))
+    @test names(NamedDimsArray(orig_full, (:a, :b, :c))) == (:a, :b, :c)
+    @test names(NamedDimsArray(orig_full, (:a, :b, :_))) == (:a, :b, :c)
+    @test_throws DimensionMismatch NamedDimsArray(orig_full, (:a, :b, :wrong))
+    @test_throws DimensionMismatch NamedDimsArray(orig_full, (:c, :a, :b))
+
+    orig_partial = NamedDimsArray(ones(3,4,5), (:a, :_, :c))
+    @test names(NamedDimsArray(orig_partial, (:a, :b, :c))) == (:a, :b, :c)
+    @test names(NamedDimsArray(orig_partial, (:a, :_, :c))) == (:a, :_, :c)
 end
 
 
