@@ -1,8 +1,8 @@
 using NamedDims
 using NamedDims:
     names,
-    combine_names,
-    combine_names_longest,
+    unify_names,
+    unify_names_longest,
     order_named_inds,
     permute_dimnames,
     remaining_dimnames_from_indexing,
@@ -33,27 +33,27 @@ using Test
 end
 
 @testset "combine_names/combine_names_longest" begin
-    @test_throws DimensionMismatch combine_names((:a,), (:a, :b,))
+    @test_throws DimensionMismatch unify_names((:a,), (:a, :b,))
 
-    @test combine_names_longest((:a,), (:a, :b,)) == (:a, :b)
-    @test combine_names_longest((:a,), (:a, :_)) == (:a, :_)
-    @test combine_names_longest((:a, :b), (:a, :_, :c)) == (:a, :b, :c)
+    @test unify_names_longest((:a,), (:a, :b,)) == (:a, :b)
+    @test unify_names_longest((:a,), (:a, :_)) == (:a, :_)
+    @test unify_names_longest((:a, :b), (:a, :_, :c)) == (:a, :b, :c)
 
-    @test_throws DimensionMismatch combine_names_longest((:a, :b, :c), (:b, :a))
+    @test_throws DimensionMismatch unify_names_longest((:a, :b, :c), (:b, :a))
 
-    for combine in (combine_names, combine_names_longest)
-        @test combine((:a,), (:a,)) == (:a,)
-        @test combine((:a, :b), (:a, :b)) == (:a, :b)
-        @test combine((:a, :_), (:a, :b)) == (:a, :b)
-        @test combine((:a, :_), (:a, :_)) == (:a, :_)
+    for unify in (unify_names, unify_names_longest)
+        @test unify((:a,), (:a,)) == (:a,)
+        @test unify((:a, :b), (:a, :b)) == (:a, :b)
+        @test unify((:a, :_), (:a, :b)) == (:a, :b)
+        @test unify((:a, :_), (:a, :_)) == (:a, :_)
 
-        @test combine((:a, :b, :c), (:_, :_, :_)) == (:a, :b, :c)
-        @test combine((:a, :_, :c), (:_, :b, :_)) == (:a, :b, :c)
-        @test combine((:_, :_, :_), (:_, :_, :_)) == (:_, :_, :_)
+        @test unify((:a, :b, :c), (:_, :_, :_)) == (:a, :b, :c)
+        @test unify((:a, :_, :c), (:_, :b, :_)) == (:a, :b, :c)
+        @test unify((:_, :_, :_), (:_, :_, :_)) == (:_, :_, :_)
 
-        @test_throws DimensionMismatch combine((:a,), (:b,))
-        @test_throws DimensionMismatch combine((:a,:b), (:b, :a))
-        @test_throws DimensionMismatch combine((:a, :b, :c), (:_, :_, :d))
+        @test_throws DimensionMismatch unify((:a,), (:b,))
+        @test_throws DimensionMismatch unify((:a,:b), (:b, :a))
+        @test_throws DimensionMismatch unify((:a, :b, :c), (:_, :_, :d))
     end
 end
 

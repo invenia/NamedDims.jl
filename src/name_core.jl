@@ -155,7 +155,7 @@ For example:
 This is the type of name combination used for binary array operations.
 Where the dimensions of both arrays must be the same.
 """
-function combine_names(names_a, names_b)
+function unify_names(names_a, names_b)
     # 0-Allocations if inputs are the same
     # 0-Allocation, if has a `:_` see  `@btime (()->combine_names((:a, :b), (:a, :_)))()`
 
@@ -190,13 +190,13 @@ This is the type of name combination used for broadcating array operations.
 Where the smaller (dimensionally) array is broadcast against the longer, repeating it for
 all entries in the missing trailing dimensions.
 """
-combine_names_longest(names, ::Tuple{}) = names
-combine_names_longest(::Tuple{}, names) = names
-combine_names_longest(::Tuple{}, ::Tuple{}) = tuple()
-function combine_names_longest(a_names, b_names)
+unify_names_longest(names, ::Tuple{}) = names
+unify_names_longest(::Tuple{}, names) = names
+unify_names_longest(::Tuple{}, ::Tuple{}) = tuple()
+function unify_names_longest(a_names, b_names)
     # 1 Allocation: @btime (()-> combine_names_longest((:a,:b), (:a,)))()
 
-    length(a_names) == length(b_names) && return combine_names(a_names, b_names)
+    length(a_names) == length(b_names) && return unify_names(a_names, b_names)
     long, short = length(a_names) > length(b_names) ? (a_names, b_names) : (b_names, a_names)
     short_names = identity_namedtuple(short)
     return ntuple(length(long)) do ii
