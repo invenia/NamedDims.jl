@@ -1,12 +1,17 @@
 using NamedDims
 using Test
 
-@testset "NamedDims.jl" begin
-    # Write your own tests here.
+const testfiles = (
+    "name_core.jl",
+    "wrapper_array.jl",
+    "functions.jl",
+    "functions_dims.jl",
+    "functions_math.jl",
+    "broadcasting.jl",
+)
 
-    include("name_core.jl")
-    include("wrapper_array.jl")
-    include("functions.jl")
-    include("functions_dims.jl")
-    include("functions_math.jl")
+@testset "NamedDims.jl" begin
+    @testset "$file" for file in testfiles
+        include(file)
+    end
 end

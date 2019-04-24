@@ -128,6 +128,25 @@ function order_named_inds(dimnames::Tuple; named_inds...)
     return inds
 end
 
+"""
+    combine_names(a, b)
+
+Produces the merged set of names for tuples of names `a` and `b`,
+or an error if it is not possibly to combine them.
+Two tuples of names can be combined they are the same length
+and if for each position the names are either the same, or one is a wildcard (`:_`).
+When combining wildcard with non-wildcard the resulting name is the non-wildcard.
+(This is somewhat like the very simplest case of unification in e.g prolog).
+
+For example:
+ - `(:a, :b)` and `(:a, :b)` can be combined to give `(:a, :b)`
+ - similarly: `(:a, :_)` and `(:a, :b)` can also be combined to give `(:a, :b)`
+ - `(:a, :b)` and `(:b, :c)` can not be combined as the names at each position to not match.
+ - `(:a, :b)` and `(:a, :b, :c)` can not be combined as they have different lengths
+
+This is the type of name combination used for binary array operations.
+Where the dimensions of both arrays must be the same.
+"""
 function combine_names(names_a, names_b)
     # 0-Allocations if inputs are the same
     # 0-Allocation, if has a `:_` see  `@btime (()->combine_names((:a, :b), (:a, :_)))()`
@@ -151,6 +170,40 @@ function combine_names(names_a, names_b)
     ret isa Tuple{Vararg{Symbol}} || throw(DimensionMismatch(err_msg * "$names_a ≠ $names_b."))
     return compile_time_return_hack(ret)
 end
+
+"""
+    combine_names_longest(a, b)
+
+This is the same as [`combine_names`](@ref), but with the equal length requirement removed.
+It combines the names up to the length of the shortest, and takes the named from the longest
+for the remainder.
+It can also be considered as padding the shorter of the two given tuples of names
+with trailing wildcards (`:_`).
+This is the type of name combination used for broadcating array operations.
+Where the smaller (dimensionally) array is broadcast against the longer, repeating it for
+all entries in the missing trailing dimensions.
+"""
+combine_names_longest(names, ::Tuple{}) = names
+combine_names_longest(::Tuple{}, names) = names
+combine_names_longest(::Tuple{}, ::Tuple{}) = tuple()
+function combine_names_longest(a_names, b_names)
+    # 1 Allocation: @btime (()-> combine_names_longest((:a,:b), (:a,)))()
+
+    length(a_names) == length(b_names) && return combine_names(a_names, b_names)
+    long, short = length(a_names) > length(b_names) ? (a_names, b_names) : (b_names, a_names)
+    short_names = identity_namedtuple(short)
+    return ntuple(length(long)) do ii
+        a = getfield(long, ii)
+        b = get(short_names, ii, :_)
+        a === :_ && return b
+        b === :_ && return a
+        a === b && return a
+
+        err_msg = "Attempted to combine arrays with incompatible dimension names. "
+        throw(DimensionMismatch(err_msg * "$a_names ≠ $b_names."))
+    end
+end
+
 
 """
     remaining_dimnames_from_indexing(dimnames::Tuple, inds...)
