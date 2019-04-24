@@ -51,9 +51,13 @@ end
 
 function dim(dimnames::Tuple, name::Symbol)
     # 0-Allocations see: `@btime  (()->dim((:a, :b), :a))()`
-    this_namemap = NamedTuple{(name,), Tuple{Int}}((0,))  # 0 is default we will overwrite
+    this_namemap = NamedTuple{(name,), Tuple{Symbol}}((:notfound,))  # default we will overwrite
     full_namemap = dim(dimnames)
-    return first(merge(this_namemap, full_namemap))
+    dimnum = first(merge(this_namemap, full_namemap))
+    dimnum isa Int && return dimnum
+    throw(ArgumentError(
+        "Specified name ($(repr(name))), does not match any dimension name ($dimnames)"
+    ))
 end
 
 function dim(dimnames::Tuple, names)

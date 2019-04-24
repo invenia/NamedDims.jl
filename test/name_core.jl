@@ -22,13 +22,13 @@ using Test
     @testset "small case" begin
         @test dim((:x, :y), :x) == 1
         @test dim((:x, :y), :y) == 2
-        @test dim((:x, :y), :z) == 0  # not found
+        @test_throws ArgumentError dim((:x, :y), :z)  # not found
     end
     @testset "large case" begin
         @test dim((:x, :y, :a, :b, :c, :d), :x) == 1
         @test dim((:x, :y, :a, :b, :c, :d), :a) == 3
         @test dim((:x, :y, :a, :b, :c, :d), :d) == 6
-        @test dim((:x, :y, :a, :b, :c, :d), :z) == 0 # not found
+        @test_throws ArgumentError dim((:x, :y, :a, :b, :c, :d), :z) # not found
     end
 end
 
