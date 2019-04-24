@@ -60,7 +60,7 @@ They are illustrated by the following example:
 ```
 function foo(nda::NamedDimsArray, args...; dims=:)
     numerical_dims = dim(nda, dims)  # convert any form of dims into numerical dims
-    raw_result = fop(parent(nda), args...; dims=numerical_dims)  # call it on the backed data
+    raw_result = foo(parent(nda), args...; dims=numerical_dims)  # call it on the backed data
     new_names = determine_foo_names(nda, args...)  # workout what the new names will be
     return NamedDimsArray{new_names)(raw_result)  # wrap the result up
 end
