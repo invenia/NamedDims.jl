@@ -3,7 +3,7 @@ using Base: @propagate_inbounds
 using LinearAlgebra
 using Statistics
 
-export NamedDimsArray, dim
+export NamedDimsArray, dim, rename
 
 include("name_core.jl")
 include("wrapper_array.jl")

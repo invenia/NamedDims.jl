@@ -1,5 +1,14 @@
 # This file is for functions that explictly mess with the dimensions of a NameDimsArray
 
+"""
+    rename(nda::NamedDimsArray, names)
+Returns a new `NameDimsArray` with the given dimension `names`.
+`rename` outright replaces the names; while still wrapping the same backing array.
+Unlike the constructor, it does not require that new names are compatible
+with the old names (though you do still need to match the number of dimensions).
+"""
+rename(nda::NamedDimsArray, names) = NamedDimsArray(parent(nda), names)
+
 function Base.dropdims(nda::NamedDimsArray; dims)
     numerical_dims = dim(nda, dims)
     data = dropdims(parent(nda); dims=numerical_dims)
