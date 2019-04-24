@@ -103,10 +103,10 @@ end
         @test names(ndb) == (:a, :b, :c, :d)
     end
     @testset "size" begin
-        ndb = similar(nda, Float64, (100, 200, 300, 400))
+        ndb = similar(nda, Float64, (15, 25, 35, 45))
         @test parent(ndb) !== parent(nda)
         @test eltype(ndb) == Float64
-        @test size(ndb) == (100, 200, 300, 400)
+        @test size(ndb) == (15, 25, 35, 45)
         @test names(ndb) == (:a, :b, :c, :d)
     end
     @testset "dim names" begin

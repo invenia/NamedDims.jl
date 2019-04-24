@@ -71,12 +71,12 @@ using Test
             x->x[:, 1:1], # Single Column Matrix
             first, # Scalar
          )
-        for (T1, T2, T3, T4) in Iterators.product(casts, casts, casts, casts)
-            all(isequal(identity), (T1, T2, T3, T4)) && continue
-            !any(isequal(NamedDimsArray{(:foo, :bar)}), (T1, T2, T3, T4)) && continue
+        for (T1, T2, T3) in Iterators.product(casts, casts, casts)
+            all(isequal(identity), (T1, T2, T3)) && continue
+            !any(isequal(NamedDimsArray{(:foo, :bar)}), (T1, T2, T3)) && continue
 
-            total = T1(ones(3, 6)) .+ T2(2ones(3, 6)) .+ T3(3ones(3, 6)) .+ T4(4ones(3, 6))
-            @test total == 10ones(3, 6)
+            total = T1(ones(3, 6)) .+ T2(2ones(3, 6)) .+ T3(3ones(3, 6))
+            @test total == 6ones(3, 6)
             @test names(total) == (:foo, :bar)
         end
     end
