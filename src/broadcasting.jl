@@ -17,7 +17,7 @@ broadcasted_names(bc::Base.Broadcast.Broadcasted) = broadcasted_names(bc.args...
 function broadcasted_names(a, bs...)
     a_name = broadcasted_names(a)
     b_name = broadcasted_names(bs...)
-    combine_names_longest(a_name, b_name)
+    unify_names_longest(a_name, b_name)
 end
 broadcasted_names(a::AbstractArray) = names(a)
 broadcasted_names(a) = tuple()

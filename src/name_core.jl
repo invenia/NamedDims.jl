@@ -141,27 +141,27 @@ function incompatible_dimension_error(names_a, names_b)
 end
 
 """
-    combine_names(a, b)
+    unify_names(a, b)
 
 Produces the merged set of names for tuples of names `a` and `b`,
-or an error if it is not possibly to combine them.
-Two tuples of names can be combined they are the same length
+or an error if it is not possibly to unify them.
+Two tuples of names can be unified they are the same length
 and if for each position the names are either the same, or one is a wildcard (`:_`).
 When combining wildcard with non-wildcard the resulting name is the non-wildcard.
 (This is somewhat like the very simplest case of unification in e.g prolog).
 
 For example:
- - `(:a, :b)` and `(:a, :b)` can be combined to give `(:a, :b)`
- - similarly: `(:a, :_)` and `(:a, :b)` can also be combined to give `(:a, :b)`
- - `(:a, :b)` and `(:b, :c)` can not be combined as the names at each position to not match.
- - `(:a, :b)` and `(:a, :b, :c)` can not be combined as they have different lengths
+ - `(:a, :b)` and `(:a, :b)` can be unified to give `(:a, :b)`
+ - similarly: `(:a, :_)` and `(:a, :b)` can also be unified to give `(:a, :b)`
+ - `(:a, :b)` and `(:b, :c)` cannot be unified as the names at each position to not match.
+ - `(:a, :b)` and `(:a, :b, :c)` cannot be unified as they have different lengths
 
 This is the type of name combination used for binary array operations.
 Where the dimensions of both arrays must be the same.
 """
-function combine_names(names_a, names_b)
+function unify_names(names_a, names_b)
     # 0-Allocations if inputs are the same
-    # 0-Allocation, if has a `:_` see  `@btime (()->combine_names((:a, :b), (:a, :_)))()`
+    # 0-Allocation, if has a `:_` see  `@btime (()->unify_names((:a, :b), (:a, :_)))()`
 
     names_a === names_b && return names_a
 
@@ -183,10 +183,10 @@ function combine_names(names_a, names_b)
 end
 
 """
-    combine_names_longest(a, b)
+    unify_names_longest(a, b)
 
-This is the same as [`combine_names`](@ref), but with the equal length requirement removed.
-It combines the names up to the length of the shortest, and takes the named from the longest
+This is the same as [`unify_names`](@ref), but with the equal length requirement removed.
+It unifies the names up to the length of the shortest, and takes the named from the longest
 for the remainder.
 It can also be considered as padding the shorter of the two given tuples of names
 with trailing wildcards (`:_`).
@@ -194,24 +194,25 @@ This is the type of name combination used for broadcating array operations.
 Where the smaller (dimensionally) array is broadcast against the longer, repeating it for
 all entries in the missing trailing dimensions.
 """
-combine_names_longest(names, ::Tuple{}) = names
-combine_names_longest(::Tuple{}, names) = names
-combine_names_longest(::Tuple{}, ::Tuple{}) = tuple()
-function combine_names_longest(a_names, b_names)
-    # 1 Allocation: @btime (()-> combine_names_longest((:a,:b), (:a,)))()
+unify_names_longest(names, ::Tuple{}) = names
+unify_names_longest(::Tuple{}, names) = names
+unify_names_longest(::Tuple{}, ::Tuple{}) = tuple()
+function unify_names_longest(names_a, names_b)
+    # 0 Allocations: @btime (()-> unify_names_longest((:a,:b), (:a,)))()
 
-    length(a_names) == length(b_names) && return combine_names(a_names, b_names)
-    long, short = length(a_names) > length(b_names) ? (a_names, b_names) : (b_names, a_names)
+    length(names_a) == length(names_b) && return unify_names(names_a, names_b)
+    long, short = length(names_a) > length(names_b) ? (names_a, names_b) : (names_b, names_a)
     short_names = identity_namedtuple(short)
-    return ntuple(length(long)) do ii
+    ret = ntuple(length(long)) do ii
         a = getfield(long, ii)
         b = get(short_names, ii, :_)
         a === :_ && return b
         b === :_ && return a
         a === b && return a
-
-        incompatible_dimension_error(a_names, b_names)
+        return false  # mismatch occured, we mark this with a nonSymbol result
     end
+    ret isa Tuple{Vararg{Symbol}} || incompatible_dimension_error(names_a, names_b)
+    return compile_time_return_hack(ret)
 end
 
 
