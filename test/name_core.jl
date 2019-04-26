@@ -32,7 +32,7 @@ using Test
     end
 end
 
-@testset "combine_names/combine_names_longest" begin
+ @testset "unify_names/unify_names_longest" begin
     @test_throws DimensionMismatch unify_names((:a,), (:a, :b,))
 
     @test unify_names_longest((:a,), (:a, :b,)) == (:a, :b)
