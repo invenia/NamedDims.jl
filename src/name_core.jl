@@ -137,7 +137,7 @@ end
 Throws a `DimensionMismatch` explaining that these dimension names are not compatible.
 """
 function incompatible_dimension_error(names_a, names_b)
-    throw(DimensionMismatch("Incompatible dimension names: $names_a \neq $names_b"))
+    throw(DimensionMismatch("Incompatible dimension names: $names_a ≠ $names_b"))
 end
 
 """
