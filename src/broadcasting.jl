@@ -34,19 +34,10 @@ end
 Base.BroadcastStyle(::NamedDimsStyle{A}, ::NamedDimsStyle{B}) where {A, B} = NamedDimsStyle(A(), B())
 Base.BroadcastStyle(::NamedDimsStyle{A}, b::B) where {A, B} = NamedDimsStyle(A(), b)
 Base.BroadcastStyle(a::A, ::NamedDimsStyle{B}) where {A, B} = NamedDimsStyle(a, B())
-Base.BroadcastStyle(::NamedDims.NamedDimsStyle{A}, b::DefaultArrayStyle) where {A} = NamedDimsStyle(A(), b)
-Base.BroadcastStyle(a::AbstractArrayStyle{M}, ::NamedDims.NamedDimsStyle{B}) where {B,M} = NamedDimsStyle(a, B())
+Base.BroadcastStyle(::NamedDimsStyle{A}, b::DefaultArrayStyle) where {A} = NamedDimsStyle(A(), b)
+Base.BroadcastStyle(a::AbstractArrayStyle{M}, ::NamedDimsStyle{B}) where {B,M} = NamedDimsStyle(a, B())
 
-function Broadcast.broadcasted(::NamedDimsStyle{S}, f, args...) where S
-    # Delgate to inner style
-    inner = broadcasted(S(), f, args...)
-    if inner isa Broadcasted
-        return Broadcasted{NamedDimsStyle{S}}(inner.f, inner.args, inner.axes)
-    else # eagerly evaluated
-        return inner
-    end
-end
-
+#==
 function Base.similar(
     bc::Broadcasted{NamedDimsStyle{S}},
     ::Type{T}
@@ -58,23 +49,35 @@ function Base.similar(
     return NamedDimsArray{L}(data)
 end
 
+function Broadcast.broadcasted(::NamedDimsStyle{S}, f, args...) where S
+    # Delgate to inner style
+    inner = broadcasted(S(), f, args...)
+    if inner isa Broadcasted
+        return Broadcasted{NamedDimsStyle{S}}(inner.f, inner.args, inner.axes)
+    else # eagerly evaluated
+        return inner
+    end
+end
+==#
+
+function unwrap_broadcasted(bc::Broadcasted{NamedDimsStyle{S}}) where S
+    inner_args = unwrap_broadcasted.(bc.args)
+    return Broadcasted{S}(bc.f, inner_args)
+end
+unwrap_broadcasted(x) = x
+unwrap_broadcasted(nda::NamedDimsArray) = parent(nda)
+
+
 # We need to implement materialize! because if the wrapper array type does not support setindex
 # then the `similar` based default method will not work
-function Broadcast.materialize(bc::Broadcasted{NamedDimsStyle{S}}) where S
-    inner_args = map(bc.args) do arg
-        if arg isa NamedDimsArray
-            parent(arg)
-        else
-            arg
-        end
-    end
-    inner_bc = Broadcasted{S}(bc.f, inner_args, bc.axes)
-    data = materialize(inner_bc)
+function Broadcast.copy(bc::Broadcasted{NamedDimsStyle{S}}) where S
+    inner_bc = unwrap_broadcasted(bc)
+    data = copy(inner_bc)
 
     L = broadcasted_names(bc)
     return NamedDimsArray{L}(data)
 end
-
+# TODO: copyto! for broadcasting
 
 broadcasted_names(bc::Broadcasted) = broadcasted_names(bc.args...)
 function broadcasted_names(a, bs...)

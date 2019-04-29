@@ -20,7 +20,7 @@ end
 for (mod, funs) in (
     (:Base, (
         :sum, :prod, :count, :maximum, :minimum, :extrema, :cumsum, :cumprod,
-        :sort, :sort!)
+        :sort, :sort!,)
     ),
     (:Statistics, (:mean, :std, :var, :median, :cov, :cor)),
 )

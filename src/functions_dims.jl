@@ -50,3 +50,8 @@ for f in (:transpose, :adjoint, :permutedims)
         return NamedDimsArray{new_names}($f(parent(nda)))
     end
 end
+
+
+# reshape
+# For now we only implement the version that drops dimension names
+Base.reshape(nda::NamedDimsArray, dims::Int...) = reshape(parent(nda), dims...)
