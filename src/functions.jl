@@ -58,3 +58,21 @@ for (mod, funs) in (
         end
     end
 end
+
+
+################################################
+# Non-dim Overloads
+
+# 1 Arg
+for (mod, funs) in (
+    (:Base, (:zero, :one, :copy,)),
+)
+    for fun in funs
+        @eval function $mod.$fun(a::NamedDimsArray{L}) where L
+            data = $mod.$fun(parent(a))
+            return NamedDimsArray{L}(data)
+        end
+    end
+end
+
+
