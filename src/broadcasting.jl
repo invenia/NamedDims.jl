@@ -32,7 +32,7 @@ Base.BroadcastStyle(a::AbstractArrayStyle{M}, ::NamedDimsStyle{B}) where {B,M} =
 
 
 function unwrap_broadcasted(bc::Broadcasted{NamedDimsStyle{S}}) where S
-    inner_args = unwrap_broadcasted.(bc.args)
+    inner_args = map(unwrap_broadcasted, bc.args)
     return Broadcasted{S}(bc.f, inner_args)
 end
 unwrap_broadcasted(x) = x

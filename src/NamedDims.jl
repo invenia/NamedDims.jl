@@ -16,4 +16,3 @@ include("functions_math.jl")
 
 include("compat.jl")
 end # module
-
