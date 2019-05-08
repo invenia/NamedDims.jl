@@ -31,6 +31,13 @@ Base.BroadcastStyle(::NamedDimsStyle{A}, b::DefaultArrayStyle) where {A} = Named
 Base.BroadcastStyle(a::AbstractArrayStyle{M}, ::NamedDimsStyle{B}) where {B,M} = NamedDimsStyle(a, B())
 
 
+"""
+    unwrap_broadcasted
+
+Recursively unwraps `NamedDimsArray`s and `NamedDimsStyle`s.
+replacing the `NamedDimsArray`s with the wrapped array,
+and `NamedDimsStyle` with the wrapped `BroadcastStyle`.
+"""
 function unwrap_broadcasted(bc::Broadcasted{NamedDimsStyle{S}}) where S
     inner_args = map(unwrap_broadcasted, bc.args)
     return Broadcasted{S}(bc.f, inner_args)
