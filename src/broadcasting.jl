@@ -1,10 +1,3 @@
-# See: https://docs.julialang.org/en/v1/manual/interfaces/#man-interfaces-broadcasting-1
-
-using Base.Broadcast:
-    BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown,
-    Broadcasted, broadcasted, materialize
-
-
 """
     NamedDimsStyle{S}
 This is a `BroadcastStyle` for NamedDimsArray's
