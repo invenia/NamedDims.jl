@@ -8,17 +8,16 @@ Broadcast.BroadcastStyle(::TrackedStyle, ::TrackedStyle) = TrackedStyle()
 =#
 
 # Block ever constructing TrackedArrays of NamedDimArrays.
-Tracker.TrackedArray(::NamedDimsArray) = error("Should not Tracked NamedDimsArray")
-Tracker.TrackedArray(::Tracker.Call, ::NamedDimsArray) = error("Should not Tracked NamedDimsArray")
-Tracker.TrackedArray(::Tracker.Call, ::NamedDimsArray, ::AbstractArray) = error("Should not Tracked NamedDimsArray")
-Tracker.TrackedArray(::Tracker.Call, ::AbstractArray, ::NamedDimsArray) = error("Should not Tracked NamedDimsArray")
+# This is not strictly forbidden (thus is commented out) but is useful for debugging things
+#==
+Tracker.TrackedArray(::NamedDimsArray) = error("Should not make Tracked NamedDimsArray")
+Tracker.TrackedArray(::Tracker.Call, ::NamedDimsArray) = error("Should not make Tracked NamedDimsArray")
+Tracker.TrackedArray(::Tracker.Call, ::NamedDimsArray, ::AbstractArray) = error("Should not make Tracked NamedDimsArray")
+Tracker.TrackedArray(::Tracker.Call, ::AbstractArray, ::NamedDimsArray) = error("Should not make Tracked NamedDimsArray")
+==#
 
-function Base.BroadcastStyle(::NamedDimsStyle{A}, b::TrackedStyle) where {A}
-    return NamedDimsStyle(A(), b)
-end
-function Base.BroadcastStyle(a::TrackedStyle, ::NamedDimsStyle{B}) where {B}
-    return NamedDimsStyle(a, B())
-end
+Base.BroadcastStyle(::NamedDimsStyle{A}, b::TrackedStyle) where {A} = NamedDimsStyle(A(), b)
+Base.BroadcastStyle(a::TrackedStyle, ::NamedDimsStyle{B}) where {B} = NamedDimsStyle(a, B())
 
 function Base.:*(
     a::Tracker.TrackedArray{T, 2},
@@ -35,11 +34,9 @@ function Base.:*(
 end
 
 
-
-function Tracker.data(nda::NamedDimsArray{L}) where{L}
+function Tracker.data(nda::NamedDimsArray{L}) where L
     content = Tracker.data(parent(nda))
-    #return NamedDimsArray{L}(content)
-    return content
+    return NamedDimsArray{L}(content)
 end
 
 function Tracker.track(c::Tracker.Call, nda::NamedDimsArray{L}) where L

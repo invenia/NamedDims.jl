@@ -37,28 +37,6 @@ Base.BroadcastStyle(a::A, ::NamedDimsStyle{B}) where {A, B} = NamedDimsStyle(a, 
 Base.BroadcastStyle(::NamedDimsStyle{A}, b::DefaultArrayStyle) where {A} = NamedDimsStyle(A(), b)
 Base.BroadcastStyle(a::AbstractArrayStyle{M}, ::NamedDimsStyle{B}) where {B,M} = NamedDimsStyle(a, B())
 
-#==
-function Base.similar(
-    bc::Broadcasted{NamedDimsStyle{S}},
-    ::Type{T}
-) where {S,T}
-    inner_bc = Broadcasted{S}(bc.f, bc.args, bc.axes)
-    data = similar(inner_bc, T)
-
-    L = broadcasted_names(bc)
-    return NamedDimsArray{L}(data)
-end
-
-function Broadcast.broadcasted(::NamedDimsStyle{S}, f, args...) where S
-    # Delgate to inner style
-    inner = broadcasted(S(), f, args...)
-    if inner isa Broadcasted
-        return Broadcasted{NamedDimsStyle{S}}(inner.f, inner.args, inner.axes)
-    else # eagerly evaluated
-        return inner
-    end
-end
-==#
 
 function unwrap_broadcasted(bc::Broadcasted{NamedDimsStyle{S}}) where S
     inner_args = unwrap_broadcasted.(bc.args)
@@ -68,7 +46,7 @@ unwrap_broadcasted(x) = x
 unwrap_broadcasted(nda::NamedDimsArray) = parent(nda)
 
 
-# We need to implement materialize! because if the wrapper array type does not support setindex
+# We need to implement copy because if the wrapper array type does not support setindex
 # then the `similar` based default method will not work
 function Broadcast.copy(bc::Broadcasted{NamedDimsStyle{S}}) where S
     inner_bc = unwrap_broadcasted(bc)
