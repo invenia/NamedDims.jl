@@ -8,7 +8,6 @@ const testfiles = (
     "functions_dims.jl",
     "functions_math.jl",
     "broadcasting.jl",
-    "broadcasting_multi.jl",
 )
 
 @testset "NamedDims.jl" begin
