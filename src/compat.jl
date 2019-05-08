@@ -1,13 +1,8 @@
-##################################
 # Tracker.jl Compat
 using Tracker
 using Tracker: TrackedStyle, TrackedReal
-#=
-Broadcast.BroadcastStyle(::BroadcastStyle, ::TrackedStyle) = TrackedStyle()
-Broadcast.BroadcastStyle(::TrackedStyle, ::TrackedStyle) = TrackedStyle()
-=#
 
-# Block ever constructing TrackedArrays of NamedDimArrays.
+# The following blocks ever constructing TrackedArrays of NamedDimArrays.
 # This is not strictly forbidden (thus is commented out) but is useful for debugging things
 #==
 Tracker.TrackedArray(::NamedDimsArray) = error("Should not make Tracked NamedDimsArray")
