@@ -107,7 +107,7 @@ Base.@pure function tuple_issubset(lhs::Tuple{Vararg{Symbol,N}}, rhs::Tuple{Vara
         for b in rhs
             found |= a === b
         end
-        !found && return false
+        found || return false
     end
     return true
 end
