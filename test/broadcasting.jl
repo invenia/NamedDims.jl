@@ -1,6 +1,7 @@
 using NamedDims
 using NamedDims: names
 using Test
+using Tracker
 
 @testset "Binary broadcasting operations (.+)" begin
     nda = NamedDimsArray{(:a,)}(ones(3))
@@ -79,5 +80,18 @@ using Test
             @test total == 6ones(3, 6)
             @test names(total) == (:foo, :bar)
         end
+    end
+end
+
+@testset "Competing Wrappers" begin
+    nda = NamedDimsArray(ones(4), :foo)
+    ta = TrackedArray(5*ones(4))
+    ndt = NamedDimsArray(TrackedArray(5*ones(4)), :foo)
+
+    arrays = (nda, ta, ndt)
+    @testset "$a .- $b" for (a, b) in Iterators.product(arrays, arrays)
+        a === b && continue
+        @test typeof(nda .- ta) <: NamedDimsArray
+        @test typeof(parent(nda .- ta)) <: TrackedArray
     end
 end

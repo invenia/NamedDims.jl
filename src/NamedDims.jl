@@ -1,5 +1,7 @@
 module NamedDims
 using Base: @propagate_inbounds
+using Base.Broadcast:
+    Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
 using LinearAlgebra
 using Statistics
 
@@ -12,4 +14,5 @@ include("functions.jl")
 include("functions_dims.jl")
 include("functions_math.jl")
 
+include("compat.jl")
 end # module
