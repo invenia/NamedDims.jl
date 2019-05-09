@@ -67,9 +67,22 @@ Base.parent(x::NamedDimsArray) = x.data
 
 Returns a tuple of containing the names of all the dimensions of the array `A`.
 """
-names(::Type{<:NamedDimsArray{L}}) where L = L
-names(::Type{<:AbstractArray{T, N}}) where {T,N} = ntuple(_->:_, N)
-names(x::T) where T<:AbstractArray = names(T)
+names(x::NamedDimsArray{L}}) where L = L
+function names(x::T) where T<:AbstractArray
+    inner = parent(x)
+    # things that are not wrapper arrays are there own parents,
+    # so at that point we can give up looking for names
+    # also we have no way to deal with inner arrays of different dimensions, even if they do have names
+    # so give up then too
+    if x === inner || ndims(inner) != ndims(x)
+        return default_names(x)
+    else
+        # recurse to look for names on what was wrapped
+        return names(inner)
+    end
+end
+names(x::Array{T,N}) where {T,N} = default_names(x)  # shortcut of the above
+default_names(x::AbstractArray{T, N}) where {T,N} = ntuple(_->:_, N)
 
 dim(a::NamedDimsArray{L}, name) where L = dim(L, name)
 
