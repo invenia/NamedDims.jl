@@ -31,39 +31,23 @@ _compile_time_return_hack(::Val{X}) where X = X
 
 
 """
-    dim(dimnames, [name])
+    dim(dimnames, name)
 
 For `dimnames` being a tuple of names (symbols) for the dimensions.
-If called with just the tuple,
-returns a named tuple, with each name mapped to a dimension.
-e.g `dim((:a, :b)) == (a=1, b=2)`.
-
-If the second `name` argument is given, them the dimension corresponding to that `name`,
-is returned.
+and `name` being a one of those names
+This returns the dimension corresponding to that `name`,
 e.g. `dim((:a, :b), :b) == 2`
-If that `name` is not found then an error is thrown.
+If that `name` is not one of the given `dimnames` then an error is thrown.
 """
-function dim(dimnames::Tuple)  # TODO: Remove this ?
-    # 0-Allocations see: `@btime (()->dim((:a, :b)))()`
-    ndims = length(dimnames)
-    return NamedTuple{dimnames, NTuple{ndims, Int}}(1:ndims)
-end
-
-Base.@pure function dim_noerror(dimnames::Tuple{Vararg{Symbol, N}}, name::Symbol) where N
-    # 0-Allocations see: @btime  (()->dim_noerror((:a, :b, :c), :c))()
-    for ii in 1:N
-        getfield(dimnames, ii) === name && return ii
-    end
-    return :notfound
-end
-
 function dim(dimnames::Tuple, name::Symbol)::Int
     # 0-Allocations see: `@btime  (()->dim((:a, :b), :b))()`
     dimnum = dim_noerror(dimnames, name)
-    dimnum isa Int && return dimnum
-    throw(ArgumentError(
-        "Specified name ($(repr(name))) does not match any dimension name ($dimnames)"
-    ))
+    if dimnum === 0
+        throw(ArgumentError(
+            "Specified name ($(repr(name))) does not match any dimension name ($dimnames)"
+        ))
+    end
+    return dimnum
 end
 
 function dim(dimnames::Tuple, names)
@@ -78,6 +62,15 @@ function dim(dimnames::Tuple, d::Union{Integer, Colon})
     # `:` is the default for most methods that take `dims`
     return d
 end
+
+Base.@pure function dim_noerror(dimnames::Tuple{Vararg{Symbol, N}}, name::Symbol) where N
+    # 0-Allocations see: @btime  (()->dim_noerror((:a, :b, :c), :c))()
+    for ii in 1:N
+        getfield(dimnames, ii) === name && return ii
+    end
+    return 0
+end
+
 
 
 """
@@ -100,8 +93,14 @@ function permute_dimnames(dimnames::NTuple{N, Symbol}, perm) where N
     return compile_time_return_hack(new_dimnames)
 end
 
-
+"""
+    tuple_issubset
+A version of `is_subset` sepecifically for `Tuple`s of `Symbol`s, that is `@pure`.
+This helps it get optimised out of existance. It is less of an abuse of `@pure` than
+most of the stuff for making `NamedTuples` work.
+"""
 Base.@pure function tuple_issubset(lhs::Tuple{Vararg{Symbol,N}}, rhs::Tuple{Vararg{Symbol,M}}) where {N,M}
+    N <= M || return false
     for a in lhs
         found = false
         for b in rhs
