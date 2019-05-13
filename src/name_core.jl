@@ -215,6 +215,8 @@ function unify_names_longest(names_a, names_b)
     return compile_time_return_hack(ret)
 end
 
+keep_dim_ind_type(::Type{<:Integer}) = false
+keep_dim_ind_type(::Any) = true
 
 """
     remaining_dimnames_from_indexing(dimnames::Tuple, inds...)
@@ -231,8 +233,6 @@ Dimensions indexed with scalars are dropped
     keep_names = [:(getfield(dimnames, $ii)) for ii in kept_dims]
     return Expr(:call, :compile_time_return_hack, Expr(:tuple, keep_names...))
 end
-keep_dim_ind_type(::Type{<:Integer}) = false
-keep_dim_ind_type(::Any) = true
 
 
 """
