@@ -127,3 +127,49 @@ function symmetric_names(L::Tuple{Symbol,Symbol}, dims::Integer)
     end
     return compile_time_return_hack(names)
 end
+
+# LinearAlgebra
+#==
+    Note on implementation of factorisition types:
+    The general strategy is to make one of the fields of the factorization types
+    into a NamedDimsArray.
+    We can then dispatch on this as required, and strip it out with `parent` for accessing operations.
+    However, the type of the field does not actually always match to what it should be
+    from a mathematical perspective.
+    Which is corrected in `Base.getproperty`, as required
+==#
+
+## lu
+
+function LinearAlgebra.lu!(nda::NamedDimsArray{L}, args...; kwargs...) where L
+    inner_lu = lu!(parent(nda), args...; kwargs...)
+    factors = NamedDimsArray{L}(getfield(inner_lu, :factors))
+    ipiv = getfield(inner_lu, :ipiv)
+    info = getfield(inner_lu, :info)
+    return LU(factors, ipiv, info)
+end
+
+function Base.parent(F::LU{T,<:NamedDimsArray{L}}) where {T, L}
+    factors = parent(getfield(F, :factors))
+    ipiv = getfield(F, :ipiv)
+    info = getfield(F, :info)
+    return LU(factors, ipiv, info)
+end
+
+function Base.getproperty(F::LU{T,<:NamedDimsArray{L}}, d::Symbol) where {T, L}
+    inner = getproperty(parent(F), d)
+    n1, n2 = L
+    if d == :L
+        return NamedDimsArray{(n1, :_)}(inner)
+    elseif d == :U
+        return NamedDimsArray{(:_, n2)}(inner)
+    elseif d == :P
+        perm_matrix_labels = (first(L), first(L))
+        return NamedDimsArray{perm_matrix_labels}(inner)
+    elseif d == :p
+        perm_vector_labels = (first(L),)
+        return NamedDimsArray{perm_vector_labels}(inner)
+    else
+        return inner
+    end
+end
