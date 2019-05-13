@@ -215,8 +215,11 @@ function unify_names_longest(names_a, names_b)
     return compile_time_return_hack(ret)
 end
 
-keep_dim_ind_type(::Type{<:Integer}) = false
-keep_dim_ind_type(::Any) = true
+# The following are helpers for remaining_dimnames_from_indexing
+# as a generated function it can get unhappy if asked to use anon functions
+# and it can only call function declared before it. So we declare them explictly here.
+is_noninteger_type(::Type{<:Integer}) = false
+is_noninteger_type(::Any) = true
 
 """
     remaining_dimnames_from_indexing(dimnames::Tuple, inds...)
@@ -229,7 +232,7 @@ Dimensions indexed with scalars are dropped
     # 0-Allocation see:
     # `@btime (()->remaining_dimnames_from_indexing((:a, :b, :c), (:,390,:)))()``
     ind_types = inds.parameters
-    kept_dims = findall(keep_dim_ind_type, ind_types)
+    kept_dims = findall(is_noninteger_type, ind_types)
     keep_names = [:(getfield(dimnames, $ii)) for ii in kept_dims]
     return Expr(:call, :compile_time_return_hack, Expr(:tuple, keep_names...))
 end
