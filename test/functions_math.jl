@@ -1,3 +1,4 @@
+using LinearAlgebra
 using NamedDims
 using NamedDims: matrix_prod_names, names
 using Test
@@ -135,5 +136,14 @@ end
 
         @test ndv * ndm == ones(1, 1)
         @test names(ndv * ndm) == (:a, :b)
+    end
+end
+
+@testset "Mutmul with special types" begin
+    nda = NamedDimsArray{(:a, :b)}(ones(5,5))
+    @testset "$T" for T in (Diagonal, Symmetric, Tridiagonal, SymTridiagonal, BitArray,)
+        x = T(ones(5,5))
+        @test names(x * nda) == (:_, :b)
+        @test names(nda * x) == (:a, :_)
     end
 end
