@@ -29,13 +29,6 @@ for (NA, NB) in ((1,2), (2,1), (2,2))  #Vector * Vector, is not allowed
         data = *(parent(a), parent(b))
         return NamedDimsArray{L}(data)
     end
-
-#    @eval function Base.:*(a::NamedDimsArray{L,T,$NA}, b::AbstractArray{S,$NB}) where {L,T,S}
-#        return *(a, NamedDimsArray{names(b)}(b))
-#    end
-#    @eval function Base.:*(a::AbstractArray{T,$NA}, b::NamedDimsArray{L,S,$NB}) where {L,T,S}
-#        return *(NamedDimsArray{names(a)}(a), b)
-#    end
 end
 
 """
