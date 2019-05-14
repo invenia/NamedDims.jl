@@ -42,14 +42,18 @@ It should be used at the top level of a module.
 macro declare_matmul(MatrixT, VectorT=nothing)
     dim_combos = VectorT === nothing ? ((2,2),) : ((1,2), (2,1), (2,2))
     codes = map(dim_combos) do (NA, NB)
-        TA_named = :(NamedDimsArray{<:Any, <:Any, $NA})
-        TB_named = :(NamedDimsArray{<:Any, <:Any, $NB})
+        TA_named = :(NamedDims.NamedDimsArray{<:Any, <:Any, $NA})
+        TB_named = :(NamedDims.NamedDimsArray{<:Any, <:Any, $NB})
         TA_other = (VectorT, MatrixT)[NA]
         TB_other = (VectorT, MatrixT)[NB]
 
         quote
-            Base.:*(a::$TA_named, b::$TB_other) = *(a, NamedDimsArray{names(b)}(b))
-            Base.:*(a::$TA_other, b::$TB_named) = *(NamedDimsArray{names(a)}(a), b)
+            function Base.:*(a::$TA_named, b::$TB_other)
+                return *(a, NamedDims.NamedDimsArray{NamedDims.names(b)}(b))
+            end
+            function Base.:*(a::$TA_other, b::$TB_named)
+                return *(NamedDims.NamedDimsArray{NamedDims.names(a)}(a), b)
+            end
         end
     end
     return esc(Expr(:block, codes...))
