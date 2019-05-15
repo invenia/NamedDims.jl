@@ -10,7 +10,7 @@
 
 ## Core functionality:
 
-For `nda = NamedDimsArrays{(:x,:y,:z)}(rand(10,20,30))`.
+For `nda = NamedDimsArray{(:x,:y,:z)}(rand(10,20,30))`.
 
  - Unwrapping: `parent(nda)`: returns the underlying `AbstractArray` that is wrapped by the `NamedDimsArray`
  - Indexing: `nda[y=2]`: the same as `nda[x=:, y=2, z=:]` which is the same as `nda[:,2,:]`

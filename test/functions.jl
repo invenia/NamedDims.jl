@@ -37,3 +37,9 @@ end
 
     @test names(mapreduce(isodd, |, nda; dims=:y)) == (:x, :y) == names(mapreduce(isodd, |, nda; dims=2))
 end
+
+@testset "zero" begin
+    nda = NamedDimsArray([10 20; 31 40], (:x, :y))
+    @test zero(nda) == [0 0; 0 0]
+    @test names(zero(nda)) == (:x, :y)
+end
