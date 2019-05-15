@@ -14,20 +14,7 @@ Tracker.TrackedArray(::Tracker.Call, ::AbstractArray, ::NamedDimsArray) = error(
 Base.BroadcastStyle(::NamedDimsStyle{A}, b::TrackedStyle) where {A} = NamedDimsStyle(A(), b)
 Base.BroadcastStyle(a::TrackedStyle, ::NamedDimsStyle{B}) where {B} = NamedDimsStyle(a, B())
 
-function Base.:*(
-    a::Tracker.TrackedArray{T, 2},
-    b::NamedDims.NamedDimsArray{L, S, 2}
-) where {T, L, S}
-    return NamedDimsArray{NamedDims.names(a)}(a) * b
-end
-
-function Base.:*(
-    a::NamedDims.NamedDimsArray{L, S, 2},
-    b::Tracker.TrackedArray{T, 2}
-) where {T, L, S}
-    return a * NamedDimsArray{NamedDims.names(b)}(b)
-end
-
+@declare_matmul(TrackedMatrix,TrackedVector)
 
 function Tracker.data(nda::NamedDimsArray{L}) where L
     content = Tracker.data(parent(nda))
