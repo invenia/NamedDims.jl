@@ -212,6 +212,7 @@ end
 
         @test_throws MethodError symmetric_names((:a, :b, :c), 2)
     end
+
     @testset "$f" for f in (cov, cor)
         @testset "matrix input, matrix result" begin
             A = rand(3, 5)
@@ -266,4 +267,13 @@ end
 
     # Identity operation should give back original nam,es
     @test names(x.U * Diagonal(x.S) * x.V) == (:foo, :bar)
+end
+
+@testset "svd" begin
+    nda = NamedDimsArray{(:foo, :bar)}([1.0 2; 3 4])
+    x = svd(nda)
+    @test names(x.U) == (:foo, :_)
+    @test names(x.S) == (:_,)
+    @test names(x.V) == (:_, :bar)
+    @test names(x.Vt) == (:bar, :_)
 end
