@@ -1,9 +1,6 @@
 using NamedDims
-using NamedDims: names
 using SparseArrays
 using Test
-
-
 
 @testset "get the parent array that was wrapped" begin
     orig = [1 2; 3 4]

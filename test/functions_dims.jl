@@ -1,5 +1,4 @@
 using NamedDims
-using NamedDims: names
 using Test
 
 @testset "rename" begin

@@ -1,6 +1,6 @@
 using LinearAlgebra
 using NamedDims
-using NamedDims: matrix_prod_names, names
+using NamedDims: matrix_prod_names
 using Test
 
 @testset "+" begin
