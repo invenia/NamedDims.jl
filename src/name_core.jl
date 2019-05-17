@@ -31,40 +31,29 @@ _compile_time_return_hack(::Val{X}) where X = X
 
 
 """
-    dim(dimnames, [name])
+    dim(dimnames, name)
 
 For `dimnames` being a tuple of names (symbols) for the dimensions.
-If called with just the tuple,
-returns a named tuple, with each name mapped to a dimension.
-e.g `dim((:a, :b)) == (a=1, b=2)`.
-
-If the second `name` argument is given, them the dimension corresponding to that `name`,
-is returned.
+and `name` being a one of those names
+This returns the dimension corresponding to that `name`,
 e.g. `dim((:a, :b), :b) == 2`
-If that `name` is not found then `0` is returned.
+If that `name` is not one of the given `dimnames` then an error is thrown.
 """
-function dim(dimnames::Tuple)
-    # 0-Allocations see: `@btime (()->dim((:a, :b)))()`
-    ndims = length(dimnames)
-    return NamedTuple{dimnames, NTuple{ndims, Int}}(1:ndims)
-end
-
-function dim(dimnames::Tuple, name::Symbol)
-    # 0-Allocations see: `@btime  (()->dim((:a, :b), :a))()`
-    this_namemap = NamedTuple{(name,), Tuple{Symbol}}((:notfound,))  # default we will overwrite
-    full_namemap = dim(dimnames)
-    dimnum = first(merge(this_namemap, full_namemap))
-    dimnum isa Int && return dimnum
-    throw(ArgumentError(
-        "Specified name ($(repr(name))) does not match any dimension name ($dimnames)"
-    ))
+function dim(dimnames::Tuple, name::Symbol)::Int
+    # 0-Allocations see: `@btime  (()->dim((:a, :b), :b))()`
+    dimnum = dim_noerror(dimnames, name)
+    if dimnum === 0
+        throw(ArgumentError(
+            "Specified name ($(repr(name))) does not match any dimension name ($dimnames)"
+        ))
+    end
+    return dimnum
 end
 
 function dim(dimnames::Tuple, names)
     # 0-Allocations see: `@btime (()->dim((:a,:b), (:a,:b)))()`
     return map(name->dim(dimnames, name), names)
 end
-
 
 function dim(dimnames::Tuple, d::Union{Integer, Colon})
     # This is the fallback that allows `NamedDimsArray`'s to be have dimensions
@@ -74,13 +63,15 @@ function dim(dimnames::Tuple, d::Union{Integer, Colon})
     return d
 end
 
-
-
-
-function identity_namedtuple(tup::NTuple{N, Symbol}) where N
-    # 0-Allocations
-    return NamedTuple{tup, typeof(tup)}(tup)
+Base.@pure function dim_noerror(dimnames::Tuple{Vararg{Symbol, N}}, name::Symbol) where N
+    # 0-Allocations see: @btime  (()->dim_noerror((:a, :b, :c), :c))()
+    for ii in 1:N
+        getfield(dimnames, ii) === name && return ii
+    end
+    return 0
 end
+
+
 
 """
     permute_dimnames(dimnames, perm)
@@ -103,14 +94,21 @@ function permute_dimnames(dimnames::NTuple{N, Symbol}, perm) where N
 end
 
 """
-    default_inds(dimnames::Tuple)
-This is the default value for all indexing expressions using the given dimnames.
-Which is to say: take a full slice on everything
+    tuple_issubset
+A version of `is_subset` sepecifically for `Tuple`s of `Symbol`s, that is `@pure`.
+This helps it get optimised out of existance. It is less of an abuse of `@pure` than
+most of the stuff for making `NamedTuples` work.
 """
-function default_inds(dimnames::NTuple{N}) where N
-    # 0-Allocations
-    values = ntuple(_->Colon(), N)
-    return NamedTuple{dimnames, NTuple{N, Colon}}(values)
+Base.@pure function tuple_issubset(lhs::Tuple{Vararg{Symbol,N}}, rhs::Tuple{Vararg{Symbol,M}}) where {N,M}
+    N <= M || return false
+    for a in lhs
+        found = false
+        for b in rhs
+            found |= a === b
+        end
+        found || return false
+    end
+    return true
 end
 
 """
@@ -120,17 +118,20 @@ Returns the values of the `named_inds`, sorted as per the order they appear in `
 with any missing dimnames, having there value set to `:`.
 An error is thrown if any dimnames are given in `named_inds` that do not occur in `dimnames`.
 """
-function order_named_inds(dimnames::Tuple; named_inds...)
-    # 0-Allocations
-
-    slice_everything = default_inds(dimnames)
-    full_named_inds = merge(slice_everything, named_inds)
-    if length(full_named_inds) != length(dimnames)
-        throw(DimensionMismatch("Expected $(dimnames), got $(keys(named_inds))"))
+function order_named_inds(dimnames::Tuple{Vararg{Symbol,N}}; named_inds...) where {N}
+    # 0-Allocations: see `@code_typed (()->order_named_inds((:a, :b, :c), (b=1, c=2)))()`
+    if !tuple_issubset(keys(named_inds), dimnames)
+        throw(DimensionMismatch("Expected subset of $(dimnames), got $(keys(named_inds))"))
     end
-    inds = Tuple(full_named_inds)
-    return inds
+
+    full_inds = ntuple(N) do ii
+        name_ii = dimnames[ii]
+        get(named_inds, name_ii, :)
+    end
+
+    return full_inds
 end
+
 
 """
     incompatible_dimension_error(names_a, names_b)
@@ -202,10 +203,9 @@ function unify_names_longest(names_a, names_b)
 
     length(names_a) == length(names_b) && return unify_names(names_a, names_b)
     long, short = length(names_a) > length(names_b) ? (names_a, names_b) : (names_b, names_a)
-    short_names = identity_namedtuple(short)
     ret = ntuple(length(long)) do ii
         a = getfield(long, ii)
-        b = get(short_names, ii, :_)
+        b = ii <= length(short) ? short[ii] : :_
         a === :_ && return b
         b === :_ && return a
         a === b && return a
@@ -244,22 +244,20 @@ Given a tuple of dimension names, and either a collection of dimensions,
 or a single dimension, expressed as a number,
 Returns the dimension names with those dimensions dropped.
 """
-function remaining_dimnames_after_dropping(dimnames::Tuple, dropped_dim::Integer)
+function remaining_dimnames_after_dropping(dimnames::Tuple, dropped_dim::Int)
     # 0 allocations. See `@btime remaining_dimnames_after_dropping((:a,:b,:c,:d,:e), 4)`
-    return remaining_dimnames_after_dropping(dimnames, (dropped_dim,))
+    return _remaining_dimnames_after_dropping(dimnames, Tuple{dropped_dim})
 end
 
-function remaining_dimnames_after_dropping(dimnames::Tuple, dropped_dims)
-    # 0-Allocations see: `@btime remaining_dimnames_after_dropping((:a,:b,:c,:d,:e), (1,2,))
+function remaining_dimnames_after_dropping(dimnames::NTuple{N, Symbol}, dropped_dims::Tuple{Vararg{Int}}) where N
+    # 0-Allocations see:
+    # `@code_typed (()->remaining_dimnames_after_dropping((:a,:b,:c,:d,:e), (1,3)))()`
+    return _remaining_dimnames_after_dropping(dimnames, Tuple{dropped_dims...})
+end
 
-    anti_names = identity_namedtuple(map(x->dimnames[x], dropped_dims))
-    full_names = identity_namedtuple(dimnames)
-
-    # Now we construct a new named tuple, with all the names we want to remove at the start
-    combined_names = merge(anti_names, full_names)
-    n_skip = length(anti_names)
-    ret = ntuple(length(full_names) - n_skip) do ii
-        combined_names[ii + n_skip]  # Skip over the ones we left as the start
-    end
-    return compile_time_return_hack(ret)
+# dropped_dims must be a Tuple type where the values are Int literal for the dimensions being dropped
+@generated function _remaining_dimnames_after_dropping(dimnames::NTuple{N,Symbol}, dropped_dims::Type) where N
+    dropped_dims_vals = dropped_dims.parameters[1].parameters
+    keep_names = [:(getfield(dimnames, $ii)) for ii in 1:N if ii ∉ dropped_dims_vals]
+    return Expr(:call, :compile_time_return_hack, Expr(:tuple, keep_names...))
 end

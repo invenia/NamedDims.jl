@@ -81,6 +81,14 @@ using Tracker
             @test names(total) == (:foo, :bar)
         end
     end
+
+    @testset "Regression test again #8b" begin
+        # https://github.com/invenia/NamedDims.jl/issues/8#issuecomment-490124369
+        nda = NamedDimsArray{(:x,:y,:z)}(ones(10,20,30))
+        @test nda .+ ones(1,20) == 2ones(10,20,30)
+        @test names(nda .+ ones(1,20)) == (:x, :y, :z)
+    end
+
 end
 
 @testset "Competing Wrappers" begin

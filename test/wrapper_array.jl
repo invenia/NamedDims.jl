@@ -42,6 +42,13 @@ end
         @test names(nda[y=1]) == (:x,)
         @test names(nda[y=1:1]) == (:x, :y)
     end
+
+    # https://github.com/invenia/NamedDims.jl/issues/8
+    @testset "with multiple-wildcards" begin
+        nda_mw = NamedDimsArray{(:_,:_,:c)}(ones(10,20,30));
+        @test nda_mw[c=2] == ones(10,20)
+        @test names(nda_mw[c=2]) == (:_, :_)
+    end
 end
 
 

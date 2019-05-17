@@ -11,14 +11,6 @@ using Test
 
 
 @testset "dim" begin
-    @testset "get map only" begin
-        @test dim((:x, :y)) == (x=1, y=2)
-
-        manynames = Tuple(Symbol.('A':'z'))
-        namemap = dim(manynames)
-        @test keys(namemap) == manynames
-        @test values(namemap) == Tuple(1:length(manynames))
-    end
     @testset "small case" begin
         @test dim((:x, :y), :x) == 1
         @test dim((:x, :y), :y) == 2
