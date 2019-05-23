@@ -149,15 +149,15 @@ function LinearAlgebra.lu!(nda::NamedDimsArray{L}, args...; kwargs...) where L
     return LU(factors, ipiv, info)
 end
 
-function Base.parent(F::LU{T,<:NamedDimsArray{L}}) where {T, L}
-    factors = parent(getfield(F, :factors))
-    ipiv = getfield(F, :ipiv)
-    info = getfield(F, :info)
+function Base.parent(fact::LU{T,<:NamedDimsArray{L}}) where {T, L}
+    factors = parent(getfield(fact, :factors))
+    ipiv = getfield(fact, :ipiv)
+    info = getfield(fact, :info)
     return LU(factors, ipiv, info)
 end
 
-function Base.getproperty(F::LU{T,<:NamedDimsArray{L}}, d::Symbol) where {T, L}
-    inner = getproperty(parent(F), d)
+function Base.getproperty(fact::LU{T,<:NamedDimsArray{L}}, d::Symbol) where {T, L}
+    inner = getproperty(parent(fact), d)
     n1, n2 = L
     if d == :L
         return NamedDimsArray{(n1, :_)}(inner)
@@ -174,6 +174,33 @@ function Base.getproperty(F::LU{T,<:NamedDimsArray{L}}, d::Symbol) where {T, L}
     end
 end
 
+## lq
+
+LinearAlgebra.lq(nda::NamedDimsArray, args...; kws...) = lq!(copy(nda), args...; kws...)
+function LinearAlgebra.lq!(nda::NamedDimsArray{L}, args...; kwargs...) where L
+    inner = lq!(parent(nda), args...; kwargs...)
+    factors = NamedDimsArray{L}(getfield(inner, :factors))
+    τ = getfield(inner, :τ)
+    return LQ(factors, τ)
+end
+
+function Base.parent(fact::LQ{T,<:NamedDimsArray{L}}) where {T, L}
+    factors = parent(getfield(fact, :factors))
+    τ = getfield(fact, :τ)
+    return LQ(factors, τ)
+end
+
+function Base.getproperty(fact::LQ{T,<:NamedDimsArray{L}}, d::Symbol) where {T, L}
+    inner = getproperty(parent(fact), d)
+    n1, n2 = L
+    if d == :L
+        return NamedDimsArray{(n1, :_)}(inner)
+    elseif d == :Q
+        return NamedDimsArray{(:_, n2)}(inner)
+    else
+        return inner
+    end
+end
 
 ## svd
 
@@ -193,15 +220,15 @@ function LinearAlgebra.svd!(nda::NamedDimsArray{L}, args...; kwargs...) where L
     return SVD(u, s, vt)
 end
 
-function Base.parent(F::SVD{T, Tr, <:NamedDimsArray{L}}) where {T, Tr, L}
-    u = parent(getfield(F, :U))
-    s = getfield(F, :S)
-    vt = parent(getfield(F, :Vt))
+function Base.parent(fact::SVD{T, Tr, <:NamedDimsArray{L}}) where {T, Tr, L}
+    u = parent(getfield(fact, :U))
+    s = getfield(fact, :S)
+    vt = parent(getfield(fact, :Vt))
     return SVD(u, s, vt)
 end
 
-function Base.getproperty(F::SVD{T, Tr, <:NamedDimsArray{L}}, d::Symbol) where {T, Tr, L}
-    inner = getproperty(parent(F), d)
+function Base.getproperty(fact::SVD{T, Tr, <:NamedDimsArray{L}}, d::Symbol) where {T, Tr, L}
+    inner = getproperty(parent(fact), d)
     n1, n2 = L
     if d == :U
         return NamedDimsArray{(n1,:_)}(inner)

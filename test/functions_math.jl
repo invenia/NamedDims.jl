@@ -257,6 +257,16 @@ end
     @test names(nda[x.p, :]) == (:foo, :bar)
 end
 
+@testset "lq" begin
+    nda = NamedDimsArray{(:foo, :bar)}([1.0 2; 3 4])
+    x = lq(nda)
+    @test names(x.L) == (:foo, :_)
+    @test names(x.Q) == (:_, :bar)
+
+    # Idenity opperations should give back original names
+    @test names(x.L * x.Q) == (:foo, :bar)
+end
+
 @testset "svd" begin
     nda = NamedDimsArray{(:foo, :bar)}([1.0 2; 3 4])
     x = svd(nda)
