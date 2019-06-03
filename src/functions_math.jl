@@ -24,10 +24,12 @@ end
 
 
 for (NA, NB) in ((1,2), (2,1), (2,2))  #Vector * Vector, is not allowed
-    @eval function Base.:*(a::NamedDimsArray{A,T,$NA}, b::NamedDimsArray{B,S,$NB}) where {A,B,T,S}
-        L = matrix_prod_names(A,B)
-        data = *(parent(a), parent(b))
-        return NamedDimsArray{L}(data)
+    for func in (:(Base.:*), :(LinearAlgebra.lmul!))
+        @eval function $func(a::NamedDimsArray{A,T,$NA}, b::NamedDimsArray{B,S,$NB}) where {A,B,T,S}
+            L = matrix_prod_names(A,B)
+            data = $func(parent(a), parent(b))
+            return NamedDimsArray{L}(data)
+        end
     end
 end
 
@@ -40,23 +42,27 @@ It defines the various overloads for `Base.:*` that are required.
 It should be used at the top level of a module.
 """
 macro declare_matmul(MatrixT, VectorT=nothing)
+    codes = Expr(:block)
     dim_combos = VectorT === nothing ? ((2,2),) : ((1,2), (2,1), (2,2))
-    codes = map(dim_combos) do (NA, NB)
+
+    for (NA, NB) in dim_combos
         TA_named = :(NamedDims.NamedDimsArray{<:Any, <:Any, $NA})
         TB_named = :(NamedDims.NamedDimsArray{<:Any, <:Any, $NB})
         TA_other = (VectorT, MatrixT)[NA]
         TB_other = (VectorT, MatrixT)[NB]
-
-        quote
-            function Base.:*(a::$TA_named, b::$TB_other)
-                return *(a, NamedDims.NamedDimsArray{NamedDims.names(b)}(b))
+        for func in (:(Base.:*), :(LinearAlgebra.lmul!))
+            code = quote
+                function $func(a::$TA_named, b::$TB_other)
+                    return $func(a, NamedDims.NamedDimsArray{NamedDims.names(b)}(b))
+                end
+                function $func(a::$TA_other, b::$TB_named)
+                    return $func(NamedDims.NamedDimsArray{NamedDims.names(a)}(a), b)
+                end
             end
-            function Base.:*(a::$TA_other, b::$TB_named)
-                return *(NamedDims.NamedDimsArray{NamedDims.names(a)}(a), b)
-            end
+            push!(codes.args, code)
         end
     end
-    return esc(Expr(:block, codes...))
+    return esc(codes)
 end
 
 @declare_matmul(AbstractMatrix, AbstractVector)

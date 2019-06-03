@@ -147,3 +147,14 @@ end
         @test names(nda * x) == (:a, :_)
     end
 end
+
+
+@testset "mldivide" begin
+    outputs = NamedDimsArray{(:variates, :observations)}(randn(3, 10))
+    inputs = NamedDimsArray{(:features, :observations)}(rand(4, 10))
+
+    # outputs = mapping * inputs
+    mapping = outputs / inputs
+
+    @test names(mapping) == (:variates, :features)
+end
