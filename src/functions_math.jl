@@ -61,3 +61,13 @@ end
 
 @declare_matmul(AbstractMatrix, AbstractVector)
 @declare_matmul(Diagonal,)
+
+
+# inv/pinv
+for func in (:(Base.inv), :(LinearAlgebra.pinv))
+    @eval function $func(nda::NamedDimsArray{L}) where L
+        data = $func(parent(nda))
+        names = reverse(L)
+        return NamedDimsArray{names}(data)
+    end
+end

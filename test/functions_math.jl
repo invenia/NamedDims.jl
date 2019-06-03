@@ -147,3 +147,16 @@ end
         @test names(nda * x) == (:a, :_)
     end
 end
+
+@testset "inv" begin
+    nda = NamedDimsArray{(:a, :b)}([1.0 2; 3 4])
+    @test names(inv(nda)) == (:b, :a)
+    @test nda * inv(nda) ≈ NamedDimsArray{(:a, :a)}([1.0 0; 0 1])
+    @test inv(nda) * nda ≈ NamedDimsArray{(:b, :b)}([1.0 0; 0 1])
+end
+
+@testset "pinv" begin
+    nda = NamedDimsArray{(:a, :b)}([1.0 2 3; 4 5 6])
+    @test names(pinv(nda)) == (:b, :a)
+    @test nda * pinv(nda) ≈ NamedDimsArray{(:a, :a)}([1.0 0; 0 1])
+end
