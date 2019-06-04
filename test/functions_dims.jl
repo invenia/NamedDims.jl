@@ -1,3 +1,4 @@
+using LinearAlgebra
 using NamedDims
 using NamedDims: names
 using Test
@@ -70,4 +71,24 @@ end
     @test_throws Exception permutedims(nda, (0,1,2,3))
     @test_throws Exception permutedims(nda, (2,3,4))
     @test_throws Exception permutedims(nda, (2,2,3,4))
+end
+
+# We test pinv here as it is defined in src/function_dims.jl
+# using the same logic as permutedims, transpose etc
+@testset "pinv" begin
+    @testset "Matrix" begin
+        nda = NamedDimsArray{(:a, :b)}([1.0 2 3; 4 5 6])
+        @test names(pinv(nda)) == (:b, :a)
+        @test nda * pinv(nda) ≈ NamedDimsArray{(:a, :a)}([1.0 0; 0 1])
+    end
+    @testset "Vector" begin
+        nda = NamedDimsArray{(:a,)}([1.0, 2, 3])
+        @test names(pinv(nda)) == (:_, :a)
+
+        @test names(pinv(pinv(nda))) == (:a,)
+        @test pinv(pinv(nda)) ≈ nda
+
+        # See issue https://github.com/invenia/NamedDims.jl/issues/36
+        @test_broken nda * pinv(nda) ≈ 1.0
+    end
 end

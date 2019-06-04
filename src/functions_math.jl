@@ -61,3 +61,9 @@ end
 
 @declare_matmul(AbstractMatrix, AbstractVector)
 @declare_matmul(Diagonal,)
+
+function Base.inv(nda::NamedDimsArray{L, T, 2}) where {L,T}
+    data = inv(parent(nda))
+    names = reverse(L)
+    return NamedDimsArray{names}(data)
+end

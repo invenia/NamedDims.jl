@@ -28,9 +28,14 @@ end
 
 # We use CoVector to workout if we are taking the tranpose of a tranpose etc
 const CoVector = Union{Adjoint{<:Any, <:AbstractVector}, Transpose{<:Any, <:AbstractVector}}
-for f in (:transpose, :adjoint, :permutedims)
+for f in (
+    :(Base.transpose),
+    :(Base.adjoint),
+    :(Base.permutedims),
+    :(LinearAlgebra.pinv)
+)
     # Vector
-    @eval function Base.$f(nda::NamedDimsArray{L,T,1}) where {L,T}
+    @eval function $f(nda::NamedDimsArray{L,T,1}) where {L,T}
         new_names = (:_, first(L))
         return NamedDimsArray{new_names}($f(parent(nda)))
     end
@@ -38,14 +43,14 @@ for f in (:transpose, :adjoint, :permutedims)
 
     # Vector Double Transpose
     if f !== :permutedims
-        @eval function Base.$f(nda::NamedDimsArray{L,T,2,A}) where {L,T,A<:CoVector}
+        @eval function $f(nda::NamedDimsArray{L,T,2,A}) where {L,T,A<:CoVector}
             new_names = (last(L),)  # drop the name of the first dimensions
             return NamedDimsArray{new_names}($f(parent(nda)))
         end
     end
 
     # Matrix
-    @eval function Base.$f(nda::NamedDimsArray{L,T,2}) where {L,T}
+    @eval function $f(nda::NamedDimsArray{L,T,2}) where {L,T}
         new_names = (last(L), first(L))
         return NamedDimsArray{new_names}($f(parent(nda)))
     end
