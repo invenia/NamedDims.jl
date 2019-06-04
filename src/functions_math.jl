@@ -63,7 +63,7 @@ end
 @declare_matmul(Diagonal,)
 
 function Base.inv(nda::NamedDimsArray{L, T, 2}) where {L,T}
-    data = $func(parent(nda))
+    data = inv(parent(nda))
     names = reverse(L)
     return NamedDimsArray{names}(data)
 end
