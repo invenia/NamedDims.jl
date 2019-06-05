@@ -106,6 +106,13 @@ function Base.similar(
     return similar(a, eltype, dims)
 end
 
+#####################################
+# Strided Array interface
+Base.stride(a::NamedDimsArray, k::Symbol) = stride(parent(a), dim(a, k))
+Base.stride(a::NamedDimsArray, k::Integer) = stride(parent(a), k)
+Base.strides(a::NamedDimsArray) = strides(parent(a))
+
+
 ###############################
 # kwargs indexing
 
