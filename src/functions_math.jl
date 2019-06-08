@@ -2,16 +2,16 @@
 
 # Up/downstairs: indicated by sentinel characters
 export up, down
-up(s) = Symbol('♂',s)   # these parse as letters, and can be typed as \male, \female
-down(s) = Symbol('♀',s) # other options... ⬆️⬇️ can't be typed & overlap next char
+up(s) = Symbol(s,'♯')
+down(s) = Symbol(s,'♭')
 
 up(a::NamedDimsArray{L}) where {L} = NamedDimsArray(parent(a), map(up, L))
 down(a::NamedDimsArray{L}) where {L} = NamedDimsArray(parent(a), map(down, L))
 
 function unpack_updown(a::Symbol)
-    a1 = first(string(a))
-    a1==='♂' && return 1, string(a)[4:end] # nextind(string(up(:a)),1) == 4
-    a1==='♀' && return -1, string(a)[4:end]
+    a1 = last(string(a))
+    a1==='♯' && return 1, string(a)[1:end-1]
+    a1==='♭' && return -1, string(a)[1:end-1]
     return 0, string(a)
 end
 
