@@ -1,12 +1,36 @@
 # This supports nonbroadcasting math on NamedDimArrays
 
+# Up/downstairs: indicated by sentinel characters
+export up, down
+up(s) = Symbol('♂',s)   # these parse as letters, and can be typed as \male, \female
+down(s) = Symbol('♀',s) # other options... ⬆️⬇️ can't be typed & overlap next char
+
+up(a::NamedDimsArray{L}) where {L} = NamedDimsArray(parent(a), map(up, L))
+down(a::NamedDimsArray{L}) where {L} = NamedDimsArray(parent(a), map(down, L))
+
+function unpack_updown(a::Symbol)
+    a1 = first(string(a))
+    a1==='♂' && return 1, string(a)[4:end] # nextind(string(up(:a)),1) == 4
+    a1==='♀' && return -1, string(a)[4:end]
+    return 0, string(a)
+end
+
+function valid_updown(a::Symbol, b::Symbol)
+    (a === :_ || b === :_) && return true
+
+    a_up, a_str = unpack_updown(a)
+    b_up, b_str = unpack_updown(b)
+
+    a_str == b_str || return false    # the names must always match
+    a_up==0 || b_up==0 && return true # if either is indifferent, then they match
+    return a_up != b_up
+end
+
 # Matrix product
-valid_matmul_dims(a::Tuple{Symbol}, b::Tuple{Vararg{Symbol}}) = true
-function valid_matmul_dims(a::Tuple{Symbol, Symbol}, b::Tuple{Vararg{Symbol}})
+function valid_matmul_dims(a::Tuple{Vararg{Symbol}}, b::Tuple{Vararg{Symbol}})
     a_dim = a[end]
     b_dim = b[1]
-
-    return a_dim === b_dim || a_dim === :_ || b_dim === :_
+    valid_updown(a_dim, b_dim)
 end
 
 matmul_names((a1, a2)::Tuple{Symbol,Symbol}, (b,)::Tuple{Symbol}) = (a1,)
@@ -66,4 +90,11 @@ function Base.inv(nda::NamedDimsArray{L, T, 2}) where {L,T}
     data = inv(parent(nda))
     names = reverse(L)
     return NamedDimsArray{names}(data)
+end
+
+function LinearAlgebra.dot(a::NamedDimsArray{La, Ta, 1}, b::NamedDimsArray{Lb, Tb, 1}) where {La,Lb,Ta,Tb}
+    valid_matmul_dims(La, Lb) || throw(DimensionMismatch(
+            "Cannot take dot of vectors with incompatible dimension names. $La vs $Lb"
+        ))
+    dot(parent(a), parent(b))
 end
