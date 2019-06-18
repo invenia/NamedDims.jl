@@ -39,7 +39,7 @@ end
 function NamedDimsArray{L}(orig::AbstractArray{T, N}) where {L, T, N}
     if !(L isa NTuple{N, Symbol})
         throw(ArgumentError(
-            "A $N dimentional array, needs a $N-tuple of dimension names. Got: $L"
+            "A $N dimensional array, needs a $N-tuple of dimension names. Got: $L"
         ))
     end
     return NamedDimsArray{L, T, N, typeof(orig)}(orig)
