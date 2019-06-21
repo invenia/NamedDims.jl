@@ -19,7 +19,7 @@ function matrix_prod_names(a, b)
             "Cannot take matrix product of arrays with different inner dimension names. $a vs $b"
         ))
     res = matmul_names(a, b)
-    compile_time_return_hack(res)
+    return compile_time_return_hack(res)
 end
 
 
@@ -87,5 +87,5 @@ function symmetric_names(L::Tuple{Symbol,Symbol}, dims::Integer)
     else
         (:_, :_)
     end
-    compile_time_return_hack(names)
+    return compile_time_return_hack(names)
 end
