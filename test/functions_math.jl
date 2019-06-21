@@ -181,3 +181,9 @@ end
         @test_throws MethodError f(NamedDimsArray(rand(3, 4, 5), (:a, :b, :c)))
     end
 end
+@testset "cov corrected=$bool" for bool in (true, false)
+    # test that kwargs get passed on correctly
+    A = rand(2, 4)
+    nda = NamedDimsArray{(:a, :b)}(A)
+    @test cov(nda; corrected=bool) == cov(A; corrected=bool)
+end
