@@ -155,14 +155,14 @@ end
     @test inv(nda) * nda ≈ NamedDimsArray{(:b, :b)}([1.0 0; 0 1])
 end
 
-@testset "symmetric results" begin
-    @testset "symmetric_names" begin
-        @test symmetric_names((:a, :b), 1) == (:b, :b)
-        @test symmetric_names((:a, :b), 2) == (:a, :a)
-        @test symmetric_names((:a, :b), 5) == (:_, :_)
-        @test_throws MethodError symmetric_names((:a, :b, :c), 2)
-    end
-    @testset "$f" for f in (cov, cor)
+@testset "symmetric_names" begin
+    @test symmetric_names((:a, :b), 1) == (:b, :b)
+    @test symmetric_names((:a, :b), 2) == (:a, :a)
+    @test symmetric_names((:a, :b), 5) == (:_, :_)
+    @test_throws MethodError symmetric_names((:a, :b, :c), 2)
+end
+@testset "$f" for f in (cov, cor)
+    @testset "matrix input, matrix result" begin
         A = rand(3, 5)
         nda = NamedDimsArray{(:a, :b)}(A)
         @test f(nda; dims=:a) == f(A, dims=1)
@@ -170,5 +170,14 @@ end
         @test names(f(nda, dims=:b)) == (:a, :a)
         # `Statistic.cov(A, dims=p)` for `p > 2` is allowed but returns NaNs. Same for `cor`.
         @test names(f(nda, dims=3)) == (:_, :_)
+    end
+    @testset "vector input, scalar result" begin
+        a = rand(4)
+        nda = NamedDimsArray{(:a,)}(a)
+        @test f(nda) isa Number
+        @test f(nda) == f(a)
+    end
+    @testset "high dimensional input" begin
+        @test_throws MethodError f(NamedDimsArray(rand(3, 4, 5), (:a, :b, :c)))
     end
 end
