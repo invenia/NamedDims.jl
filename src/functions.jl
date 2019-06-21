@@ -22,7 +22,7 @@ for (mod, funs) in (
         :sum, :prod, :count, :maximum, :minimum, :extrema, :cumsum, :cumprod,
         :sort, :sort!,)
     ),
-    (:Statistics, (:mean, :std, :var, :median, :cov, :cor)),
+    (:Statistics, (:mean, :std, :var, :median)),
 )
     for fun in funs
         @eval function $mod.$fun(a::NamedDimsArray; dims=:, kwargs...)
@@ -74,5 +74,3 @@ for (mod, funs) in (
         end
     end
 end
-
-
