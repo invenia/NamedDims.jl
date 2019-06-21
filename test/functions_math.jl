@@ -1,6 +1,6 @@
 using LinearAlgebra
 using NamedDims
-using NamedDims: matrix_prod_names, names
+using NamedDims: matrix_prod_names, names, symmetric_names
 using Test
 
 @testset "+" begin
@@ -153,4 +153,40 @@ end
     @test names(inv(nda)) == (:b, :a)
     @test nda * inv(nda) ≈ NamedDimsArray{(:a, :a)}([1.0 0; 0 1])
     @test inv(nda) * nda ≈ NamedDimsArray{(:b, :b)}([1.0 0; 0 1])
+end
+
+@testset "cov/cor" begin
+    @testset "symmetric_names" begin
+        @test symmetric_names((:a, :b), 1) == (:b, :b)
+        @test symmetric_names((:a, :b), 2) == (:a, :a)
+        @test symmetric_names((:a, :b), 5) == (:_, :_)
+        @test_throws MethodError symmetric_names((:a, :b, :c), 2)
+    end
+    @testset "$f" for f in (cov, cor)
+        @testset "matrix input, matrix result" begin
+            A = rand(3, 5)
+            nda = NamedDimsArray{(:a, :b)}(A)
+            @test f(nda; dims=:a) == f(A, dims=1)
+            @test names(f(nda; dims=:a)) == (:b, :b)
+            @test names(f(nda, dims=:b)) == (:a, :a)
+            # `Statistic.cov/cor(A, dims=p)` for `p > 2` is allowed but returns NaNs.
+            @test names(f(nda, dims=3)) == (:_, :_)
+        end
+        @testset "vector input, scalar result" begin
+            a = rand(4)
+            nda = NamedDimsArray{(:a,)}(a)
+            @test f(nda) isa Number
+            @test f(nda) == f(a)
+        end
+        @testset "high dimensional input" begin
+            @test_throws MethodError f(NamedDimsArray(rand(3, 4, 5), (:a, :b, :c)))
+        end
+    end
+    @testset "cov corrected=$bool" for bool in (true, false)
+        # test that kwargs get passed on correctly
+        A = rand(2, 4)
+        nda = NamedDimsArray{(:a, :b)}(A)
+        @test cov(nda; corrected=bool) == cov(A; corrected=bool)
+        @test cov(nda; corrected=bool, dims=:b)  == cov(A; corrected=bool, dims=2)
+    end
 end

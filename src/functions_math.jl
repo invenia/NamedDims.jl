@@ -19,7 +19,7 @@ function matrix_prod_names(a, b)
             "Cannot take matrix product of arrays with different inner dimension names. $a vs $b"
         ))
     res = matmul_names(a, b)
-    compile_time_return_hack(res)
+    return compile_time_return_hack(res)
 end
 
 
@@ -66,4 +66,26 @@ function Base.inv(nda::NamedDimsArray{L, T, 2}) where {L,T}
     data = inv(parent(nda))
     names = reverse(L)
     return NamedDimsArray{names}(data)
+end
+
+# Statistics
+for fun in (:cor, :cov)
+    @eval function Statistics.$fun(a::NamedDimsArray{L, T, 2}; dims=1, kwargs...) where {L, T}
+        numerical_dims = dim(a, dims)
+        data = Statistics.$fun(parent(a); dims=numerical_dims, kwargs...)
+        names = symmetric_names(L, numerical_dims)
+        return NamedDimsArray{names}(data)
+    end
+end
+
+function symmetric_names(L::Tuple{Symbol,Symbol}, dims::Integer)
+    # 0 Allocations. See `@btime (()-> symmetric_names((:foo, :bar), 1))()`
+    names = if dims == 1
+        (L[2], L[2])
+    elseif dims == 2
+        (L[1], L[1])
+    else
+        (:_, :_)
+    end
+    return compile_time_return_hack(names)
 end
