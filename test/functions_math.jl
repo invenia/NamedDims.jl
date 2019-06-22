@@ -137,6 +137,17 @@ end
         @test ndv * ndm == ones(1, 1)
         @test names(ndv * ndm) == (:a, :b)
     end
+
+    @testset "Vector-Vector" begin
+        ndv1 = NamedDimsArray{(:a,)}([1, 2, 3])
+        ndv2 = NamedDimsArray{(:a,)}([3, 2, 1])
+        @test_throws MethodError ndv1 * ndv2
+        @test ndv1' * ndv2 == 10
+        @test ndv1 * ndv2' == [3 2 1; 6 4 2; 9 6 3]
+
+        ndv3 = NamedDimsArray{(:b,)}([3, 2, 1])
+        @test_throws DimensionMismatch ndv1' * ndv3
+    end
 end
 
 @testset "Mutmul with special types" begin
