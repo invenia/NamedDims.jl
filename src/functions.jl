@@ -12,14 +12,13 @@ function nameddimsarray_result(original_nda, reduced_data, reduction_dims::Colon
     return reduced_data
 end
 
-
 ###################################################################################
 # Overloads
 
 # 1 Arg
 for (mod, funs) in (
     (:Base, (
-        :sum, :prod, :count, :maximum, :minimum, :extrema, :cumsum, :cumprod,
+        :sum, :prod, :maximum, :minimum, :extrema, :cumsum, :cumprod,
         :sort, :sort!,)
     ),
     (:Statistics, (:mean, :std, :var, :median)),
@@ -58,7 +57,6 @@ for (mod, funs) in (
         end
     end
 end
-
 
 ################################################
 # Non-dim Overloads
