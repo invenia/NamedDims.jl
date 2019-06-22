@@ -32,12 +32,12 @@ for (mod, funs) in (
     end
 end
 
-# 1 arg before
+# 1 arg before - no default no `dims` keyword
 for (mod, funs) in (
     (:Base, (:mapslices,)),
 )
     for fun in funs
-        @eval function $mod.$fun(f, a::NamedDimsArray; dims=:, kwargs...)
+        @eval function $mod.$fun(f, a::NamedDimsArray; dims, kwargs...)
             numerical_dims = dim(a, dims)
             data = $mod.$fun(f, parent(a); dims=numerical_dims, kwargs...)
             return nameddimsarray_result(a, data, numerical_dims)

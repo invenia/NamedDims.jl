@@ -17,6 +17,7 @@ end
 @testset "mapslices" begin
     @test mapslices(join, nda; dims=:x) == ["1031" "2040"] == mapslices(join, nda; dims=1)
     @test mapslices(join, nda; dims=:y) == reshape(["1020", "3140"], Val(2)) == mapslices(join, nda; dims=2)
+    @test mapslices(join, nda; dims=(:x, :y)) == reshape(["10312040"], (1, 1)) == mapslices(join, nda; dims=(1, 2))
     @test_throws UndefKeywordError mapslices(join, nda)
     @test_throws UndefKeywordError mapslices(join, a)
 
