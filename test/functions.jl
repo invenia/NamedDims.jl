@@ -28,17 +28,20 @@ end
     a2 = [1 9; 7 3]
     nda2 = NamedDimsArray(a2, (:x, :y))
 
-    sort!(nda2, dims=:y)
-    @test issorted(a2[2, :])
-    @test_throws UndefKeywordError sort!(nda2)
-
-    # check keywords passed on
-    sort!(nda2; dims=:x, order=Base.Reverse)
-    @test issorted(a2[:, 1]; order=Base.Reverse)
     # Vector case
-    veca = vec(a2)
+    veca = [1, 9, 7, 3]
     sort!(NamedDimsArray(veca, :vec); order=Base.Reverse)
     @test issorted(veca; order=Base.Reverse)
+
+    # Higher-dim case: `dims` keyword in `sort!` requires Julia v1.1+
+    if VERSION > v"1.1-"
+        sort!(nda2, dims=:y)
+        @test issorted(a2[2, :])
+        @test_throws UndefKeywordError sort!(nda2)
+
+        sort!(nda2; dims=:x, order=Base.Reverse)
+        @test issorted(a2[:, 1]; order=Base.Reverse)
+    end
 end
 
 @testset "mapslices" begin
