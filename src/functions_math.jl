@@ -25,7 +25,6 @@ function matrix_prod_names(a, b)
     return compile_time_return_hack(res)
 end
 
-
 for (NA, NB) in ((1,2), (2,1), (2,2))  #Vector * Vector, is not allowed
     @eval function Base.:*(a::NamedDimsArray{A,T,$NA}, b::NamedDimsArray{B,S,$NB}) where {A,B,T,S}
         L = matrix_prod_names(A,B)
@@ -40,6 +39,12 @@ function Base.:*(a::NamedDimsArray{A,T,2,<:CoVector}, b::NamedDimsArray{B,S,1}) 
     return *(parent(a), parent(b))
 end
 
+function Base.:*(a::NamedDimsArray{L,T,2,<:CoVector}, b::AbstractVector) where {L,T}
+    return *(parent(a), b)
+end
+function Base.:*(a::CoVector, B::NamedDimsArray{L,T,1,<:AbstractVector}) where {L,T}
+    return *(a, parent(b))
+end
 """
     @declare_matmul(MatrixT, VectorT=nothing)
 
