@@ -35,3 +35,23 @@ end
     @test zero(nda) == [0 0; 0 0] == zero(a)
     @test names(zero(nda)) == (:x, :y)
 end
+
+@testset "count" begin
+    a = [true false; true true]
+    nda = NamedDimsArray(a, (:x, :y))
+    @test count(nda) == count(a) == 3
+    @test_throws MethodError count(nda; dims=:x)
+    @test_throws MethodError count(a; dims=1)
+end
+end  # Base
+
+@testset "Statistics" begin
+    a = [10 20; 30 40]
+    nda = NamedDimsArray(a, (:x, :y))
+    @testset "$f" for f in (mean, std, var, median)
+        @test f(nda) == f(a)
+        @test f(nda; dims=:x) == f(nda; dims=1) == f(a; dims=1)
+
+        @test names(f(nda; dims=:x)) == (:x, :y) == names(f(nda; dims=1))
+    end
+end
