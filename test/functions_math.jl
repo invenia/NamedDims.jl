@@ -142,7 +142,7 @@ end
         ndv1 = NamedDimsArray{(:a,)}([1, 2, 3])
         ndv2 = NamedDimsArray{(:a,)}([3, 2, 1])
         @test_throws MethodError ndv1 * ndv2
-        @test ndv1' * ndv2 == 10
+        @test ndv1' * ndv2 == 10 == ndv1' * parent(ndv2) == parent(ndv1)' * ndv2
         @test ndv1 * ndv2' == [3 2 1; 6 4 2; 9 6 3]
 
         ndv3 = NamedDimsArray{(:b,)}([3, 2, 1])
