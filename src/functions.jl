@@ -17,10 +17,7 @@ end
 
 # 1 Arg
 for (mod, funs) in (
-    (:Base, (
-        :sum, :prod, :maximum, :minimum, :extrema, :cumsum, :cumprod,
-        :sort, :sort!,)
-    ),
+    (:Base, (:sum, :prod, :maximum, :minimum, :extrema)),
     (:Statistics, (:mean, :std, :var, :median)),
 )
     for fun in funs
@@ -32,7 +29,20 @@ for (mod, funs) in (
     end
 end
 
-# 1 arg before - no default no `dims` keyword
+# 1 Arg - no default for `dims` keyword
+for (mod, funs) in (
+    (:Base, (:cumsum, :cumprod, :sort, :sort!)),
+)
+    for fun in funs
+        @eval function $mod.$fun(a::NamedDimsArray; dims, kwargs...)
+            numerical_dims = dim(a, dims)
+            data = $mod.$fun(parent(a); dims=numerical_dims, kwargs...)
+            return nameddimsarray_result(a, data, numerical_dims)
+        end
+    end
+end
+
+# 1 arg before - no default for `dims` keyword
 for (mod, funs) in (
     (:Base, (:mapslices,)),
 )

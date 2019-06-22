@@ -14,6 +14,24 @@ nda = NamedDimsArray(a, (:x, :y))
     @test names(f(nda; dims=:x)) == (:x, :y) == names(f(nda; dims=1))
 end
 
+@testset "$f" for f in (cumsum, cumprod, sort)
+    @test f(nda; dims=:x) == f(nda; dims=1) == f(a; dims=1)
+
+    @test names(f(nda; dims=:x)) == (:x, :y) == names(f(nda; dims=1))
+
+    @test f([1, 4, 3]) == f(NamedDimsArray([1, 4, 3], :vec))
+    @test_throws UndefKeywordError f(nda)
+    @test_throws UndefKeywordError f(a)
+end
+
+@testset "sort!" begin
+    a2 = [1 9; 7 3]
+    nda2 = NamedDimsArray(a2, (:x, :y))
+    sort!(nda2, dims=:y)
+    @test issorted(a2[2, :])
+    @test_throws UndefKeywordError sort!(nda2)
+end
+
 @testset "mapslices" begin
     @test mapslices(join, nda; dims=:x) == ["1031" "2040"] == mapslices(join, nda; dims=1)
     @test mapslices(join, nda; dims=:y) == reshape(["1020", "3140"], Val(2)) == mapslices(join, nda; dims=2)
