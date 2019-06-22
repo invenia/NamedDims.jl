@@ -39,6 +39,12 @@ for (mod, funs) in (
             data = $mod.$fun(parent(a); dims=numerical_dims, kwargs...)
             return nameddimsarray_result(a, data, numerical_dims)
         end
+
+        # Vector case
+        @eval function $mod.$fun(a::NamedDimsArray{L, T, 1}; kwargs...) where {L, T}
+            data = $mod.$fun(parent(a); kwargs...)
+            return NamedDimsArray{NamedDims.names(a)}(data)
+        end
     end
 end
 
