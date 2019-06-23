@@ -42,9 +42,11 @@ end
 function Base.:*(a::NamedDimsArray{L,T,2,<:CoVector}, b::AbstractVector) where {L,T}
     return *(parent(a), b)
 end
+
 function Base.:*(a::CoVector, B::NamedDimsArray{L,T,1,<:AbstractVector}) where {L,T}
     return *(a, parent(b))
 end
+
 """
     @declare_matmul(MatrixT, VectorT=nothing)
 

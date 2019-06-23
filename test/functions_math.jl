@@ -139,14 +139,16 @@ end
     end
 
     @testset "Vector-Vector" begin
-        ndv1 = NamedDimsArray{(:a,)}([1, 2, 3])
-        ndv2 = NamedDimsArray{(:a,)}([3, 2, 1])
-        @test_throws MethodError ndv1 * ndv2
-        @test ndv1' * ndv2 == 10 == ndv1' * parent(ndv2) == parent(ndv1)' * ndv2
-        @test ndv1 * ndv2' == [3 2 1; 6 4 2; 9 6 3]
+        v = [1, 2, 3]
+        ndv = NamedDimsArray{(:vec,)}(v)
+        @test_throws MethodError ndv * ndv
+        @test ndv' * ndv == 14
+        @test ndv' * ndv == adjoint(ndv) * v == transpose(ndv) * v
+        @test ndv' * ndv == adjoint(v) * ndv == transpose(v) * ndv
+        @test ndv * ndv' == [1 2 3; 2 4 6; 3 6 9]
 
-        ndv3 = NamedDimsArray{(:b,)}([3, 2, 1])
-        @test_throws DimensionMismatch ndv1' * ndv3
+        ndv2 = NamedDimsArray{(:b,)}([3, 2, 1])
+        @test_throws DimensionMismatch ndv' * ndv2
     end
 end
 
