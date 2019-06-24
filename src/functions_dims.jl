@@ -25,9 +25,6 @@ function Base.permutedims(nda::NamedDimsArray{L}, perm) where {L}
     return NamedDimsArray{new_names}(permutedims(parent(nda), numerical_perm))
 end
 
-
-# We use CoVector to workout if we are taking the tranpose of a tranpose etc
-const CoVector = Union{Adjoint{<:Any, <:AbstractVector}, Transpose{<:Any, <:AbstractVector}}
 for f in (
     :(Base.transpose),
     :(Base.adjoint),

@@ -137,6 +137,19 @@ end
         @test ndv * ndm == ones(1, 1)
         @test names(ndv * ndm) == (:a, :b)
     end
+
+    @testset "Vector-Vector" begin
+        v = [1, 2, 3]
+        ndv = NamedDimsArray{(:vec,)}(v)
+        @test_throws MethodError ndv * ndv
+        @test ndv' * ndv == 14
+        @test ndv' * ndv == adjoint(ndv) * v == transpose(ndv) * v
+        @test ndv' * ndv == adjoint(v) * ndv == transpose(v) * ndv
+        @test ndv * ndv' == [1 2 3; 2 4 6; 3 6 9]
+
+        ndv2 = NamedDimsArray{(:b,)}([3, 2, 1])
+        @test_throws DimensionMismatch ndv' * ndv2
+    end
 end
 
 @testset "Mutmul with special types" begin
