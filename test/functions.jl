@@ -7,73 +7,100 @@ using Statistics
 a = [10 20; 31 40]
 nda = NamedDimsArray(a, (:x, :y))
 
-@testset "$f" for f in (sum, prod, maximum, minimum, extrema)
-    @test f(nda) == f(a)
-    @test f(nda; dims=:x) == f(nda; dims=1) == f(a; dims=1)
+    @testset "$f" for f in (sum, prod, maximum, minimum, extrema)
+        @test f(nda) == f(a)
+        @test f(nda; dims=:x) == f(nda; dims=1) == f(a; dims=1)
 
-    @test names(f(nda; dims=:x)) == (:x, :y) == names(f(nda; dims=1))
-end
-
-@testset "$f" for f in (cumsum, cumprod, sort)
-    @test f(nda; dims=:x) == f(nda; dims=1) == f(a; dims=1)
-
-    @test names(f(nda; dims=:x)) == (:x, :y) == names(f(nda; dims=1))
-
-    @test f([1, 4, 3]) == f(NamedDimsArray([1, 4, 3], :vec))
-    @test_throws UndefKeywordError f(nda)
-    @test_throws UndefKeywordError f(a)
-end
-
-@testset "sort!" begin
-    a2 = [1 9; 7 3]
-    nda2 = NamedDimsArray(a2, (:x, :y))
-
-    # Vector case
-    veca = [1, 9, 7, 3]
-    sort!(NamedDimsArray(veca, :vec); order=Base.Reverse)
-    @test issorted(veca; order=Base.Reverse)
-
-    # Higher-dim case: `dims` keyword in `sort!` requires Julia v1.1+
-    if VERSION > v"1.1-"
-        sort!(nda2, dims=:y)
-        @test issorted(a2[2, :])
-        @test_throws UndefKeywordError sort!(nda2)
-
-        sort!(nda2; dims=:x, order=Base.Reverse)
-        @test issorted(a2[:, 1]; order=Base.Reverse)
+        @test names(f(nda; dims=:x)) == (:x, :y) == names(f(nda; dims=1))
     end
-end
 
-@testset "mapslices" begin
-    @test mapslices(join, nda; dims=:x) == ["1031" "2040"] == mapslices(join, nda; dims=1)
-    @test mapslices(join, nda; dims=:y) == reshape(["1020", "3140"], Val(2)) == mapslices(join, nda; dims=2)
-    @test mapslices(join, nda; dims=(:x, :y)) == reshape(["10312040"], (1, 1)) == mapslices(join, nda; dims=(1, 2))
-    @test_throws UndefKeywordError mapslices(join, nda)
-    @test_throws UndefKeywordError mapslices(join, a)
+    @testset "$f" for f in (cumsum, cumprod, sort)
+        @test f(nda; dims=:x) == f(nda; dims=1) == f(a; dims=1)
 
-    @test names(mapslices(join, nda; dims=:y)) == (:x, :y) == names(mapslices(join, nda; dims=2))
-end
+        @test names(f(nda; dims=:x)) == (:x, :y) == names(f(nda; dims=1))
 
-@testset "mapreduce" begin
-    @test mapreduce(isodd, |, nda; dims=:x) == [true false] == mapreduce(isodd, |, nda; dims=1)
-    @test mapreduce(isodd, |, nda; dims=:y) == [false true]' == mapreduce(isodd, |, nda; dims=2)
-    @test mapreduce(isodd, |, nda) == true == mapreduce(isodd, |, a)
+        @test f([1, 4, 3]) == f(NamedDimsArray([1, 4, 3], :vec))
+        @test_throws UndefKeywordError f(nda)
+        @test_throws UndefKeywordError f(a)
+    end
 
-    @test names(mapreduce(isodd, |, nda; dims=:y)) == (:x, :y) == names(mapreduce(isodd, |, nda; dims=2))
-end
+    @testset "sort!" begin
+        a2 = [1 9; 7 3]
+        nda2 = NamedDimsArray(a2, (:x, :y))
 
-@testset "zero" begin
-    @test zero(nda) == [0 0; 0 0] == zero(a)
-    @test names(zero(nda)) == (:x, :y)
-end
+        # Vector case
+        veca = [1, 9, 7, 3]
+        sort!(NamedDimsArray(veca, :vec); order=Base.Reverse)
+        @test issorted(veca; order=Base.Reverse)
 
-@testset "count" begin
-    a = [true false; true true]
-    nda = NamedDimsArray(a, (:x, :y))
-    @test count(nda) == count(a) == 3
-    @test_throws MethodError count(nda; dims=:x)
-    @test_throws MethodError count(a; dims=1)
-end
+        # Higher-dim case: `dims` keyword in `sort!` requires Julia v1.1+
+        if VERSION > v"1.1-"
+            sort!(nda2, dims=:y)
+            @test issorted(a2[2, :])
+            @test_throws UndefKeywordError sort!(nda2)
+
+            sort!(nda2; dims=:x, order=Base.Reverse)
+            @test issorted(a2[:, 1]; order=Base.Reverse)
+        end
+    end
+
+    @testset "mapslices" begin
+        @test (
+            mapslices(join, nda; dims=:x) ==
+            mapslices(join, nda; dims=1) ==
+            ["1031" "2040"]
+        )
+        @test (
+            mapslices(join, nda; dims=:y) ==
+            mapslices(join, nda; dims=2) ==
+            reshape(["1020", "3140"], Val(2))
+        )
+        @test (
+            mapslices(join, nda; dims=(:x, :y)) ==
+            mapslices(join, nda; dims=(1, 2)) ==
+            reshape(["10312040"], (1, 1))
+        )
+        @test_throws UndefKeywordError mapslices(join, nda)
+        @test_throws UndefKeywordError mapslices(join, a)
+
+        @test (
+            names(mapslices(join, nda; dims=:y)) ==
+            names(mapslices(join, nda; dims=2)) ==
+            (:x, :y)
+        )
+    end
+
+    @testset "mapreduce" begin
+        @test mapreduce(isodd, |, nda) == true == mapreduce(isodd, |, a)
+        @test (
+            mapreduce(isodd, |, nda; dims=:x) ==
+            mapreduce(isodd, |, nda; dims=1) ==
+            [true false]
+        )
+        @test (
+            mapreduce(isodd, |, nda; dims=:y) ==
+            mapreduce(isodd, |, nda; dims=2) ==
+            [false true]'
+        )
+        @test (
+            names(mapreduce(isodd, |, nda; dims=:y)) ==
+            names(mapreduce(isodd, |, nda; dims=2)) ==
+            (:x, :y)
+        )
+    end
+
+    @testset "zero" begin
+        @test zero(nda) == [0 0; 0 0] == zero(a)
+        @test names(zero(nda)) == (:x, :y)
+    end
+
+    @testset "count" begin
+        a = [true false; true true]
+        nda = NamedDimsArray(a, (:x, :y))
+        @test count(nda) == count(a) == 3
+        @test_throws MethodError count(nda; dims=:x)
+        @test_throws MethodError count(a; dims=1)
+    end
 end  # Base
 
 @testset "Statistics" begin
