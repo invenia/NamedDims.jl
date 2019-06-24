@@ -48,10 +48,6 @@ then the new dimensions name is given as the wildcard `:_`.
 Similarly, when you take the transpose of a `AbstractVector`, the new first dimension
 is named `:_`.
 
-Currently, if you have more than one wildcard dimension name,
-functionality for referring to dimensions by name will not work.
-See [issue #8](https://github.com/invenia/NamedDims.jl/issues/8).
-
 ## Usage
 ### Writing functions that accept `NamedDimsArray`s or `AbstractArray`s
 
