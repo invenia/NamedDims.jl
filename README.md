@@ -101,3 +101,7 @@ end
 
 You can do this to your own functions in your own packages, to add `NamedDimsArray` support.
 If you implement it for any functions in a standard library, a PR would be very appreciated.
+
+### Caveats
+
+If multiple dimensions have the same names, indexing by name is considered undefined behaviour and should not be relied upon.
