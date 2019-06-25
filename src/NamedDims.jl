@@ -24,7 +24,7 @@ function include_tracker_compat()
         @warn string(
             "Tracker version not compatible with NamedDims. ",
             "Tracker compatability functionality has been disabled."
-        )
+        ) tracker_version allowed_versions
     end
 end
 
