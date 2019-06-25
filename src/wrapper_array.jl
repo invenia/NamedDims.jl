@@ -74,16 +74,15 @@ unname(x::NamedDimsArray) = parent(x)
 unname(x::AbstractArray) = x
 
 """
-    names(A)
+    names(A) -> Tuple
 
-Returns a tuple of containing the names of all the dimensions of the array `A`.
+Return the names of all the dimensions of the array `A`.
 """
 names(::Type{<:NamedDimsArray{L}}) where L = L
 names(::Type{<:AbstractArray{T, N}}) where {T, N} = ntuple(_->:_, N)
 names(x::T) where T<:AbstractArray = names(T)
 
 dim(a::NamedDimsArray{L}, name) where L = dim(L, name)
-
 
 
 #############################
