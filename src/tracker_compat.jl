@@ -1,6 +1,4 @@
 # Tracker.jl Compat
-using Tracker
-using Tracker: TrackedStyle, TrackedReal
 
 # The following blocks ever constructing TrackedArrays of NamedDimArrays.
 # This is not strictly forbidden (thus is commented out) but is useful for debugging things
@@ -11,10 +9,10 @@ Tracker.TrackedArray(::Tracker.Call, ::NamedDimsArray, ::AbstractArray) = error(
 Tracker.TrackedArray(::Tracker.Call, ::AbstractArray, ::NamedDimsArray) = error("Should not make Tracked NamedDimsArray")
 ==#
 
-Base.BroadcastStyle(::NamedDimsStyle{A}, b::TrackedStyle) where {A} = NamedDimsStyle(A(), b)
-Base.BroadcastStyle(a::TrackedStyle, ::NamedDimsStyle{B}) where {B} = NamedDimsStyle(a, B())
+Base.BroadcastStyle(::NamedDimsStyle{A}, b::Tracker.TrackedStyle) where {A} = NamedDimsStyle(A(), b)
+Base.BroadcastStyle(a::Tracker.TrackedStyle, ::NamedDimsStyle{B}) where {B} = NamedDimsStyle(a, B())
 
-@declare_matmul(TrackedMatrix,TrackedVector)
+@declare_matmul(Tracker.TrackedMatrix, Tracker.TrackedVector)
 
 function Tracker.data(nda::NamedDimsArray{L}) where L
     content = Tracker.data(parent(nda))
