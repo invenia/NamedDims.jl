@@ -10,7 +10,7 @@ using Statistics
 export NamedDimsArray, dim, rename, unname
 
 function __init__()
-    # NOTE: NamedDims only compatible with Tracker v0.2.2; but no nice way to enforce that.
+    # NOTE: NamedDims is only compatible with Tracker v0.2.2; but no nice way to enforce that.
     @require Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c" include("tracker_compat.jl")
 end
 
