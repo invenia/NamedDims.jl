@@ -4,10 +4,13 @@ using SparseArrays
 using Test
 
 
-
 @testset "get the parent array that was wrapped" begin
-    orig = [1 2; 3 4]
-    @test parent(NamedDimsArray(orig, (:x, :y))) === orig
+    for orig in ([1 2; 3 4], spzeros(2, 2))
+        @test parent(NamedDimsArray(orig, (:x, :y))) === orig
+
+        @test unname(NamedDimsArray(orig, (:x, :y))) === orig
+        @test unname(orig) === orig
+    end
 end
 
 

@@ -61,6 +61,17 @@ end
 parent_type(::Type{<:NamedDimsArray{L, T, N, A}}) where {L, T, N, A} = A
 Base.parent(x::NamedDimsArray) = x.data
 
+"""
+    unname(A::NamedDimsArray) -> AbstractArray
+    unname(A::AbstractArray) -> AbstractArray
+
+Return the input array `A` without any dimension names.
+
+For `NamedDimsArray`s this returns the parent array, equivalent to calling `parent`, but for
+any other `AbstractArray` simply returns the input.
+"""
+unname(x::NamedDimsArray) = parent(x)
+unname(x::AbstractArray) = x
 
 """
     names(A)

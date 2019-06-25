@@ -5,7 +5,7 @@ using Base.Broadcast:
 using LinearAlgebra
 using Statistics
 
-export NamedDimsArray, dim, rename
+export NamedDimsArray, dim, rename, unname
 
 # We use CoVector to workout if we are taking the tranpose of a tranpose etc
 const CoVector = Union{Adjoint{<:Any, <:AbstractVector}, Transpose{<:Any, <:AbstractVector}}
