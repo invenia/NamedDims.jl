@@ -12,10 +12,10 @@
 
 ## Core functionality:
 
-For `nda = NamedDimsArray{(:x,:y,:z)}(rand(10,20,30))`.
+For `nda = NamedDimsArray{(:x, :y, :z)}(rand(10, 20, 30))`.
 
  - Unwrapping: `parent(nda)`: returns the underlying `AbstractArray` that is wrapped by the `NamedDimsArray`
- - Indexing: `nda[y=2]`: the same as `nda[x=:, y=2, z=:]` which is the same as `nda[:,2,:]`
+ - Indexing: `nda[y=2]`: the same as `nda[x=:, y=2, z=:]` which is the same as `nda[:, 2, :]`
  - Functions taking a dims arg: `sum(nda; dims=:y)` is the same as `sum(nda; dims=2)`
  - Renaming: `rename(nda, new_names)` returns a new `NamedDimsArray` with the `new_names` but still wrapping the same data.
 
@@ -42,15 +42,10 @@ is allowed. and would have a result of:
 As such, unless you want this wildcard behaviour, you should *not* use `:_` as a dimension name.
 (Also that is a terrible dimension name, and goes against the whole point of this package.)
 
-
 When you perform matrix multiplication between a `AbstractArray` and a `NamedDimsArray`
 then the new dimensions name is given as the wildcard `:_`.
 Similarly, when you take the transpose of a `AbstractVector`, the new first dimension
 is named `:_`.
-
-Currently, if you have more than one wildcard dimension name,
-functionality for referring to dimensions by name will not work.
-See [issue #8](https://github.com/invenia/NamedDims.jl/issues/8).
 
 ## Usage
 ### Writing functions that accept `NamedDimsArray`s or `AbstractArray`s
@@ -66,12 +61,11 @@ As in the following example:
 
 ```
 function total_variance(data::AbstractMatrix)
-    n_data = NamedDimsArray(data, (:times,:locations))
+    n_data = NamedDimsArray(data, (:times, :locations))
     location_variance = var(n_data; dims=:times)  # calculate variance at each location
     return sum(location_variance; dims=:locations)  # total them
 end
 ```
-
 
 If this function is given (say) a `Matrix`, then it will apply the names to it in `n_data`.
 Thus the function will just work on unnamed types.
@@ -105,3 +99,7 @@ end
 
 You can do this to your own functions in your own packages, to add `NamedDimsArray` support.
 If you implement it for any functions in a standard library, a PR would be very appreciated.
+
+### Caveats
+
+If multiple dimensions have the same names, indexing by name is considered undefined behaviour and should not be relied upon.
