@@ -44,6 +44,39 @@ nda = NamedDimsArray(a, (:x, :y))
         end
     end
 
+    @testset "eachslice" begin
+        if VERSION > v"1.1-"
+            @test (
+                sum(eachslice(nda; dims=:x)) ==
+                sum(eachslice(nda; dims=1)) ==
+                sum(eachslice(a; dims=1)) ==
+                [10 + 31, 20 + 40]
+            )
+            @test (
+                sum(eachslice(nda; dims=:y)) ==
+                sum(eachslice(nda; dims=2)) ==
+                sum(eachslice(a; dims=2)) ==
+                [10 + 20, 31 + 40]
+            )
+            @test_throws ArgumentError eachslice(nda; dims=(1, 2))
+            @test_throws ArgumentError eachslice(a; dims=(1, 2))
+
+            @test_throws UndefKeywordError eachslice(nda)
+            @test_throws UndefKeywordError eachslice(a)
+
+            @test (
+                names(first(eachslice(nda; dims=:y))) ==
+                names(first(eachslice(nda; dims=2))) ==
+                (:x,)
+            )
+            @test (
+                names(first(eachslice(nda; dims=:x))) ==
+                names(first(eachslice(nda; dims=1))) ==
+                (:y,)
+            )
+        end
+    end
+
     @testset "mapslices" begin
         @test (
             mapslices(join, nda; dims=:x) ==
