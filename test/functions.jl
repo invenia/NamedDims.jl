@@ -4,8 +4,8 @@ using Test
 using Statistics
 
 @testset "Base" begin
-a = [10 20; 31 40]
-nda = NamedDimsArray(a, (:x, :y))
+    a = [10 20; 31 40]
+    nda = NamedDimsArray(a, (:x, :y))
 
     @testset "$f" for f in (sum, prod, maximum, minimum, extrema)
         @test f(nda) == f(a)
@@ -25,8 +25,8 @@ nda = NamedDimsArray(a, (:x, :y))
     end
 
     @testset "sort!" begin
-        a2 = [1 9; 7 3]
-        nda2 = NamedDimsArray(a2, (:x, :y))
+        a = [1 9; 7 3]
+        nda = NamedDimsArray(a, (:x, :y))
 
         # Vector case
         veca = [1, 9, 7, 3]
@@ -35,16 +35,45 @@ nda = NamedDimsArray(a, (:x, :y))
 
         # Higher-dim case: `dims` keyword in `sort!` requires Julia v1.1+
         if VERSION > v"1.1-"
-            sort!(nda2, dims=:y)
-            @test issorted(a2[2, :])
-            @test_throws UndefKeywordError sort!(nda2)
+            sort!(nda, dims=:y)
+            @test issorted(a[2, :])
+            @test_throws UndefKeywordError sort!(nda)
 
-            sort!(nda2; dims=:x, order=Base.Reverse)
-            @test issorted(a2[:, 1]; order=Base.Reverse)
+            sort!(nda; dims=:x, order=Base.Reverse)
+            @test issorted(a[:, 1]; order=Base.Reverse)
+        end
+    end
+
+    @testset "eachslice" begin
+        if VERSION > v"1.1-"
+            slices = [[111 121; 211 221], [112 122; 212 222]]
+            a = cat(slices...; dims=3)
+            nda = NamedDimsArray(a, (:a, :b, :c))
+
+            @test (
+                sum(eachslice(nda; dims=:c)) ==
+                sum(eachslice(nda; dims=3)) ==
+                sum(eachslice(a; dims=3)) ==
+                slices[1] + slices[2]
+            )
+            @test_throws ArgumentError eachslice(nda; dims=(1, 2))
+            @test_throws ArgumentError eachslice(a; dims=(1, 2))
+
+            @test_throws UndefKeywordError eachslice(nda)
+            @test_throws UndefKeywordError eachslice(a)
+
+            @test (
+                names(first(eachslice(nda; dims=:b))) ==
+                names(first(eachslice(nda; dims=2))) ==
+                (:a, :c)
+            )
         end
     end
 
     @testset "mapslices" begin
+        a = [10 20; 31 40]
+        nda = NamedDimsArray(a, (:x, :y))
+
         @test (
             mapslices(join, nda; dims=:x) ==
             mapslices(join, nda; dims=1) ==
@@ -71,6 +100,9 @@ nda = NamedDimsArray(a, (:x, :y))
     end
 
     @testset "mapreduce" begin
+        a = [10 20; 31 40]
+        nda = NamedDimsArray(a, (:x, :y))
+
         @test mapreduce(isodd, |, nda) == true == mapreduce(isodd, |, a)
         @test (
             mapreduce(isodd, |, nda; dims=:x) ==
@@ -90,6 +122,9 @@ nda = NamedDimsArray(a, (:x, :y))
     end
 
     @testset "zero" begin
+        a = [10 20; 31 40]
+        nda = NamedDimsArray(a, (:x, :y))
+
         @test zero(nda) == [0 0; 0 0] == zero(a)
         @test names(zero(nda)) == (:x, :y)
     end
@@ -97,6 +132,7 @@ nda = NamedDimsArray(a, (:x, :y))
     @testset "count" begin
         a = [true false; true true]
         nda = NamedDimsArray(a, (:x, :y))
+
         @test count(nda) == count(a) == 3
         @test_throws ErrorException count(nda; dims=:x)
         @test_throws ErrorException count(a; dims=1)
