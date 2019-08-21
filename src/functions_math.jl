@@ -108,3 +108,55 @@ function symmetric_names(L::Tuple{Symbol,Symbol}, dims::Integer)
     end
     return compile_time_return_hack(names)
 end
+
+"""
+    *(s::Symbol, A::NamedDimsArray, B::NamedDimsArray)
+
+Generalised matrix multiplication, contracting indices `s` on `A` and `B`.
+I would like this to work for arbitrary tensors, but for now it's a very crude version
+which only works on vectors & matrices.
+```
+julia> @named begin
+           A = rand(2,3)[j,i]
+           B = rand(2,4)[j,k]
+       end;
+
+julia> *(:j, A, B) |> summary
+"3×4 NamedDimsArray{(:i, :k),Float64,2,Array{Float64,2}}"
+
+julia> @named *ⱼ = *(j)           # defines *ⱼ(x,y) = *(:j, x,y)
+*ⱼ (generic function with 1 method)
+
+julia> B *ⱼ A |> summary
+"4×3 NamedDimsArray{(:k, :i),Float64,2,Array{Float64,2}}"
+```
+"""
+function Base.:*(s::Symbol, x::NamedDimsArray, y::NamedDimsArray)
+    if ndims(x)>2 || ndims(y)>2
+        error("this doesn't work for tensors of >=3 dimensions yet")
+    end
+
+    # transpose matrices if their s is in the wrong place
+    if ndims(x)==2
+        NamedDims.names(x)[1] == NamedDims.names(x)[2] && error("repeated name")
+        s == NamedDims.names(x)[1] && return *(s, transpose(x), y)
+    end
+    if ndims(y)==2
+        NamedDims.names(y)[1] == NamedDims.names(y)[2] && error("repeated name")
+        s == NamedDims.names(y)[2] && return *(s, x, transpose(y))
+    end
+
+    # case of two vectors
+    if ndims(x) == ndims(y) == 1
+        s == NamedDims.names(x)[1] == NamedDims.names(y)[1] || error("wrong names")
+        return LinearAlgebra.dot(x, y)
+
+    # case of vector * matrix
+    elseif ndims(x) ==1 && ndims(y) == 2
+        return transpose(y) * x
+
+    # case of matrix * something
+    else
+        return x * y
+    end
+end
