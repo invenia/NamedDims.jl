@@ -23,5 +23,6 @@ include("broadcasting.jl")
 include("functions.jl")
 include("functions_dims.jl")
 include("functions_math.jl")
+include("macros.jl")
 
 end # module
