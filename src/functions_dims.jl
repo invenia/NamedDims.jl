@@ -57,6 +57,23 @@ for f in (
     end
 end
 
+"""
+    unname(A::NamedDimsArray, names) -> AbstractArray
+
+ Returns the parent array if the given names match those of `A`,
+ otherwise a `transpose` or `PermutedDimsArray` view of the parent data.
+ To ensure a copy, call instead `parent(permutedims(A, names))`.
+"""
+function unname(nda::NamedDimsArray{L,T,N}, names::NTuple{N}) where {L,T,N}
+    perm = dim(nda, names)
+    if perm == ntuple(identity, N)
+        return parent(nda)
+    elseif perm == (2,1)
+        return transpose(parent(nda))
+    else
+        return PermutedDimsArray(parent(nda), perm)
+    end
+end
 
 # reshape
 # For now we only implement the version that drops dimension names
