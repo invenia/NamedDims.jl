@@ -131,32 +131,37 @@ julia> B *ⱼ A |> summary
 "4×3 NamedDimsArray{(:k, :i),Float64,2,Array{Float64,2}}"
 ```
 """
-function Base.:*(s::Symbol, x::NamedDimsArray, y::NamedDimsArray)
-    if ndims(x)>2 || ndims(y)>2
-        error("this doesn't work for tensors of >=3 dimensions yet")
-    end
+Base.:*(s::Tuple{Symbol}, x::NamedDimsArray, y::NamedDimsArray) = *(s[1], x, y)
 
-    # transpose matrices if their s is in the wrong place
-    if ndims(x)==2
-        NamedDims.names(x)[1] == NamedDims.names(x)[2] && error("repeated name")
-        s == NamedDims.names(x)[1] && return *(s, transpose(x), y)
-    end
-    if ndims(y)==2
-        NamedDims.names(y)[1] == NamedDims.names(y)[2] && error("repeated name")
-        s == NamedDims.names(y)[2] && return *(s, x, transpose(y))
-    end
+function Base.:*(s::Symbol, x::NamedDimsArray{Lx,Tx,1}, y::NamedDimsArray{Ly,Ty,1}) where {Lx,Tx,Ly,Ty}
+    s == Lx[1] == Ly[1] || error()
+    return transpose(x) * y
+end
 
-    # case of two vectors
-    if ndims(x) == ndims(y) == 1
-        s == NamedDims.names(x)[1] == NamedDims.names(y)[1] || error("wrong names")
-        return LinearAlgebra.dot(x, y)
-
-    # case of vector * matrix
-    elseif ndims(x) ==1 && ndims(y) == 2
-        return transpose(y) * x
-
-    # case of matrix * something
-    else
+function Base.:*(s::Symbol, x::NamedDimsArray{Lx,Tx,2}, y::NamedDimsArray{Ly,Ty,1}) where {Lx,Tx,Ly,Ty}
+    if s == Lx[2] == Ly[1]
         return x * y
+    elseif s == Lx[1] == Ly[1]
+        return transpose(x) * y
+    else
+        error()
+    end
+end
+
+function Base.:*(s::Symbol, x::NamedDimsArray{Lx,Tx,1}, y::NamedDimsArray{Ly,Ty,2}) where {Lx,Tx,Ly,Ty}
+    return *(s, y, x)
+end
+
+function Base.:*(s::Symbol, x::NamedDimsArray{Lx,Tx,2}, y::NamedDimsArray{Ly,Ty,2}) where {Lx,Tx,Ly,Ty}
+    if s == Lx[2] == Ly[1]
+        return x * y
+    elseif s == Lx[1] == Ly[1]
+        return transpose(x) * y
+    elseif s == Lx[2] == Ly[2]
+        return x * transpose(y)
+    elseif s == Lx[1] == Ly[2]
+        return transpose(x) * transpose(y)
+    else
+        error()
     end
 end

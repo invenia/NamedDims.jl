@@ -161,6 +161,39 @@ end
     end
 end
 
+@testset "matmul along named dimension" begin
+
+    AB = NamedDimsArray{(:a, :b)}(rand(2, 3))
+    BC = NamedDimsArray{(:b, :c)}(rand(3, 2))
+    B = NamedDimsArray{(:b,)}(rand(3))
+
+    @test *(:b, AB, BC) == AB * BC
+    @test names(*(:b, AB, BC)) == (:a, :c)
+
+    @test *(:b, BC, AB) == transpose(AB * BC)
+    @test names(*(:b, BC, AB)) == (:c, :a)
+
+    @test *(:b, AB, BC') == AB * BC
+    @test *(:b, AB', BC) == AB * BC
+    @test *(:b, AB', BC') == AB * BC
+    @test names(*(:b, AB, BC')) == (:a, :c)
+    @test names(*(:b, AB', BC)) == (:a, :c)
+    @test names(*(:b, AB', BC')) == (:a, :c)
+
+    @test *(:b, AB, B) == AB * B
+    @test *(:b, AB', B) == AB * B
+    @test *(:b, B, AB) == AB * B
+    @test *(:b, B, AB') == AB * B
+    @test names(*(:b, AB, B)) == (:a,)
+    @test names(*(:b, AB', B)) == (:a,)
+    @test names(*(:b, B, AB)) == (:a,)
+    @test names(*(:b, B, AB')) == (:a,)
+
+    @test_throws ErrorException Base.:*(:c, AB, BC)
+    @test_throws ErrorException Base.:*(:z, AB, B)
+
+end
+
 @testset "inv" begin
     nda = NamedDimsArray{(:a, :b)}([1.0 2; 3 4])
     @test names(inv(nda)) == (:b, :a)
