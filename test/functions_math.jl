@@ -189,8 +189,8 @@ end
     @test names(*(:b, B, AB)) == (:a,)
     @test names(*(:b, B, AB')) == (:a,)
 
-    @test_throws ErrorException Base.:*(:c, AB, BC)
-    @test_throws ErrorException Base.:*(:z, AB, B)
+    @test_throws DimensionMismatch Base.:*(:c, AB, BC)
+    @test_throws DimensionMismatch Base.:*(:z, AB, B)
 
 end
 

@@ -134,7 +134,7 @@ julia> B *ⱼ A |> summary
 Base.:*(s::Tuple{Symbol}, x::NamedDimsArray, y::NamedDimsArray) = *(s[1], x, y)
 
 function Base.:*(s::Symbol, x::NamedDimsArray{Lx,Tx,1}, y::NamedDimsArray{Ly,Ty,1}) where {Lx,Tx,Ly,Ty}
-    s == Lx[1] == Ly[1] || error()
+    s == Lx[1] == Ly[1] || throw_contract_dim_error(s, x, y)
     return transpose(x) * y
 end
 
@@ -144,7 +144,7 @@ function Base.:*(s::Symbol, x::NamedDimsArray{Lx,Tx,2}, y::NamedDimsArray{Ly,Ty,
     elseif s == Lx[1] == Ly[1]
         return transpose(x) * y
     else
-        error()
+        throw_contract_dim_error(s, x, y)
     end
 end
 
@@ -162,6 +162,11 @@ function Base.:*(s::Symbol, x::NamedDimsArray{Lx,Tx,2}, y::NamedDimsArray{Ly,Ty,
     elseif s == Lx[1] == Ly[2]
         return transpose(x) * transpose(y)
     else
-        error()
+        throw_contract_dim_error(s, x, y)
     end
+end
+
+function throw_contract_dim_error(s::Symbol, x, y)
+    msg = "Cannot contract index :$s between arrays with indices $(names(x)) and $(names(x))"
+    return throw(DimensionMismatch(msg))
 end
