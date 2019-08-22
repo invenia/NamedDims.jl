@@ -55,7 +55,7 @@ end
     end
 end
 
-@testset "$permutedims" for permutedims in (permutedims, PermutedDimsArray) begin
+@testset "$permutedims" for permutedims in (permutedims, PermutedDimsArray)
     nda = NamedDimsArray{(:w, :x, :y, :z)}(ones(10, 20, 30, 40))
     @test (
         names(permutedims(nda, (:w, :x, :y, :z))) ==
