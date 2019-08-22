@@ -21,8 +21,13 @@ end
 function Base.permutedims(nda::NamedDimsArray{L}, perm) where {L}
     numerical_perm = dim(nda, perm)
     new_names = permute_dimnames(L, numerical_perm)
-
     return NamedDimsArray{new_names}(permutedims(parent(nda), numerical_perm))
+end
+
+function Base.PermutedDimsArray(nda::NamedDimsArray{L}, perm) where {L}
+    numerical_perm = dim(nda, perm)
+    new_names = permute_dimnames(L, numerical_perm)
+    return NamedDimsArray{new_names}(PermutedDimsArray(parent(nda), numerical_perm))
 end
 
 for f in (
@@ -36,7 +41,6 @@ for f in (
         new_names = (:_, first(L))
         return NamedDimsArray{new_names}($f(parent(nda)))
     end
-
 
     # Vector Double Transpose
     if f !== :permutedims
