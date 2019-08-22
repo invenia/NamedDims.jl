@@ -55,48 +55,37 @@ end
     end
 end
 
-@testset "$permutedims" for permutedims in (permutedims, PermutedDimsArray)
+@testset "$f" for f in (permutedims, PermutedDimsArray)
     nda = NamedDimsArray{(:w, :x, :y, :z)}(ones(10, 20, 30, 40))
     @test (
-        names(permutedims(nda, (:w, :x, :y, :z))) ==
-        names(permutedims(nda, 1:4)) ==
+        names(f(nda, (:w, :x, :y, :z))) ==
+        names(f(nda, 1:4)) ==
         (:w, :x, :y, :z)
     )
     @test (
-        size(permutedims(nda, (:w, :x, :y, :z))) ==
-        size(permutedims(nda, 1:4)) ==
+        size(f(nda, (:w, :x, :y, :z))) ==
+        size(f(nda, 1:4)) ==
         (10, 20, 30, 40)
     )
 
     @test (
-        names(permutedims(nda, (:w, :y, :x, :z))) ==
-        names(permutedims(nda, (1, 3, 2, 4))) ==
+        names(f(nda, (:w, :y, :x, :z))) ==
+        names(f(nda, (1, 3, 2, 4))) ==
         (:w, :y, :x, :z)
     )
     @test (
-        size(permutedims(nda, (:w, :y, :x, :z))) ==
-        size(permutedims(nda, (1, 3, 2, 4))) ==
+        size(f(nda, (:w, :y, :x, :z))) ==
+        size(f(nda, (1, 3, 2, 4))) ==
         (10, 30, 20, 40)
     )
 
-    @test_throws Exception permutedims(nda, (:foo,:x,:y,:z))
-    @test_throws Exception permutedims(nda, (:x,:y,:z))
-    @test_throws Exception permutedims(nda, (:x,:x,:y,:z))
+    @test_throws Exception f(nda, (:foo,:x,:y,:z))
+    @test_throws Exception f(nda, (:x,:y,:z))
+    @test_throws Exception f(nda, (:x,:x,:y,:z))
 
-    @test_throws Exception permutedims(nda, (0,1,2,3))
-    @test_throws Exception permutedims(nda, (2,3,4))
-    @test_throws Exception permutedims(nda, (2,2,3,4))
-end
-
-@testset "unname with names" begin
-    nda3 = NamedDimsArray{(:x, :y, :z)}(rand(10, 20, 30))
-    nda2 = NamedDimsArray{(:x, :y)}(rand(10, 20))
-
-    @test unname(nda3, (:x, :y, :z)) === parent(nda3)
-
-    @test unname(nda3, (:z, :y, :x)) === PermutedDimsArray(parent(nda3), (3,2,1))
-
-    @test unname(nda2, (:y, :x)) === transpose(parent(nda2))
+    @test_throws Exception f(nda, (0,1,2,3))
+    @test_throws Exception f(nda, (2,3,4))
+    @test_throws Exception f(nda, (2,2,3,4))
 end
 
 # We test pinv here as it is defined in src/function_dims.jl

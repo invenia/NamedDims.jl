@@ -17,17 +17,15 @@ function Base.dropdims(nda::NamedDimsArray; dims)
     return NamedDimsArray{L}(data)
 end
 
-
-function Base.permutedims(nda::NamedDimsArray{L}, perm) where {L}
-    numerical_perm = dim(nda, perm)
-    new_names = permute_dimnames(L, numerical_perm)
-    return NamedDimsArray{new_names}(permutedims(parent(nda), numerical_perm))
-end
-
-function Base.PermutedDimsArray(nda::NamedDimsArray{L}, perm) where {L}
-    numerical_perm = dim(nda, perm)
-    new_names = permute_dimnames(L, numerical_perm)
-    return NamedDimsArray{new_names}(PermutedDimsArray(parent(nda), numerical_perm))
+for f in (
+    :(Base.permutedims),
+    :(Base.PermutedDimsArray)
+)
+    @eval function $f(nda::NamedDimsArray{L}, perm) where {L}
+        numerical_perm = dim(nda, perm)
+        new_names = permute_dimnames(L, numerical_perm)
+        return NamedDimsArray{new_names}($f(parent(nda), numerical_perm))
+    end
 end
 
 for f in (
@@ -54,24 +52,6 @@ for f in (
     @eval function $f(nda::NamedDimsArray{L,T,2}) where {L,T}
         new_names = (last(L), first(L))
         return NamedDimsArray{new_names}($f(parent(nda)))
-    end
-end
-
-"""
-    unname(A::NamedDimsArray, names) -> AbstractArray
-
- Returns the parent array if the given names match those of `A`,
- otherwise a `transpose` or `PermutedDimsArray` view of the parent data.
- To ensure a copy, call instead `parent(permutedims(A, names))`.
-"""
-function unname(nda::NamedDimsArray{L,T,N}, names::NTuple{N}) where {L,T,N}
-    perm = dim(nda, names)
-    if perm == ntuple(identity, N)
-        return parent(nda)
-    elseif perm == (2,1)
-        return transpose(parent(nda))
-    else
-        return PermutedDimsArray(parent(nda), perm)
     end
 end
 
