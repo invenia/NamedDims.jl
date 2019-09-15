@@ -112,55 +112,64 @@ end
 """
     *(s::Symbol, A::NamedDimsArray, B::NamedDimsArray)
 
-Generalised matrix multiplication, contracting indices `s` on `A` and `B`.
-I would like this to work for arbitrary tensors, but for now it's a very crude version
-which only works on vectors & matrices.
+Matrix multiplication by summing over the specified index `s`,
+by evaluating something like `transpose(A) * B` if required.
+Works only on matrices & vectors, not higher-dimensional arrays.
+For two vectors it gives a scalar result.
+
+Allows matrices with the same name twice.
+When the elements are not just numbers (such as with arrays of matrices),
+it uses `permutedims` to keep recursive `transpose` from acting on elements.
+And it never changes the order of multiplication,
+elements of `A` always left-multiply elements of `B`.
+
 ```
-julia> @named begin
-           A = rand(2,3)[j,i]
-           B = rand(2,4)[j,k]
-       end;
+julia> A = NamedDimsArray(rand(2,3), (:i, :j));
+
+julia> B = NamedDimsArray(rand(4,3), (:k, :j));
 
 julia> *(:j, A, B) |> summary
-"3×4 NamedDimsArray{(:i, :k),Float64,2,Array{Float64,2}}"
+"2×4 NamedDimsArray{(:i, :k),Float64,2,Array{Float64,2}}"
 
-julia> @named *ⱼ = *(j)           # defines *ⱼ(x,y) = *(:j, x,y)
+julia> *ⱼ(x,y) = *(:j,x,y)   # define infix function
 *ⱼ (generic function with 1 method)
 
 julia> B *ⱼ A |> summary
-"4×3 NamedDimsArray{(:k, :i),Float64,2,Array{Float64,2}}"
+"4×2 NamedDimsArray{(:k, :i),Float64,2,Array{Float64,2}}"
 ```
 """
-Base.:*(s::Tuple{Symbol}, x::NamedDimsArray, y::NamedDimsArray) = *(s[1], x, y)
-
 function Base.:*(s::Symbol, x::NamedDimsArray{Lx,Tx,1}, y::NamedDimsArray{Ly,Ty,1}) where {Lx,Tx,Ly,Ty}
     s == Lx[1] == Ly[1] || throw_contract_dim_error(s, x, y)
-    return transpose(x) * y
+    if Tx <: Number
+        return transpose(x) * y
+    else
+        return first(permutedims(x) * y)
+    end
 end
 
 function Base.:*(s::Symbol, x::NamedDimsArray{Lx,Tx,2}, y::NamedDimsArray{Ly,Ty,1}) where {Lx,Tx,Ly,Ty}
     if s == Lx[2] == Ly[1]
         return x * y
     elseif s == Lx[1] == Ly[1]
-        return transpose(x) * y
+        return shallow_transpose(x) * y
     else
         throw_contract_dim_error(s, x, y)
     end
 end
 
 function Base.:*(s::Symbol, x::NamedDimsArray{Lx,Tx,1}, y::NamedDimsArray{Ly,Ty,2}) where {Lx,Tx,Ly,Ty}
-    return *(s, y, x)
+    dropdims(*(s, shallow_transpose(x), y), dims=1)
 end
 
 function Base.:*(s::Symbol, x::NamedDimsArray{Lx,Tx,2}, y::NamedDimsArray{Ly,Ty,2}) where {Lx,Tx,Ly,Ty}
     if s == Lx[2] == Ly[1]
         return x * y
     elseif s == Lx[1] == Ly[1]
-        return transpose(x) * y
+        return shallow_transpose(x) * y
     elseif s == Lx[2] == Ly[2]
-        return x * transpose(y)
+        return x * shallow_transpose(y)
     elseif s == Lx[1] == Ly[2]
-        return transpose(x) * transpose(y)
+        return shallow_transpose(x) * shallow_transpose(y)
     else
         throw_contract_dim_error(s, x, y)
     end
@@ -170,3 +179,6 @@ function throw_contract_dim_error(s::Symbol, x, y)
     msg = "Cannot contract index :$s between arrays with indices $(names(x)) and $(names(x))"
     return throw(DimensionMismatch(msg))
 end
+
+shallow_transpose(x::AbstractArray{<:Number}) = transpose(x)
+shallow_transpose(x::AbstractArray) = permutedims(x)

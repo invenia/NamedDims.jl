@@ -162,36 +162,67 @@ end
 end
 
 @testset "matmul along named dimension" begin
+    @testset "real numbers" begin
 
-    AB = NamedDimsArray{(:a, :b)}(rand(2, 3))
-    BC = NamedDimsArray{(:b, :c)}(rand(3, 2))
-    B = NamedDimsArray{(:b,)}(rand(3))
+        AB = NamedDimsArray{(:a, :b)}(rand(2, 3))
+        BC = NamedDimsArray{(:b, :c)}(rand(3, 2))
+        B = NamedDimsArray{(:b,)}(randn(3))
 
-    @test *(:b, AB, BC) == AB * BC
-    @test names(*(:b, AB, BC)) == (:a, :c)
+        @test *(:b, AB, BC) == AB * BC
+        @test names(*(:b, AB, BC)) == (:a, :c)
 
-    @test *(:b, BC, AB) == transpose(AB * BC)
-    @test names(*(:b, BC, AB)) == (:c, :a)
+        @test *(:b, BC, AB) == transpose(AB * BC)
+        @test names(*(:b, BC, AB)) == (:c, :a)
 
-    @test *(:b, AB, BC') == AB * BC
-    @test *(:b, AB', BC) == AB * BC
-    @test *(:b, AB', BC') == AB * BC
-    @test names(*(:b, AB, BC')) == (:a, :c)
-    @test names(*(:b, AB', BC)) == (:a, :c)
-    @test names(*(:b, AB', BC')) == (:a, :c)
+        @test *(:b, AB, BC') == AB * BC
+        @test *(:b, AB', BC) == AB * BC
+        @test *(:b, AB', BC') == AB * BC
+        @test names(*(:b, AB, BC')) == (:a, :c)
+        @test names(*(:b, AB', BC)) == (:a, :c)
+        @test names(*(:b, AB', BC')) == (:a, :c)
 
-    @test *(:b, AB, B) == AB * B
-    @test *(:b, AB', B) == AB * B
-    @test *(:b, B, AB) == AB * B
-    @test *(:b, B, AB') == AB * B
-    @test names(*(:b, AB, B)) == (:a,)
-    @test names(*(:b, AB', B)) == (:a,)
-    @test names(*(:b, B, AB)) == (:a,)
-    @test names(*(:b, B, AB')) == (:a,)
+        @test *(:b, AB, B) == AB * B
+        @test *(:b, AB', B) == AB * B
+        @test *(:b, B, AB) == AB * B
+        @test *(:b, B, AB') ≈ AB * B
+        @test names(*(:b, AB, B)) == (:a,)
+        @test names(*(:b, AB', B)) == (:a,)
+        @test names(*(:b, B, AB)) == (:a,)
+        @test names(*(:b, B, AB')) == (:a,)
 
-    @test_throws DimensionMismatch Base.:*(:c, AB, BC)
-    @test_throws DimensionMismatch Base.:*(:z, AB, B)
+        @test_throws DimensionMismatch Base.:*(:c, AB, BC)
+        @test_throws DimensionMismatch Base.:*(:z, AB, B)
 
+        BB = NamedDimsArray{(:b, :b)}(randn(3, 3)) # not in fact symmetric
+        @test *(:b, BB, B) == BB * B
+        @test *(:b, B, BB) == vec(B' * BB)
+        @test *(:b, BB, AB) == BB * AB'
+        @test *(:b, AB, BB) == AB * BB
+
+    end
+    @testset "complex sub-arrays" begin
+
+        rand_arrs(dims...) = map(z -> rand(1:19,2,2) .+ im .* rand(1:9,2,2), ones(dims...))
+        AB = NamedDimsArray{(:a, :b)}(rand_arrs(2,3))
+        BC = NamedDimsArray{(:b, :c)}(rand_arrs(3,4))
+        B = NamedDimsArray{(:b,)}(rand_arrs(3))
+
+        @test *(:b, AB, BC) == AB * BC
+        @test NamedDims.names(*(:b, AB, BC)) == (:a, :c)
+
+        @test *(:b, BC, AB) == permutedims(BC) * permutedims(AB)
+        @test NamedDims.names(*(:b, BC, AB)) == (:c, :a)
+
+        @test *(:b, AB, permutedims(BC)) == AB * BC
+        @test *(:b, permutedims(AB), BC) == AB * BC
+        @test *(:b, permutedims(AB), permutedims(BC)) == AB * BC
+
+        @test *(:b, AB, B) == AB * B
+        @test *(:b, permutedims(AB), B) == AB * B
+        @test *(:b, B, AB) == vec(permutedims(B) * permutedims(AB))
+        @test *(:b, B, permutedims(AB)) == vec(permutedims(B) * permutedims(AB))
+
+    end
 end
 
 @testset "inv" begin
