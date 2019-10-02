@@ -215,12 +215,6 @@ function unify_names_longest(names_a, names_b)
     return compile_time_return_hack(ret)
 end
 
-# The following are helpers for remaining_dimnames_from_indexing
-# as a generated function it can get unhappy if asked to use anon functions
-# and it can only call function declared before it. So we declare them explictly here.
-is_noninteger_type(::Type{<:Integer}) = false
-is_noninteger_type(::Any) = true
-
 """
     remaining_dimnames_from_indexing(dimnames::Tuple, inds...)
 Given a tuple of dimension names
@@ -231,12 +225,20 @@ Dimensions indexed with scalars are dropped
 @generated function remaining_dimnames_from_indexing(dimnames::Tuple, inds)
     # 0-Allocation see:
     # `@btime (()->remaining_dimnames_from_indexing((:a, :b, :c), (:,390,:)))()``
-    ind_types = inds.parameters
-    kept_dims = findall(is_noninteger_type, ind_types)
-    keep_names = [:(getfield(dimnames, $ii)) for ii in kept_dims]
+    keep_names = []
+    dim_num = 0
+    for type in inds.parameters
+        if type <: Integer
+            dim_num += 1
+        elseif type == Array{CartesianIndex{0},1}
+            push!(keep_names, QuoteNode(:_))
+        else
+            dim_num += 1
+            push!(keep_names, :(getfield(dimnames, $dim_num)) )
+        end
+    end
     return Expr(:call, :compile_time_return_hack, Expr(:tuple, keep_names...))
 end
-
 
 """
     remaining_dimnames_after_dropping(dimnames::Tuple, dropped_dims)
