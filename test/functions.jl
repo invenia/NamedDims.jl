@@ -134,8 +134,8 @@ using Statistics
         nda = NamedDimsArray(a, (:x, :y))
 
         @test count(nda) == count(a) == 3
-        @test_throws ErrorException count(nda; dims=:x)
-        @test_throws ErrorException count(a; dims=1)
+        @test_throws MethodError count(nda; dims=:x)
+        @test_throws MethodError count(a; dims=1)
     end
 end  # Base
 
