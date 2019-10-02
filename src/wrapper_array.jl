@@ -35,7 +35,6 @@ struct NamedDimsArray{L, T, N, A<:AbstractArray{T, N}} <: AbstractArray{T, N}
     data::A
 end
 
-
 function NamedDimsArray{L}(orig::AbstractArray{T, N}) where {L, T, N}
     if !(L isa NTuple{N, Symbol})
         throw(ArgumentError(
@@ -57,8 +56,8 @@ function NamedDimsArray{L}(orig::NamedDimsArray{old_names, T, N, A}) where {L, o
     return NamedDimsArray{new_names, T, N, A}(parent(orig))
 end
 
-
 parent_type(::Type{<:NamedDimsArray{L, T, N, A}}) where {L, T, N, A} = A
+
 Base.parent(x::NamedDimsArray) = x.data
 
 """
@@ -125,7 +124,6 @@ function Base.similar(
     dims = NamedTuple{new_names, NTuple{N, Int}}(size(a))
     return similar(a, eltype, dims)
 end
-
 
 function Base.similar(
     a::NamedDimsArray{L, T, N},
@@ -200,4 +198,15 @@ end
 
 @propagate_inbounds function Base.setindex!(a::NamedDimsArray, value, inds...)
     return setindex!(parent(a), value, inds...)
+end
+
+############################################
+# mutation
+
+Base.push!(A::NamedDimsArray{L,T,1}, x) where {L,T} = NamedDimsArray{L}(push!(A.data, x))
+
+function Base.append!(A::NamedDimsArray{L,T,1}, B::AbstractVector) where {L,T}
+    newL = NamedDims.unify_names(L, names(B))
+    data = append!(A.data, unname(B))
+    NamedDimsArray{newL}(data)
 end
