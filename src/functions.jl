@@ -92,7 +92,7 @@ end
 
 # 1 Arg
 for (mod, funs) in (
-    (:Base, (:zero, :one, :copy,)),
+    (:Base, (:zero, :one, :copy, :empty!)),
 )
     for fun in funs
         @eval function $mod.$fun(a::NamedDimsArray{L}) where L
@@ -100,4 +100,22 @@ for (mod, funs) in (
             return NamedDimsArray{L}(data)
         end
     end
+end
+
+# 1 arg after, only on vectors
+for (mod, funs) in (
+    (:Base, (:push!, :pushfirst!)),
+)
+    for fun in funs
+        @eval function $mod.$fun(a::NamedDimsArray{L,T,1}, x) where {L,T}
+            data = $mod.$fun(parent(a), x)
+            return NamedDimsArray{L}(data)
+        end
+    end
+end
+
+function Base.append!(A::NamedDimsArray{L,T,1}, B::AbstractVector) where {L,T}
+    newL = unify_names(L, names(B))
+    data = append!(parent(A), unname(B))
+    return NamedDimsArray{newL}(data)
 end
