@@ -205,8 +205,12 @@ end
 
 Base.push!(A::NamedDimsArray{L,T,1}, x) where {L,T} = NamedDimsArray{L}(push!(A.data, x))
 
+Base.pushfirst!(A::NamedDimsArray{L,T,1}, x) where {L,T} = NamedDimsArray{L}(pushfirst!(A.data, x))
+
 function Base.append!(A::NamedDimsArray{L,T,1}, B::AbstractVector) where {L,T}
-    newL = NamedDims.unify_names(L, names(B))
+    newL = unify_names(L, names(B))
     data = append!(A.data, unname(B))
     NamedDimsArray{newL}(data)
 end
+
+Base.empty!(A::NamedDimsArray{L,T,1}) where {L,T} = NamedDimsArray{L}(empty!(A.data))
