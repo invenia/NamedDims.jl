@@ -41,6 +41,8 @@ end
     # Unspecified dims become slices
     @test nda[y=1] == nda[y=1, x=:] == nda[:, 1] == [10; 30]
 
+    @test_broken nda[CartesianIndex(1), 1] == nda[1,1]
+
     @testset "name preservation" begin
         @test names(nda[y=1]) == (:x,)
         @test names(nda[y=1:1]) == (:x, :y)
@@ -52,7 +54,22 @@ end
         @test nda_mw[c=2] == ones(10,20)
         @test names(nda_mw[c=2]) == (:_, :_)
     end
+
+    @testset "newaxis" begin
+        newaxis = [CartesianIndex()];
+
+        @test names(nda[:,newaxis,:]) == (:x, :_, :y)
+        @test size(nda[:,newaxis,:]) == (2, 1, 2)
+
+        @test names(nda[1,newaxis,1]) == (:_,)
+        @test size(nda[1,newaxis,1]) == (1,)
+
+        @test names(nda[CartesianIndex(1,1),newaxis]) == (:_,)
+        @test size(nda[CartesianIndex(1,1),newaxis]) == (1,)
+        @test nda[CartesianIndex(1,1),newaxis][1] == nda[1,1]
+    end
 end
+
 
 
 @testset "views" begin

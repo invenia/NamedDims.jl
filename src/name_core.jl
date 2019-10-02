@@ -216,7 +216,7 @@ function unify_names_longest(names_a, names_b)
 end
 
 """
-    remaining_dimnames_from_indexing(dimnames::Tuple, inds...)
+    remaining_dimnames_from_indexing(dimnames::Tuple, inds)
 Given a tuple of dimension names
 and a set of index expressesion e.g `1, :, 1:3, [true, false]`,
 determine which are not dropped.
@@ -230,6 +230,8 @@ Dimensions indexed with scalars are dropped
     for type in inds.parameters
         if type <: Integer
             dim_num += 1
+        elseif type <: CartesianIndex
+            dim_num += type.parameters[1]
         elseif type == Array{CartesianIndex{0},1}
             push!(keep_names, QuoteNode(:_))
         else
