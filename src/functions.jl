@@ -90,14 +90,23 @@ end
 ################################################
 # Non-dim Overloads
 
-# 1 Arg
+# Array then perhaps other args
 for (mod, funs) in (
-    (:Base, (:zero, :one, :copy,)),
+    (:Base, (:zero, :one, :copy, :empty!, :push!, :pushfirst!)),
 )
     for fun in funs
-        @eval function $mod.$fun(a::NamedDimsArray{L}) where L
-            data = $mod.$fun(parent(a))
+        @eval function $mod.$fun(a::NamedDimsArray{L}, x...) where L
+            data = $mod.$fun(parent(a), x...)
             return NamedDimsArray{L}(data)
         end
     end
+end
+
+Base.pop!(A::NamedDimsArray) = pop!(parent(A))
+Base.popfirst!(A::NamedDimsArray) = popfirst!(parent(A))
+
+function Base.append!(A::NamedDimsArray{L,T,1}, B::AbstractVector) where {L,T}
+    newL = unify_names(L, names(B))
+    data = append!(parent(A), unname(B))
+    return NamedDimsArray{newL}(data)
 end

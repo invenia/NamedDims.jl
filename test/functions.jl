@@ -137,6 +137,34 @@ using Statistics
         @test_throws ErrorException count(nda; dims=:x)
         @test_throws ErrorException count(a; dims=1)
     end
+
+    @testset "push!, pop!, etc" begin
+        ndv = NamedDimsArray([10, 20, 30], (:i,))
+
+        @test length(push!(ndv, 40)) == 4
+        @test names(pushfirst!(ndv, 0)) == (:i,)
+        @test ndv == 0:10:40
+
+        @test pop!(ndv) == 40
+        @test popfirst!(ndv) == 0
+        @test ndv == [10, 20, 30]
+    end
+
+    @testset "append!, empty!" begin
+        ndv = NamedDimsArray([10, 20, 30], (:i,))
+        ndv45 = NamedDimsArray([40, 50], (:i,))
+        ndv0 = NamedDimsArray([0, 0], (:zero,))
+
+        @test length(append!(ndv, ndv45)) == 5
+        @test names(append!(ndv, [60,70])) == (:i,)
+
+        @test_throws DimensionMismatch append!(ndv, ndv0)
+        @test ndv == 10:10:70 # error was thrown before altering
+
+        @test names(empty!(ndv)) == (:i,)
+        @test length(ndv) == 0
+end
+
 end  # Base
 
 @testset "Statistics" begin
