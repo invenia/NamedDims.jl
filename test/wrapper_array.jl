@@ -150,25 +150,3 @@ end
     end
 end
 
-
-@testset "mutation" begin
-    ndv = NamedDimsArray([10, 20, 30], (:i,))
-
-    @test length(push!(ndv, 40)) == 4
-    @test names(push!(ndv, 50)) == (:i,)
-    @test length(ndv) == 5
-
-    @test length(append!(ndv, [60,70])) == 7
-
-    ndv89 = NamedDimsArray([80, 90], (:i,))
-    ndv0 = NamedDimsArray([0, 0], (:zero,))
-
-    @test last(append!(ndv, ndv89)) == 90
-    @test_throws DimensionMismatch append!(ndv, ndv0)
-    @test ndv == 10:10:90 # error thrown before altering
-
-    @test length(pushfirst!(ndv, 0)) == 10
-
-    @test names(empty!(ndv)) == (:i,)
-    @test length(ndv) == 0
-end
