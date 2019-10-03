@@ -102,6 +102,28 @@ for (mod, funs) in (
     end
 end
 
+# Two arrays
+for (mod, funs) in (
+    (:Base, (:sum!, :prod!, :maximum!, :minimum!)),
+)
+    for fun in funs
+        @eval begin
+
+            function $mod.$fun(a::NamedDimsArray{L}, b::AbstractArray) where L
+                data = $mod.$fun(parent(a), b)
+                return NamedDimsArray{L}(data)
+            end
+
+            function $mod.$fun(a::NamedDimsArray{La}, b::NamedDimsArray{Lb}) where {La, Lb}
+                unify_names_longest(La, Lb)
+                data = $mod.$fun(parent(a), parent(b))
+                return NamedDimsArray{La}(data)
+            end
+
+        end
+    end
+end
+
 Base.pop!(A::NamedDimsArray) = pop!(parent(A))
 Base.popfirst!(A::NamedDimsArray) = popfirst!(parent(A))
 

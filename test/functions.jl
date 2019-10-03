@@ -44,6 +44,18 @@ using Statistics
         end
     end
 
+    @testset "$f!" for (f,f!) in zip((sum, prod, maximum, minimum), (sum!, prod!, maximum!, minimum!))
+        nda1 = sum(nda, dims=1)
+        nda2 = sum(nda, dims=2)
+
+        @test f!(nda1, nda) == f!(nda1, a)
+        @test f!(nda2, nda) == f!(nda2, a)
+        @test names(f!(nda1, nda)) == (:x, :y) == names(f!(nda1, a))
+        @test names(f!(nda2, nda)) == (:x, :y) == names(f!(nda2, a))
+
+        @test_throws DimensionMismatch f!(nda1, transpose(nda))
+    end
+
     @testset "eachslice" begin
         if VERSION > v"1.1-"
             slices = [[111 121; 211 221], [112 122; 212 222]]
@@ -163,7 +175,7 @@ using Statistics
 
         @test names(empty!(ndv)) == (:i,)
         @test length(ndv) == 0
-end
+    end
 
 end  # Base
 
