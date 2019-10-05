@@ -12,7 +12,7 @@ function nameddimsarray_result(original_nda, reduced_data, reduction_dims::Colon
     return reduced_data
 end
 
-###################################################################################
+################################################
 # Overloads
 
 # 1 Arg
@@ -44,19 +44,6 @@ for (mod, funs) in (
         @eval function $mod.$fun(a::NamedDimsArray{L, T, 1}; kwargs...) where {L, T}
             data = $mod.$fun(parent(a); kwargs...)
             return NamedDimsArray{NamedDims.names(a)}(data)
-        end
-    end
-end
-
-if VERSION > v"1.1-"
-    function Base.eachslice(a::NamedDimsArray{L}; dims, kwargs...) where L
-        numerical_dims = dim(a, dims)
-        slices = eachslice(parent(a); dims=numerical_dims, kwargs...)
-        return Base.Generator(slices) do slice
-            # For unknown reasons (something to do with hoisting?) having this in the
-            # function passed to `Generator` actually results in less memory being allocated
-            names = remaining_dimnames_after_dropping(L, numerical_dims)
-            return NamedDimsArray(slice, names)
         end
     end
 end
@@ -109,4 +96,34 @@ function Base.append!(A::NamedDimsArray{L,T,1}, B::AbstractVector) where {L,T}
     newL = unify_names(L, names(B))
     data = append!(parent(A), unname(B))
     return NamedDimsArray{newL}(data)
+end
+
+################################################
+# Generators
+
+if VERSION > v"1.1-"
+    Base.eachslice(A::NamedDimsArray; dims) = _eachslice(A, dims)
+else
+    eachcol(A::AbstractVecOrMat) = (view(A, :, i) for i in axes(A, 2))
+    eachrow(A::AbstractVecOrMat) = (view(A, i, :) for i in axes(A, 1))
+    # every line identical to Base, but no _eachslice(A, dims) to disatch on.
+    eachslice(A::AbstractArray; dims) = _eachslice(A, dims)
+end
+
+function _eachslice(A::AbstractArray, dims::Symbol)
+    numerical_dims = dim(A, dims)
+    return _eachslice(A, numerical_dims)
+end
+function _eachslice(A::AbstractArray, dims::Tuple)
+    length(dims) == 1 || throw(ArgumentError("only single dimensions are supported"))
+    return _eachslice(A, first(dims))
+end
+@inline function _eachslice(A::AbstractArray, dim::Int)
+    dim <= ndims(A) || throw(DimensionMismatch("A doesn't have $dim dimensions"))
+    idx1, idx2 = ntuple(d->(:), dim-1), ntuple(d->(:), ndims(A)-dim)
+    return (view(A, idx1..., i, idx2...) for i in axes(A, dim))
+end
+
+function Base.collect(itr::Base.Generator{<:NamedDimsArray{L}}) where {L}
+    NamedDimsArray{L}(collect(Base.Generator(itr.f, parent(itr.iter))))
 end

@@ -45,7 +45,9 @@ using Statistics
     end
 
     @testset "eachslice" begin
-        if VERSION > v"1.1-"
+        if VERSION < v"1.1-"
+            using NamedDims: eachslice
+        end
             slices = [[111 121; 211 221], [112 122; 212 222]]
             a = cat(slices...; dims=3)
             nda = NamedDimsArray(a, (:a, :b, :c))
@@ -67,7 +69,29 @@ using Statistics
                 names(first(eachslice(nda; dims=2))) ==
                 (:a, :c)
             )
+    end
+
+    @testset "eachcol, eachrow" begin
+        if VERSION < v"1.1-"
+            using NamedDims: eachrow, eachcol
         end
+        nda = NamedDimsArray([10 20; 31 40], (:x, :y))
+
+        @test names(first(eachcol(nda))) == (:x,)
+        @test names(first(eachrow(nda))) == (:y,)
+
+        @test_broken names(collect(eachcol(nda))) == (:y,)
+        @test_broken names(collect(eachrow(nda))) == (:y,)
+    end
+
+    @testset "collect" begin
+        ndv = NamedDimsArray([1, 9, 7, 3], :vec)
+        @test names([sqrt(x) for x in ndv]) == (:vec,)
+
+        nda = NamedDimsArray([10 20; 31 40], (:x, :y))
+        @test names([x^2 for x in nda]) == (:x, :y)
+
+        @test_broken names([x^2 + y for x in nda, y in ndv]) == (:x, :y, :vec)
     end
 
     @testset "mapslices" begin
