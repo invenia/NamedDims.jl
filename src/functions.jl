@@ -115,9 +115,9 @@ for (mod, funs) in (
             end
 
             function $mod.$fun(a::NamedDimsArray{La}, b::NamedDimsArray{Lb}) where {La, Lb}
-                unify_names_longest(La, Lb)
+                newL = unify_names_longest(La, Lb)
                 data = $mod.$fun(parent(a), parent(b))
-                return NamedDimsArray{La}(data)
+                return NamedDimsArray{newL}(data)
             end
 
         end
