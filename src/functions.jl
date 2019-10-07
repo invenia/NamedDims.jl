@@ -110,20 +110,18 @@ for (mod, funs) in (
         @eval begin
 
             function $mod.$fun(a::NamedDimsArray{L}, b::AbstractArray) where L
-                data = $mod.$fun(parent(a), b)
-                return NamedDimsArray{L}(data)
+                $mod.$fun(parent(a), b)
+                return a
             end
 
             function $mod.$fun(a::AbstractArray, b::NamedDimsArray{L}) where L
-                data = $mod.$fun(a, parent(b))
-                newL = L[1:ndims(a)]
-                return NamedDimsArray{newL}(data)
+                return $mod.$fun(a, parent(b))
             end
 
             function $mod.$fun(a::NamedDimsArray{La}, b::NamedDimsArray{Lb}) where {La, Lb}
-                newL = unify_names_longest(La, Lb)[1:ndims(a)]
-                data = $mod.$fun(parent(a), parent(b))
-                return NamedDimsArray{newL}(data)
+                unify_names_longest(La, Lb)
+                $mod.$fun(parent(a), parent(b))
+                return a
             end
 
         end

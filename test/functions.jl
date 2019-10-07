@@ -65,12 +65,11 @@ using Statistics
             nd_ = NamedDimsArray([7,8], :_)
 
             @test f!(ndx, nda) == f!([0,0], nda) == dropdims(f(a, dims=2), dims=2)
+            @test f!(nd_, nda) == f!(ndx, a)
 
             @test f!(ndy', nda) == f!([0 0], nda) == f(a, dims=1)
 
             @test_throws DimensionMismatch f!(ndy, nda) # name y on wrong dimension
-
-            @test (:x,) == NamedDims.names(f!(nd_, nda)) == NamedDims.names(f!(ndx, a))
         end
     end
 
