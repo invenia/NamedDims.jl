@@ -215,6 +215,26 @@ function unify_names_longest(names_a, names_b)
     return compile_time_return_hack(ret)
 end
 
+unify_names_shortest(names, ::Tuple{}) = ()
+unify_names_shortest(::Tuple{}, names) = ()
+unify_names_shortest(::Tuple{}, ::Tuple{}) = ()
+function unify_names_shortest(names_a, names_b)
+    # 0 Allocations: @btime (()-> unify_names_shortest((:a,:b), (:a,)))()
+
+    length(names_a) == length(names_b) && return unify_names(names_a, names_b)
+    long, short = length(names_a) > length(names_b) ? (names_a, names_b) : (names_b, names_a)
+    ret = ntuple(length(short)) do ii
+        a = getfield(long, ii)
+        b = getfield(short, ii)
+        a === :_ && return b
+        b === :_ && return a
+        a === b && return a
+        return false  # mismatch occured, we mark this with a nonSymbol result
+    end
+    ret isa Tuple{Vararg{Symbol}} || incompatible_dimension_error(names_a, names_b)
+    return compile_time_return_hack(ret)
+end
+
 # The following are helpers for remaining_dimnames_from_indexing
 # as a generated function it can get unhappy if asked to use anon functions
 # and it can only call function declared before it. So we declare them explictly here.
