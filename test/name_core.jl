@@ -3,6 +3,7 @@ using NamedDims:
     names,
     unify_names,
     unify_names_longest,
+    unify_names_shortest,
     order_named_inds,
     permute_dimnames,
     remaining_dimnames_from_indexing,
@@ -31,9 +32,13 @@ end
     @test unify_names_longest((:a,), (:a, :_)) == (:a, :_)
     @test unify_names_longest((:a, :b), (:a, :_, :c)) == (:a, :b, :c)
 
+    @test unify_names_shortest((:a,), (:a, :b,)) == (:a,)
+    @test unify_names_shortest((:a,), (:a, :_)) == (:a,)
+    @test unify_names_shortest((:a, :b), (:a, :_, :c)) == (:a, :b)
+
     @test_throws DimensionMismatch unify_names_longest((:a, :b, :c), (:b, :a))
 
-    for unify in (unify_names, unify_names_longest)
+    for unify in (unify_names, unify_names_longest, unify_names_shortest)
         @test unify((:a,), (:a,)) == (:a,)
         @test unify((:a, :b), (:a, :b)) == (:a, :b)
         @test unify((:a, :_), (:a, :b)) == (:a, :b)
