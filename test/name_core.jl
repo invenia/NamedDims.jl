@@ -69,8 +69,11 @@ end
     @test remaining_dimnames_from_indexing((:a, :b, :c), (10,20,30)) == tuple()
     @test remaining_dimnames_from_indexing((:a, :b, :c), (10, :,30)) == (:b,)
     @test remaining_dimnames_from_indexing((:a, :b, :c), (1:1, [true], [20])) == (:a, :b, :c)
-end
 
+    @test remaining_dimnames_from_indexing((:a, :b, :c), (:, [CartesianIndex()], :, :)) == (:a, :_, :b, :c)
+    @test remaining_dimnames_from_indexing((:a, :b, :c), (1, [CartesianIndex()], 2, :)) == (:_, :c)
+    @test remaining_dimnames_from_indexing((:a, :b, :c), (CartesianIndex(1,1), :)) == (:c,)
+end
 
 @testset "remaining_dimnames_after_dropping" begin
     @test remaining_dimnames_after_dropping((:a, :b, :c), 1) == (:b, :c)
