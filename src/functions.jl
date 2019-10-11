@@ -101,7 +101,7 @@ end
 ################################################
 # Generators
 
-if VERSION > v"1.1-"
+@static if VERSION >= v"1.1"
     Base.eachslice(A::NamedDimsArray; dims) = _eachslice(A, dims)
 else
     eachcol(A::AbstractVecOrMat) = (view(A, :, i) for i in axes(A, 2))
