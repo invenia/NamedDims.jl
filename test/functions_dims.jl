@@ -4,7 +4,7 @@ using NamedDims: names
 using Test
 
 @testset "rename" begin
-    nda = NamedDimsArray{(:a, :b, :c, :d)}(ones(10,1,1,20))
+    nda = NamedDimsArray{(:a, :b, :c, :d)}(ones(10, 1, 1, 20))
     new_nda = rename(nda, (:w, :x, :y, :z))
 
     @test names(new_nda) === (:w, :x, :y, :z)
@@ -24,9 +24,19 @@ end
     @test names(dropdims(nda; dims=(:b, :c))) == (:a, :d) == names(dropdims(nda; dims=(2, 3)))
 end
 
+@testset "selectdim" begin
+    nda = NamedDimsArray{(:r, :c)}(rand(2, 3))
+
+    @test selectdim(nda, :r, 1) == nda[r=1]
+    @test NamedDims.names(selectdim(nda, :r, 1)) == (:c,)
+    @test NamedDims.names(selectdim(nda, :r, 1:1)) == (:r, :c)
+
+    @test_throws ArgumentError selectdim(nda, :z, 4)
+end
+
 @testset "$f" for f in (adjoint, transpose, permutedims)
     @testset "Vector $f" begin
-        ndv = NamedDimsArray{(:foo,)}([10,20,30])
+        ndv = NamedDimsArray{(:foo,)}([10, 20, 30])
         @test f(ndv) == [10 20 30]
         @test names(f(ndv)) == (:_, :foo)
 
