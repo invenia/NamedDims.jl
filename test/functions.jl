@@ -44,6 +44,35 @@ using Statistics
         end
     end
 
+    @testset "$f!" for (f,f!) in zip((sum, prod, maximum, minimum), (sum!, prod!, maximum!, minimum!))
+        a = [10 20; 31 40]
+        nda = NamedDimsArray(a, (:x, :y)) # size (2,2)
+
+        nda1 = sum(nda, dims=1)           # size (1,2)
+        nda2 = sum(nda, dims=2)           # size (2,1)
+        @testset "ndims==2" begin
+            @test f!(nda1, nda) == f!(nda1, a) == f(a, dims=1)
+            @test f!(nda2, nda) == f!(nda2, a) == f(a, dims=2)
+
+            @test NamedDims.names(f!(nda1, nda)) == (:x, :y) == NamedDims.names(f!(nda1, a))
+            @test NamedDims.names(f!(nda2, nda)) == (:x, :y) == NamedDims.names(f!(nda2, a))
+
+            @test_throws DimensionMismatch f!(nda1, transpose(nda)) # names wrong way around
+        end
+        @testset "ndims==1 too" begin
+            ndx = NamedDimsArray([3,4], :x)
+            ndy = NamedDimsArray([5,6], :y)
+            nd_ = NamedDimsArray([7,8], :_)
+
+            @test f!(ndx, nda) == f!([0,0], nda) == dropdims(f(a, dims=2), dims=2)
+            @test f!(nd_, nda) == f!(ndx, a)
+
+            @test f!(ndy', nda) == f!([0 0], nda) == f(a, dims=1)
+
+            @test_throws DimensionMismatch f!(ndy, nda) # name y on wrong dimension
+        end
+    end
+
     @testset "eachslice" begin
         if VERSION > v"1.1-"
             slices = [[111 121; 211 221], [112 122; 212 222]]
@@ -134,8 +163,8 @@ using Statistics
         nda = NamedDimsArray(a, (:x, :y))
 
         @test count(nda) == count(a) == 3
-        @test_throws ErrorException count(nda; dims=:x)
-        @test_throws ErrorException count(a; dims=1)
+        @test_throws Exception count(nda; dims=:x)
+        @test_throws Exception count(a; dims=1)
     end
 
     @testset "push!, pop!, etc" begin
@@ -163,7 +192,7 @@ using Statistics
 
         @test names(empty!(ndv)) == (:i,)
         @test length(ndv) == 0
-end
+    end
 
 end  # Base
 
