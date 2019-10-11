@@ -79,9 +79,6 @@ using Statistics
 
         @test names(first(eachcol(nda))) == (:x,)
         @test names(first(eachrow(nda))) == (:y,)
-
-        @test_broken names(collect(eachcol(nda))) == (:y,)
-        @test_broken names(collect(eachrow(nda))) == (:y,)
     end
 
     @testset "collect" begin
@@ -90,8 +87,6 @@ using Statistics
 
         nda = NamedDimsArray([10 20; 31 40], (:x, :y))
         @test names([x^2 for x in nda]) == (:x, :y)
-
-        @test_broken names([x^2 + y for x in nda, y in ndv]) == (:x, :y, :vec)
     end
 
     @testset "mapslices" begin
