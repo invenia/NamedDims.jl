@@ -25,6 +25,10 @@ function Base.permutedims(nda::NamedDimsArray{L}, perm) where {L}
     return NamedDimsArray{new_names}(permutedims(parent(nda), numerical_perm))
 end
 
+function Base.selectdim(nda::NamedDimsArray, s::Symbol, i)
+    return selectdim(nda, dim(nda, s), i)
+end
+
 for f in (
     :(Base.transpose),
     :(Base.adjoint),
