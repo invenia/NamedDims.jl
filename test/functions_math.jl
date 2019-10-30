@@ -100,6 +100,8 @@ end
         @test matrix_prod_names((:foo, :_), (:bar,)) == (:foo,)
         @test matrix_prod_names((:foo, :_), (:_,)) == (:foo,)
         @test_throws DimensionMismatch matrix_prod_names((:foo, :bar), (:nope,))
+
+        @test 0 == @allocated (() -> matrix_prod_names((:foo, :bar), (:bar,)))()
     end
 
     @testset "Matrix-Matrix" begin
@@ -173,7 +175,10 @@ end
         @test symmetric_names((:a, :b), 1) == (:b, :b)
         @test symmetric_names((:a, :b), 2) == (:a, :a)
         @test symmetric_names((:a, :b), 5) == (:_, :_)
+
         @test_throws MethodError symmetric_names((:a, :b, :c), 2)
+
+        @test 0 == @allocated (() -> symmetric_names((:foo, :bar), 1))()
     end
     @testset "$f" for f in (cov, cor)
         @testset "matrix input, matrix result" begin

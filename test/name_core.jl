@@ -4,6 +4,8 @@ using NamedDims:
     unify_names,
     unify_names_longest,
     unify_names_shortest,
+    dim_noerror,
+    tuple_issubset,
     order_named_inds,
     permute_dimnames,
     remaining_dimnames_from_indexing,
@@ -23,6 +25,9 @@ using Test
         @test dim((:x, :y, :a, :b, :c, :d), :d) == 6
         @test_throws ArgumentError dim((:x, :y, :a, :b, :c, :d), :z) # not found
     end
+    @test 0 == @allocated (()->dim((:a, :b), :b))()
+    @test 0 == @allocated (()->dim((:a,:b), (:a,:b)))()
+    @test 0 == @allocated (()->dim_noerror((:a, :b, :c), :c))()
 end
 
  @testset "unify_names_*" begin
@@ -51,7 +56,11 @@ end
         @test_throws DimensionMismatch unify((:a,), (:b,))
         @test_throws DimensionMismatch unify((:a,:b), (:b, :a))
         @test_throws DimensionMismatch unify((:a, :b, :c), (:_, :_, :d))
+
+        @test 0 == @allocated (()->unify((:a, :b), (:a, :_)))()
     end
+    @test 0 == @allocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
+    @test 0 == @allocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
 end
 
 @testset "order_named_inds" begin
@@ -63,6 +72,9 @@ end
     @test order_named_inds((:x, :y); y=2, ) == (:, 2)
     @test order_named_inds((:x, :y); y=20, x=30) == (30, 20)
     @test order_named_inds((:x, :y); x=30, y=20) == (30, 20)
+
+    @test_broken 0 == @allocated (()->order_named_inds((:a, :b, :c), (b=1, c=2)))() # from code comment
+    @test_broken 0 == @allocated (()->order_named_inds((:a, :b, :c); b=1, c=2))() # test as used now
 end
 
 @testset "remaining_dimnames_from_indexing" begin
@@ -73,6 +85,8 @@ end
     @test remaining_dimnames_from_indexing((:a, :b, :c), (:, [CartesianIndex()], :, :)) == (:a, :_, :b, :c)
     @test remaining_dimnames_from_indexing((:a, :b, :c), (1, [CartesianIndex()], 2, :)) == (:_, :c)
     @test remaining_dimnames_from_indexing((:a, :b, :c), (CartesianIndex(1,1), :)) == (:c,)
+
+    @test 0 == @allocated (()->remaining_dimnames_from_indexing((:a, :b, :c), (:,390,:)))()
 end
 
 @testset "remaining_dimnames_after_dropping" begin
@@ -80,6 +94,9 @@ end
     @test remaining_dimnames_after_dropping((:a, :b, :c), 3) == (:a, :b)
     @test remaining_dimnames_after_dropping((:a, :b, :c), (1,3)) == (:b,)
     @test remaining_dimnames_after_dropping((:a, :b, :c), (3,1)) == (:b,)
+
+    @test 0 == @allocated remaining_dimnames_after_dropping((:a,:b,:c,:d,:e), 4)
+    @test 0 == @allocated (()->remaining_dimnames_after_dropping((:a,:b,:c,:d,:e), (1,3)))()
 end
 
 @testset "permute_dimnames" begin
@@ -92,4 +109,14 @@ end
 
     @test_throws BoundsError permute_dimnames((:a, :b, :c), (30, 30, 30))
     @test_throws BoundsError permute_dimnames((:a, :b), (1, 0))
+
+    @test 0 == @allocated permute_dimnames((:a,:b,:c), (1,3,2))
+end
+
+@testset "tuple_issubset" begin
+    @test tuple_issubset((:a, :c), (:a, :b, :c)) == true
+    @test tuple_issubset((:a, :b, :c), (:a, :c)) == false
+
+    @test 0 == @allocated tuple_issubset((:a, :c), (:a, :b, :c))
+    @test 0 == @allocated tuple_issubset((:a, :b, :c), (:a, :c))
 end
