@@ -83,8 +83,10 @@ end
 
     @test_broken 0 == @allocated (()->order_named_inds((:a, :b, :c), (b=1, c=2)))() # from code comment
     if VERSION != v"1.1"
+        @info "on version 1.1 this should NOT run" VERSION
         @test_broken 0 == @allocated (()->order_named_inds((:a, :b, :c); b=1, c=2))() # test as used now
     else
+        @info "on version 1.1 this should run" VERSION
         @test 0 == @allocated (()->order_named_inds((:a, :b, :c); b=1, c=2))()
     end
 end
