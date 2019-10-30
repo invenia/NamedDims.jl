@@ -29,6 +29,8 @@ using Test
     @test 0 == @allocated (()->dim_noerror((:a, :b, :c), :c))()
     if VERSION >= v"1.1"
         @test 0 == @allocated (()->dim((:a,:b), (:a,:b)))()
+    else
+        @test_broken 0 == @allocated (()->dim((:a,:b), (:a,:b)))()
     end
 end
 
@@ -68,6 +70,9 @@ end
     if VERSION >= v"1.1"
         @test 0 == @allocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
         @test 0 == @allocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
+    else
+        @test_broken 0 == @allocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
+        @test_broken 0 == @allocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
     end
 end
 
@@ -82,12 +87,10 @@ end
     @test order_named_inds((:x, :y); x=30, y=20) == (30, 20)
 
     @test_broken 0 == @allocated (()->order_named_inds((:a, :b, :c), (b=1, c=2)))() # from code comment
-    if VERSION != v"1.1"
-        @info "on version 1.1 this should NOT run" VERSION
-        @test_broken 0 == @allocated (()->order_named_inds((:a, :b, :c); b=1, c=2))() # test as used now
-    else
-        @info "on version 1.1 this should run" VERSION
+    if v"1.1-" <= VERSION <= v"1.1.99" # test passes on 1.1, but travis has 1.1.1
         @test 0 == @allocated (()->order_named_inds((:a, :b, :c); b=1, c=2))()
+    else
+        @test_broken 0 == @allocated (()->order_named_inds((:a, :b, :c); b=1, c=2))() # test as used now
     end
 end
 
