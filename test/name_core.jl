@@ -26,8 +26,10 @@ using Test
         @test_throws ArgumentError dim((:x, :y, :a, :b, :c, :d), :z) # not found
     end
     @test 0 == @allocated (()->dim((:a, :b), :b))()
-    @test 0 == @allocated (()->dim((:a,:b), (:a,:b)))()
     @test 0 == @allocated (()->dim_noerror((:a, :b, :c), :c))()
+    if VERSION >= v"1.1"
+        @test 0 == @allocated (()->dim((:a,:b), (:a,:b)))()
+    end
 end
 
  @testset "unify_names_*" begin
@@ -57,10 +59,16 @@ end
         @test_throws DimensionMismatch unify((:a,:b), (:b, :a))
         @test_throws DimensionMismatch unify((:a, :b, :c), (:_, :_, :d))
 
-        @test 0 == @allocated (()->unify((:a, :b), (:a, :_)))()
+        if VERSION >= v"1.2"
+            @test 0 == @allocated (()->unify((:a, :b), (:a, :_)))()
+        else
+            @test_broken 0 == @allocated (()->unify((:a, :b), (:a, :_)))()
+        end
     end
-    @test 0 == @allocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
-    @test 0 == @allocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
+    if VERSION >= v"1.1"
+        @test 0 == @allocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
+        @test 0 == @allocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
+    end
 end
 
 @testset "order_named_inds" begin
@@ -74,7 +82,11 @@ end
     @test order_named_inds((:x, :y); x=30, y=20) == (30, 20)
 
     @test_broken 0 == @allocated (()->order_named_inds((:a, :b, :c), (b=1, c=2)))() # from code comment
-    @test_broken 0 == @allocated (()->order_named_inds((:a, :b, :c); b=1, c=2))() # test as used now
+    if VERSION != v"1.1"
+        @test_broken 0 == @allocated (()->order_named_inds((:a, :b, :c); b=1, c=2))() # test as used now
+    else
+        @test 0 == @allocated (()->order_named_inds((:a, :b, :c); b=1, c=2))()
+    end
 end
 
 @testset "remaining_dimnames_from_indexing" begin
@@ -110,7 +122,9 @@ end
     @test_throws BoundsError permute_dimnames((:a, :b, :c), (30, 30, 30))
     @test_throws BoundsError permute_dimnames((:a, :b), (1, 0))
 
-    @test 0 == @allocated permute_dimnames((:a,:b,:c), (1,3,2))
+    if VERSION >= v"1.1"
+        @test 0 == @allocated permute_dimnames((:a,:b,:c), (1,3,2))
+    end
 end
 
 @testset "tuple_issubset" begin
