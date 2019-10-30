@@ -3,6 +3,7 @@ using NamedDims
 using NamedDims: matrix_prod_names, names, symmetric_names
 using Test
 
+
 @testset "+" begin
     nda = NamedDimsArray{(:a,)}(ones(3))
 
@@ -100,8 +101,6 @@ end
         @test matrix_prod_names((:foo, :_), (:bar,)) == (:foo,)
         @test matrix_prod_names((:foo, :_), (:_,)) == (:foo,)
         @test_throws DimensionMismatch matrix_prod_names((:foo, :bar), (:nope,))
-
-        @test 0 == @allocated (() -> matrix_prod_names((:foo, :bar), (:bar,)))()
     end
 
     @testset "Matrix-Matrix" begin
@@ -153,6 +152,11 @@ end
         @test_throws DimensionMismatch ndv' * ndv2
     end
 end
+@testset "allocations: matmul names" begin
+    @test 0 == @allocated (() -> matrix_prod_names((:foo, :bar), (:bar,)))()
+    @test 0 == @allocated (() -> symmetric_names((:foo, :bar), 1))()
+end
+
 
 @testset "Mutmul with special types" begin
     nda = NamedDimsArray{(:a, :b)}(ones(5,5))
@@ -163,12 +167,14 @@ end
     end
 end
 
+
 @testset "inv" begin
     nda = NamedDimsArray{(:a, :b)}([1.0 2; 3 4])
     @test names(inv(nda)) == (:b, :a)
     @test nda * inv(nda) ≈ NamedDimsArray{(:a, :a)}([1.0 0; 0 1])
     @test inv(nda) * nda ≈ NamedDimsArray{(:b, :b)}([1.0 0; 0 1])
 end
+
 
 @testset "cov/cor" begin
     @testset "symmetric_names" begin
@@ -177,8 +183,6 @@ end
         @test symmetric_names((:a, :b), 5) == (:_, :_)
 
         @test_throws MethodError symmetric_names((:a, :b, :c), 2)
-
-        @test 0 == @allocated (() -> symmetric_names((:foo, :bar), 1))()
     end
     @testset "$f" for f in (cov, cor)
         @testset "matrix input, matrix result" begin
