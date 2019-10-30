@@ -86,11 +86,12 @@ end
     @test order_named_inds((:x, :y); y=20, x=30) == (30, 20)
     @test order_named_inds((:x, :y); x=30, y=20) == (30, 20)
 
-    @test_broken 0 == @allocated (()->order_named_inds((:a, :b, :c), (b=1, c=2)))() # from code comment
-    if v"1.1-" <= VERSION <= v"1.1.99" # test passes on 1.1, but travis has 1.1.1
+    if v"1.1-" <= VERSION <= v"1.2-" # test passes on 1.1, but travis has 1.1.1
         @test 0 == @allocated (()->order_named_inds((:a, :b, :c); b=1, c=2))()
+        @test 0 == @allocated (()->order_named_inds((:a, :b, :c), (b=1, c=2)))()
     else
-        @test_broken 0 == @allocated (()->order_named_inds((:a, :b, :c); b=1, c=2))() # test as used now
+        @test_broken 0 == @allocated (()->order_named_inds((:a, :b, :c); b=1, c=2))()
+        @test_broken 0 == @allocated (()->order_named_inds((:a, :b, :c), (b=1, c=2)))()
     end
 end
 

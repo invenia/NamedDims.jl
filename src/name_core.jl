@@ -118,8 +118,9 @@ Returns the values of the `named_inds`, sorted as per the order they appear in `
 with any missing dimnames, having there value set to `:`.
 An error is thrown if any dimnames are given in `named_inds` that do not occur in `dimnames`.
 """
-function order_named_inds(dimnames::Tuple{Vararg{Symbol,N}}; named_inds...) where {N}
-    # 0-Allocations: see `@code_typed (()->order_named_inds((:a, :b, :c), (b=1, c=2)))()`
+order_named_inds(dimnames::Tuple; named_inds...) = order_named_inds(dimnames, named_inds.data)
+
+function order_named_inds(dimnames::Tuple{Vararg{Symbol,N}}, named_inds::NamedTuple) where {N}
     if !tuple_issubset(keys(named_inds), dimnames)
         throw(DimensionMismatch("Expected subset of $(dimnames), got $(keys(named_inds))"))
     end
