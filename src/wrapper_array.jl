@@ -58,7 +58,7 @@ end
 
 parent_type(::Type{<:NamedDimsArray{L, T, N, A}}) where {L, T, N, A} = A
 
-Base.parent(x::NamedDimsArray) = x.data
+Base.parent(x::NamedDimsArray) = getfield(x, :data)
 
 """
     unname(A::NamedDimsArray) -> AbstractArray
