@@ -12,7 +12,7 @@ function nameddimsarray_result(original_nda, reduced_data, reduction_dims::Colon
     return reduced_data
 end
 
-###################################################################################
+################################################
 # Overloads
 
 # 1 Arg
@@ -138,3 +138,49 @@ function Base.append!(A::NamedDimsArray{L,T,1}, B::AbstractVector) where {L,T}
     data = append!(parent(A), unname(B))
     return NamedDimsArray{newL}(data)
 end
+
+################################################
+# map, collect
+
+# no explicit method needed for map(f, ::NamedDimsArray)
+for (T, S) in [
+    (:NamedDimsArray, :AbstractArray),
+    (:AbstractArray, :NamedDimsArray),
+    (:NamedDimsArray, :NamedDimsArray),
+    ]
+    for fun in [:map, :map!]
+
+        @eval function Base.$fun(f, A::$T, B::$S, Cs::AbstractArray...)
+            data = $fun(f, unname(A), unname(B), unname.(Cs)...)
+            new_names = unify_names(names(A), names(B), names.(Cs)...)
+            return NamedDimsArray(data, new_names)
+        end
+
+    end
+
+    @eval function Base.foreach(f, A::$T, B::$S, Cs::AbstractArray...)
+        data = foreach(f, unname(A), unname(B), unname.(Cs)...)
+        unify_names(names(A), names(B), names.(Cs)...)
+        return nothing
+    end
+end
+
+function Base.collect(x::Base.Generator{<:NamedDimsArray{L}}) where {L}
+    data = collect(Base.Generator(x.f, x.iter.data))
+    NamedDimsArray(data, L)
+end
+
+function Base.collect(x::Base.Generator{<:Iterators.Enumerate{<:NamedDimsArray{L}}}) where {L}
+    data = collect(Base.Generator(x.f, enumerate(x.iter.itr.data)))
+    NamedDimsArray(data, L)
+end
+
+function Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:Tuple{<:NamedDimsArray,Vararg{Any}}}})
+    data = collect(Base.Generator(x.f, Iterators.product(unname.(x.iter.iterators)...)))
+    all_names = tuple_flatten(names.(x.iter.iterators)...)
+    NamedDimsArray(data, all_names)
+end
+
+tuple_flatten(x::Tuple, ys::Tuple...) = (x..., tuple_flatten(ys...)...)
+tuple_flatten() = ()
+# @btime tuple_flatten((1, 2), (3, 4, 5), (6,)) # 0 allocations

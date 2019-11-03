@@ -1,5 +1,5 @@
 using NamedDims
-using NamedDims: names
+using NamedDims: names, tuple_flatten
 using Test
 using Statistics
 
@@ -192,6 +192,62 @@ using Statistics
 
         @test names(empty!(ndv)) == (:i,)
         @test length(ndv) == 0
+    end
+
+    @testset "map, map!" begin
+        nda = NamedDimsArray([11 12; 21 22], (:x, :y))
+
+        @test names(map(+, nda, nda, nda)) == (:x, :y)
+        @test names(map(+, nda, parent(nda), nda)) == (:x, :y)
+        @test names(map(+, parent(nda), nda)) == (:x, :y)
+
+        # this method only called based on first two arguments:
+        @test names(map(+, parent(nda), parent(nda), nda)) == (:_, :_)
+
+        # one-arg forms work without adding anything, @which map(sqrt, nda) # Base
+        @test names(map(sqrt, nda)) == (:x, :y)
+        @test foreach(sqrt, nda) === nothing
+
+        # map! may return a different wrapper of the same data, like sum!
+        semi = NamedDimsArray(rand(2,2), (:x, :_))
+        @test names(map!(sqrt, semi, nda)) == (:x, :y)
+        @test names(map!(sqrt, rand(2,2), nda)) == (:x, :y)
+
+        zed = similar(nda, Float64)
+        @test map!(sqrt, zed, nda) == sqrt.(nda)
+        @test zed[1,1] == sqrt(nda[1,1])
+
+        # mismatching names
+        @test_throws DimensionMismatch map(+, nda, transpose(nda))
+        @test_throws DimensionMismatch map(+, nda, parent(nda), nda, transpose(nda))
+        @test_throws DimensionMismatch map!(sqrt, semi, transpose(nda))
+
+        @test foreach(+, semi, nda) === nothing
+        @test_throws DimensionMismatch foreach(+, semi, transpose(nda))
+    end
+
+    @testset "collect(generator)" begin
+        nda = NamedDimsArray([11 12; 21 22], (:x, :y))
+        ndv = NamedDimsArray([10, 20, 30], (:z,))
+
+        @test names([sqrt(x) for x in nda]) == (:x, :y)
+
+        @test names([x^i for (i,x) in enumerate(ndv)]) == (:z,)
+        @test names([x^i for (i,x) in enumerate(nda)]) == (:x, :y)
+
+        # Iterators.product -- has all names
+        @test names([x+y for x in nda, y in ndv]) == (:x, :y, :z)
+
+        # Iterators.flatten -- no obvious name to use
+        @test names([x+y for x in nda for y in ndv]) == (:_,)
+
+        # can't see inside eachslice generators
+        @test names([sum(c) for c in eachcol(nda)]) == (:_,)
+
+        # used by Iterators.product but should probably live elsewhere
+        @test tuple_flatten((1, 2), (3, 4, 5), (6,)) == (1, 2, 3, 4, 5, 6)
+        @test tuple_flatten((1, 2)) == (1, 2)
+        @test 0 == @allocated tuple_flatten((1, 2), (3, 4, 5), (6,))
     end
 
 end  # Base

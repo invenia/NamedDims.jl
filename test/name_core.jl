@@ -64,6 +64,11 @@ end
         @test_throws DimensionMismatch unify((:a,:b), (:b, :a))
         @test_throws DimensionMismatch unify((:a, :b, :c), (:_, :_, :d))
     end
+
+    # vararg version
+    @test unify_names((:a, :_), (:a, :b,), (:_, :b)) == (:a, :b)
+    @test unify_names((:a, :b,)) == (:a, :b)
+    @test_throws DimensionMismatch unify_names((:a, :_), (:a, :b,), (:_, :c))
 end
 @testset "allocations: unify_names_*" begin
     for unify in (unify_names, unify_names_longest, unify_names_shortest)

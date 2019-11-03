@@ -184,6 +184,10 @@ function unify_names(names_a, names_b)
     return compile_time_return_hack(ret)
 end
 
+unify_names(a) = a
+unify_names(a, b, cs...) = unify_names(unify_names(a,b), cs...)
+# @btime (()->unify_names((:a, :b), (:a, :_), (:_, :b)))()
+
 """
     unify_names_longest(a, b)
 
