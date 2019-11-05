@@ -66,6 +66,11 @@ end
 end
 
 @testset "permutedims" begin
+    ndv = NamedDimsArray([10, 20, 30], :foo)
+    # mixed case missing from above $f tests:
+    @test size(permutedims(adjoint(ndv))) == (3, 1)
+    @test names(permutedims(transpose(ndv))) == (:foo, :_)
+
     nda = NamedDimsArray{(:w, :x, :y, :z)}(ones(10, 20, 30, 40))
     @test (
         names(permutedims(nda, (:w, :x, :y, :z))) ==

@@ -17,7 +17,6 @@ function Base.dropdims(nda::NamedDimsArray; dims)
     return NamedDimsArray{L}(data)
 end
 
-
 function Base.permutedims(nda::NamedDimsArray{L}, perm) where {L}
     numerical_perm = dim(nda, perm)
     new_names = permute_dimnames(L, numerical_perm)
@@ -41,9 +40,8 @@ for f in (
         return NamedDimsArray{new_names}($f(parent(nda)))
     end
 
-
     # Vector Double Transpose
-    if f !== :permutedims
+    if f != :(Base.permutedims)
         @eval function $f(nda::NamedDimsArray{L,T,2,A}) where {L,T,A<:CoVector}
             new_names = (last(L),)  # drop the name of the first dimensions
             return NamedDimsArray{new_names}($f(parent(nda)))
