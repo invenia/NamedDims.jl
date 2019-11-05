@@ -94,6 +94,10 @@ end
     @test names_are_unifiable((:a, :b), (:a, :b,)) == true
     @test names_are_unifiable((:a, :c), (:a, :b,)) == false
     @test names_are_unifiable((:a, :_), (:a, :b,)) == true
+
+    @test 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :b)))()
+    @test 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :_)))()
+    @test 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :c)))()
 end
 
 

@@ -162,26 +162,31 @@ This is the type of name combination used for binary array operations.
 Where the dimensions of both arrays must be the same.
 """
 function unify_names(names_a, names_b)
-    # 0-Allocations if inputs are the same
-    # 0-Allocation, if has a `:_` see  `@btime (()->unify_names((:a, :b), (:a, :_)))()`
-
     names_a === names_b && return names_a
+    length(names_a) == length(names_b) || incompatible_dimension_error(names_a, names_b)
 
-    # Error message should not include names until it is thrown, as othrwise
-    # the interpolation allocates and slows everything down a lot.
-    length(names_a) != length(names_b) && incompatible_dimension_error(names_a, names_b)
+    ret = try_unify_names(names_a, names_b)
+    ret isa Tuple{Vararg{Symbol}} || incompatible_dimension_error(names_a, names_b)
 
+    return ret
+end
+
+function try_unify_names(names_a, names_b)
     ret = ntuple(length(names_a)) do ii  # remove :_ wildcards
         a = getfield(names_a, ii)
         b = names_b[ii]
         a === :_ && return b
         b === :_ && return a
         a === b && return a
-
-        return false  # mismatch occured, we mark this with a nonSymbol result
+        return false  # mismatch occured, we mark this with a non-Symbol result
     end
-    ret isa Tuple{Vararg{Symbol}} || incompatible_dimension_error(names_a, names_b)
-    return compile_time_return_hack(ret)
+    return ret # can't use compile_time_return_hack but not needed
+end
+
+function names_are_unifiable(names_a, names_b)
+    names_a === names_b && return true
+    length(names_a) == length(names_b) || return false
+    return try_unify_names(names_a, names_b) isa Tuple{Vararg{Symbol}}
 end
 
 unify_names(a) = a
@@ -238,26 +243,6 @@ function unify_names_shortest(names_a, names_b)
     end
     ret isa Tuple{Vararg{Symbol}} || incompatible_dimension_error(names_a, names_b)
     return compile_time_return_hack(ret)
-end
-
-# based on unify_names, but returns true/false
-function names_are_unifiable(names_a, names_b)
-    # @btime (()->names_are_unifiable((:a, :b), (:a, :b)))()
-    # @btime (()->names_are_unifiable((:a, :b), (:a, :_)))()
-    # @btime (()->names_are_unifiable((:a, :b), (:a, :c)))()
-    names_a === names_b && return true
-
-    length(names_a) == length(names_b) || return false
-
-    ret = ntuple(length(names_a)) do ii
-        a = getfield(names_a, ii)
-        b = names_b[ii]
-        a === :_ && return b
-        b === :_ && return a
-        a === b && return a
-        return false
-    end
-    return ret isa Tuple{Vararg{Symbol}}
 end
 
 # The following are helpers for remaining_dimnames_from_indexing
