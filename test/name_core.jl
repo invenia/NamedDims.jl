@@ -7,6 +7,7 @@ using NamedDims:
     dim_noerror,
     tuple_issubset,
     tuple_cat,
+    names_are_unifiable,
     order_named_inds,
     permute_dimnames,
     remaining_dimnames_from_indexing,
@@ -89,6 +90,10 @@ end
         @test_broken 0 == @allocated (()->unify_names((:a, :b), (:a, :_), (:_, :b)))()
     end
 
+    @test names_are_unifiable((:a,), (:a, :b,)) == false
+    @test names_are_unifiable((:a, :b), (:a, :b,)) == true
+    @test names_are_unifiable((:a, :c), (:a, :b,)) == false
+    @test names_are_unifiable((:a, :_), (:a, :b,)) == true
 end
 
 

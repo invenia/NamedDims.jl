@@ -240,6 +240,26 @@ function unify_names_shortest(names_a, names_b)
     return compile_time_return_hack(ret)
 end
 
+# based on unify_names, but returns true/false
+function names_are_unifiable(names_a, names_b)
+    # @btime (()->names_are_unifiable((:a, :b), (:a, :b)))()
+    # @btime (()->names_are_unifiable((:a, :b), (:a, :_)))()
+    # @btime (()->names_are_unifiable((:a, :b), (:a, :c)))()
+    names_a === names_b && return true
+
+    length(names_a) == length(names_b) || return false
+
+    ret = ntuple(length(names_a)) do ii
+        a = getfield(names_a, ii)
+        b = names_b[ii]
+        a === :_ && return b
+        b === :_ && return a
+        a === b && return a
+        return false
+    end
+    return ret isa Tuple{Vararg{Symbol}}
+end
+
 # The following are helpers for remaining_dimnames_from_indexing
 # as a generated function it can get unhappy if asked to use anon functions
 # and it can only call function declared before it. So we declare them explictly here.
