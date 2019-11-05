@@ -162,13 +162,14 @@ This is the type of name combination used for binary array operations.
 Where the dimensions of both arrays must be the same.
 """
 function unify_names(names_a, names_b)
+    # @btime (()->unify_names((:a, :b), (:a, :_)))()
     names_a === names_b && return names_a
     length(names_a) == length(names_b) || incompatible_dimension_error(names_a, names_b)
 
     ret = try_unify_names(names_a, names_b)
     ret isa Tuple{Vararg{Symbol}} || incompatible_dimension_error(names_a, names_b)
 
-    return ret
+    return compile_time_return_hack(ret)
 end
 
 function try_unify_names(names_a, names_b)
@@ -180,7 +181,7 @@ function try_unify_names(names_a, names_b)
         a === b && return a
         return false  # mismatch occured, we mark this with a non-Symbol result
     end
-    return ret # can't use compile_time_return_hack but not needed
+    return ret
 end
 
 function names_are_unifiable(names_a, names_b)
