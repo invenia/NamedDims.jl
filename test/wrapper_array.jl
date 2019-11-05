@@ -71,7 +71,6 @@ end
 end
 
 
-
 @testset "views" begin
     nda = NamedDimsArray([10 20; 30 40], (:x, :y))
 
@@ -82,6 +81,7 @@ end
         @test names(nda[y=1:1]) == (:x, :y)
     end
 end
+
 
 @testset "setindex!" begin
     @testset "by name" begin
@@ -105,6 +105,7 @@ end
     end
 end
 
+
 @testset "IndexStyle" begin
     nda = NamedDimsArray([10 20; 30 40], (:x, :y))
     @test IndexStyle(typeof(nda)) == IndexLinear()
@@ -125,6 +126,7 @@ end
     @test size(nda) == (3, 2)
     @test size(nda, :x) == 3 == size(nda, 1)
 end
+
 
 @testset "similar" begin
     nda = NamedDimsArray{(:a, :b, :c, :d)}(ones(10, 20, 30, 40))
@@ -167,3 +169,29 @@ end
     end
 end
 
+
+const cnda = NamedDimsArray([10 20; 30 40], (:x, :y))
+@testset "allocations: wrapper" begin
+    @test 0 == @allocated parent(cnda)
+    @test 0 == @allocated NamedDims.names(cnda)
+
+    @test 0 == @allocated NamedDimsArray(cnda, (:x, :y))
+    if VERSION >= v"1.1"
+        @test 0 == @allocated NamedDimsArray(cnda, (:x, :_))
+    else
+        @test_broken 0 == @allocated NamedDimsArray(cnda, (:x, :_))
+    end
+
+    # indexing
+    @test 0 == @allocated cnda[1,1]
+    @test 0 == @allocated cnda[1,1] = 55
+    if v"1.1-" <= VERSION <= v"1.2-" # tests pass on 1.1, including 1.1.1
+        @test 0 == @allocated cnda[x=1,y=1]
+        @test @allocated(cnda[x=1]) == @allocated(cnda[1,:])
+        @test 0 == @allocated cnda[x=1,y=1] = 66
+    else
+        @test_broken 0 == @allocated cnda[x=1,y=1]
+        @test_broken @allocated(cnda[x=1]) == @allocated(cnda[1,:])
+        @test_broken 0 == @allocated cnda[x=1,y=1] = 66
+    end
+end
