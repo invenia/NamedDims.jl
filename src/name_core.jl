@@ -167,7 +167,7 @@ function unify_names(names_a, names_b)
     length(names_a) == length(names_b) || incompatible_dimension_error(names_a, names_b)
 
     ret = try_unify_names(names_a, names_b)
-    ret isa Tuple{Vararg{Symbol}} || incompatible_dimension_error(names_a, names_b)
+    ret === nothing && incompatible_dimension_error(names_a, names_b)
 
     return compile_time_return_hack(ret)
 end
@@ -181,13 +181,17 @@ function try_unify_names(names_a, names_b)
         a === b && return a
         return false  # mismatch occured, we mark this with a non-Symbol result
     end
-    return ret
+    if ret isa Tuple{Vararg{Symbol}}
+        return compile_time_return_hack(ret)
+    else
+        return nothing
+    end
 end
 
 function names_are_unifiable(names_a, names_b)
     names_a === names_b && return true
     length(names_a) == length(names_b) || return false
-    return try_unify_names(names_a, names_b) isa Tuple{Vararg{Symbol}}
+    return try_unify_names(names_a, names_b) !== nothing
 end
 
 unify_names(a) = a
