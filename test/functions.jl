@@ -226,6 +226,14 @@ using Statistics
         @test_throws DimensionMismatch foreach(+, semi, transpose(nda))
     end
 
+    @testset "filter" begin
+        nda = NamedDimsArray([11 12; 21 22], (:x, :y))
+        ndv = NamedDimsArray(1:7, (:z,))
+
+        @test names(filter(isodd, ndv)) == (:z,)
+        @test names(filter(isodd, nda)) == (:_,)
+    end
+
     @testset "collect(generator)" begin
         nda = NamedDimsArray([11 12; 21 22], (:x, :y))
         ndv = NamedDimsArray([10, 20, 30], (:z,))

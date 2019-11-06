@@ -165,6 +165,9 @@ for (T, S) in [
     end
 end
 
+Base.filter(f, A::NamedDimsArray{L,T,1}) where {L,T} = NamedDimsArray(filter(f, parent(A)), L)
+Base.filter(f, A::NamedDimsArray{L,T,N}) where {L,T,N} = filter(f, parent(A))
+
 function Base.collect(x::Base.Generator{<:NamedDimsArray{L}}) where {L}
     data = collect(Base.Generator(x.f, x.iter.data))
     NamedDimsArray(data, L)
