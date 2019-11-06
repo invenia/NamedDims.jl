@@ -83,21 +83,15 @@ end
     if VERSION >= v"1.1"
         @test 0 == @allocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
         @test 0 == @allocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
-        @test 0 == @allocated (()->unify_names((:a, :b), (:a, :_), (:_, :b)))()
+        @test 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :_)))()
+        @test 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :c)))()
     else
         @test_broken 0 == @allocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
         @test_broken 0 == @allocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
-        @test_broken 0 == @allocated (()->unify_names((:a, :b), (:a, :_), (:_, :b)))()
+        @test_broken 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :_)))()
+        @test_broken 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :c)))()
     end
-
-    @test names_are_unifiable((:a,), (:a, :b,)) == false
-    @test names_are_unifiable((:a, :b), (:a, :b,)) == true
-    @test names_are_unifiable((:a, :c), (:a, :b,)) == false
-    @test names_are_unifiable((:a, :_), (:a, :b,)) == true
-
     @test 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :b)))()
-    @test 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :_)))()
-    @test 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :c)))()
 end
 
 
