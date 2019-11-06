@@ -267,7 +267,7 @@ using Statistics
         nda4 = NamedDimsArray([11 22; 33 44], (:x, :y))
         ndv = NamedDimsArray([10, 20, 30], (:x,))
 
-        @testset "$eq" for eq in (Base.:(==), isequal)
+        @testset "$eq" for eq in (Base.:(==), isequal, isapprox)
             @test eq(nda, nda)
             @test eq(nda, nda2)
             @test eq(nda, nda3) == false

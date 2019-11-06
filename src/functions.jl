@@ -90,10 +90,10 @@ end
 ################################################
 # Non-dim Overloads
 
-for fun in (:(==), :isequal)
-    @eval function Base.$fun(a::NamedDimsArray{La}, b::NamedDimsArray{Lb}) where {La, Lb}
+for fun in (:(==), :isequal, :isapprox)
+    @eval function Base.$fun(a::NamedDimsArray{La}, b::NamedDimsArray{Lb}; kw...) where {La, Lb}
         names_are_unifiable(La, Lb) || return false
-        return $fun(parent(a), parent(b))
+        return $fun(parent(a), parent(b); kw...)
     end
 end
 
