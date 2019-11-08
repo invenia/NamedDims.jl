@@ -127,3 +127,94 @@ function symmetric_names(L::Tuple{Symbol,Symbol}, dims::Integer)
     end
     return compile_time_return_hack(names)
 end
+
+# FFT
+for fun in (:fft, :ifft, :bfft)
+    plan_fun = Symbol(:plan_, fun)
+    @eval begin
+
+        function AbstractFFTs.$fun(A::NamedDimsArray{L}) where {L}
+            data = AbstractFFTs.$fun(parent(A))
+            return NamedDimsArray(data, wave_name(L))
+        end
+
+        function AbstractFFTs.$fun(A::NamedDimsArray{L,T,N}, dims) where {L,T,N}
+            numerical_dims = dim(A, dims)
+            data = AbstractFFTs.$fun(parent(A), numerical_dims)
+            newL = wave_name(L, numerical_dims)
+            return NamedDimsArray(data, newL)
+        end
+
+        function AbstractFFTs.$plan_fun(A::NamedDimsArray, dims = ntuple(d->d, ndims(A)); kw...)
+            numerical_dims = dim(A, dims)
+            return AbstractFFTs.$plan_fun(parent(A), numerical_dims; kw...)
+        end
+
+    end
+
+end
+
+for plan_type in (:Plan, :ScaledPlan)
+
+    @eval function Base.:*(plan::AbstractFFTs.$plan_type, A::NamedDimsArray{L,T,N}) where {L,T,N}
+        data = plan * parent(A)
+        if hasproperty(plan, :region) # plan from FFTW does
+            dims = plan.region # can be 1, (1,3) or 1:3
+        elseif hasproperty(plan, :p)
+            dims = plan.p.region
+        else
+            return data
+        end
+        newL = ntuple(d -> d in dims ? wave_name(L[d]) : L[d], N)::NTuple{N,Symbol}
+        # plan.region is not part of the type, so this much slower:
+        # newL = wave_name(L, Tuple(dims)) # 37μs instead of 7.
+        return NamedDimsArray(data, newL)
+    end
+
+end
+
+#=
+nda = NamedDimsArray(rand(4,4), (:k, :l))
+pp = plan_fft(nda)
+
+@btime fft($nda)           # 70.894 μs
+@btime fft($(parent(nda))) # 69.057 μs
+@code_warntype fft(nda) # names not inferred
+
+@btime plan_fft($nda, :k)
+@btime plan_fft($nda, (:k,:l))
+
+@btime $pp * $nda           # 7.803 μs
+@btime $pp * $(parent(nda)) # 6.495 μs, but very variable, 4 to 7
+@code_warntype pp * nda # pretty awful!
+=#
+
+wave_name(s::Symbol) = wave_name(Val(s))
+@generated function wave_name(::Val{sym}) where {sym}
+    str = string(sym)
+    if sym == :_
+        return QuoteNode(:_)
+    elseif endswith(str, '∿')
+        # return QuoteNode(Symbol(str[1:end-1]))
+        chars = collect(str)[1:end-1]
+        return QuoteNode(Symbol(chars...))
+    else
+        return QuoteNode(Symbol(str, '∿'))
+    end
+end
+# @btime wave_name(:k) # :k∿ , zero allocations
+
+wave_name(tup::Tuple) = map(wave_name, tup) |> compile_time_return_hack
+# @btime wave_name((:k1, :k2∿)) # zero
+
+function wave_name(tup::Tuple, d::Int)
+    out = ntuple(i -> d==i ? wave_name(tup[d]) : tup[i], length(tup))
+    return compile_time_return_hack(out)
+end
+# @btime wave_name((:k1, :k2, :k3), 2)
+
+wave_name(tup::Tuple, dims::Tuple) = wave_name(wave_name(tup, first(dims)), Base.tail(dims))
+wave_name(tup::Tuple, dims::Tuple{}) = tup
+# @btime wave_name((:k1, :k2, :k3), (1,3))
+
+

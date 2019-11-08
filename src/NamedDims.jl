@@ -3,6 +3,7 @@ using Base: @propagate_inbounds
 using Base.Broadcast:
     Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
 using LinearAlgebra
+using AbstractFFTs
 using Pkg
 using Requires
 using Statistics

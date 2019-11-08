@@ -1,4 +1,5 @@
 using LinearAlgebra
+using FFTW
 using NamedDims
 using NamedDims: matrix_prod_names, names, symmetric_names
 using Test
@@ -238,5 +239,58 @@ end
         nda = NamedDimsArray{(:a, :b)}(A)
         @test cov(nda; corrected=bool) == cov(A; corrected=bool)
         @test cov(nda; corrected=bool, dims=:b)  == cov(A; corrected=bool, dims=2)
+    end
+end
+
+
+@testset "FFT" begin
+    ndv = NamedDimsArray(zeros(ComplexF64, 16), :μ)
+    ndv[μ=2] = 1
+
+    @testset "vector" begin
+        @test names(fft(ndv)) == (:μ∿,)
+        @test names(ifft(ndv)) == (:μ∿,)
+        @test names(bfft(ndv)) == (:μ∿,)
+        @test names(ifft(fft(ndv))) == (:μ,)
+    end
+
+    @testset "vector plan" begin
+        pv1 = plan_fft(ndv)
+        pv2 = plan_fft(randn(ComplexF64, 16))
+        pv3 = plan_ifft(ndv)
+        pv4 = plan_bfft(ndv)
+
+        @test names(pv1 * ndv) == (:μ∿,)
+        @test names(pv2 * ndv) == (:μ∿,)
+        @test names(pv3 * ndv) == (:μ∿,)
+        @test names(pv4 * ndv) == (:μ∿,)
+
+        @test names(pv3 * (pv2 * ndv)) == (:μ,)
+        @test names(pv1 * (pv4 * ndv)) == (:μ,)
+    end
+
+    nda = NamedDimsArray(zeros(Float32, 4,4,4), (:a, :b′, :c))
+    nda[1,2,3] = nda[2,3,4] = 1
+
+    @testset "three dims" begin
+        @test names(fft(nda)) == (:a∿, :b′∿, :c∿)
+        @test names(ifft(nda, 1)) == (:a∿, :b′, :c)
+        @test names(bfft(nda, :b′)) == (:a, :b′∿, :c)
+        @test_broken names(fft(nda, 1:2)) == (:a∿, :b′∿, :c)
+        @test names(fft(nda, (:a, :c))) == (:a∿, :b′, :c∿)
+    end
+
+    @testset "three plan" begin
+        p1 = plan_fft(nda, :a)
+        p2 = plan_ifft(zeros(Float32, 4,4,4), 2:2)
+        p3 = plan_bfft(nda, :c)
+        p4 = plan_fft(nda, (:a, :c))
+
+        names(p1 * nda) == (:a∿, :b′, :c)
+        names(p2 * nda) == (:a, :b′∿, :c)
+        names(p3 * nda) == (:a, :b′, :c∿)
+        names(p4 * nda) == (:a∿, :b′, :c∿)
+        @test names(p2 * (p1 * nda)) == (:a∿, :b′∿, :c)
+        @test names(p3 * (p4 * nda)) == (:a∿, :b′, :c)
     end
 end
