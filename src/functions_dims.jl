@@ -58,4 +58,4 @@ end
 
 # reshape
 # For now we only implement the version that drops dimension names
-Base.reshape(nda::NamedDimsArray, dims::Int...) = reshape(parent(nda), dims...)
+Base.reshape(x::NamedDimsArray, d::Vararg{Union{Colon, Int}}) = reshape(parent(x), d)

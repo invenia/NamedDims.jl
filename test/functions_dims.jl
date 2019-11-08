@@ -22,6 +22,16 @@ end
 
     @test dropdims(nda; dims=(:b,:c)) == ones(10, 20) == dropdims(nda; dims=(2, 3))
     @test names(dropdims(nda; dims=(:b, :c))) == (:a, :d) == names(dropdims(nda; dims=(2, 3)))
+
+end
+
+@testset "reshape" begin
+    nda = NamedDimsArray(rand(2, 3), (:r, :c))
+
+    @test reshape(nda, 3, 2) isa Array
+    @test reshape(nda, 1, :) isa Array
+    @test reshape(nda, :) isa Array
+    @test vec(nda) isa Array
 end
 
 @testset "selectdim" begin
