@@ -12,6 +12,10 @@ using Tracker
 
         @test nda .+ nda .+ nda == 3ones(3)
         @test names(nda .+ nda .+ nda) == (:a,)
+
+        # in-place
+        @test names(nda .= 0 .* nda .+ 7) == (:a,)
+        @test unname(nda .= 0 .* nda .+ 7) == 7*ones(3)
     end
 
     @testset "partially named dims" begin
@@ -87,6 +91,24 @@ using Tracker
         nda = NamedDimsArray{(:x,:y,:z)}(ones(10,20,30))
         @test nda .+ ones(1,20) == 2ones(10,20,30)
         @test names(nda .+ ones(1,20)) == (:x, :y, :z)
+    end
+
+    @testset "in-place" begin
+        ab = NamedDimsArray(rand(2,2), (:a, :b));
+        ba = NamedDimsArray(rand(2,2), (:b, :a));
+        ac = NamedDimsArray(rand(2,2), (:a, :c));
+        z = zeros(2,2);
+        @test names(ab .+ ba' .+ z) == (:a, :b)
+        @test_throws DimensionMismatch ab .+ ba
+
+        # https://github.com/invenia/NamedDims.jl/issues/71
+        @test_throws DimensionMismatch z .= ab .+ ba
+        @test_throws DimensionMismatch z .= ab .+ ac
+        @test_throws DimensionMismatch ac .= ab .+ ba
+
+        # check that dest is written into:
+        @test names(z .= ab .+ ba') == (:a, :b)
+        @test z == (ab.data .+ ba.data')
     end
 
 end
