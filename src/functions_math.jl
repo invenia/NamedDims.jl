@@ -145,6 +145,23 @@ for fun in (:fft, :ifft, :bfft)
             return NamedDimsArray(data, newL)
         end
 
+        """
+            $($fun)(A, :x => :k, :y => :ky)
+
+        Acting on a `NamedDimsArray`, this specifies to take the transform along the dimensions
+        named `:x, :y`, and return an array with names `:y` and `:ky` instead.
+
+        If names are not given, then the default is `:x => :x∿` and `:x∿ => :x`,
+        applied to all dimensions, or to those specified as usual, e.g. `$($fun)(A, (1,2))`.
+        The symbol "∿" can be typed by `\\sinewave<tab>`.
+        """
+        function AbstractFFTs.$fun(A::NamedDimsArray{L,T,N}, p::Pair{Symbol,Symbol}, ps::Pair{Symbol,Symbol}...) where {L,T,N}
+            numerical_dims = dim(A, (first(p), first.(ps)...))
+            data = AbstractFFTs.$fun(parent(A), numerical_dims)
+            newL = replace_names(L, p, ps...)
+            return NamedDimsArray(data, newL)
+        end
+
         function AbstractFFTs.$plan_fun(A::NamedDimsArray, dims = ntuple(d->d, ndims(A)); kw...)
             numerical_dims = dim(A, dims)
             return AbstractFFTs.$plan_fun(parent(A), numerical_dims; kw...)
