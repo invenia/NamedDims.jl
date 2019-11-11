@@ -86,6 +86,8 @@ end
         @test_broken 0 == @allocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
         @test_broken 0 == @allocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
     end
+    # vararg version
+    @test 0 == @allocated (()->unify_names((:a, :b), (:a, :_), (:_, :b)))()
 end
 
 

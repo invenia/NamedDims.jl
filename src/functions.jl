@@ -150,7 +150,7 @@ for (T, S) in [
     ]
     for fun in [:map, :map!]
 
-        @eval function Base.$fun(f, A::$T, B::$S, Cs::AbstractArray...)
+        @eval function Base.$fun(f::Any, A::$T, B::$S, Cs::AbstractArray...)
             data = $fun(f, unname(A), unname(B), unname.(Cs)...)
             new_names = unify_names(names(A), names(B), names.(Cs)...)
             return NamedDimsArray(data, new_names)
