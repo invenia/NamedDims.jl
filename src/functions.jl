@@ -170,7 +170,7 @@ Base.filter(f, A::NamedDimsArray{L,T,N}) where {L,T,N} = filter(f, parent(A))
 
 function Base.collect(x::Base.Generator{<:NamedDimsArray{L}}) where {L}
     data = collect(Base.Generator(x.f, x.iter.data))
-    NamedDimsArray(data, L)
+    return NamedDimsArray(data, L)
 end
 
 function Base.collect(x::Base.Generator{<:Iterators.Enumerate{<:NamedDimsArray{L}}}) where {L}
