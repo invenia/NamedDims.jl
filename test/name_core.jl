@@ -6,6 +6,7 @@ using NamedDims:
     unify_names_shortest,
     dim_noerror,
     tuple_issubset,
+    tuple_cat,
     order_named_inds,
     permute_dimnames,
     remaining_dimnames_from_indexing,
@@ -160,4 +161,13 @@ end
 @testset "allocations: tuple_issubset" begin
     @test 0 == @allocated tuple_issubset((:a, :c), (:a, :b, :c))
     @test 0 == @allocated tuple_issubset((:a, :b, :c), (:a, :c))
+end
+
+
+@testset "tuple_cat" begin
+    @test tuple_cat((1, 2), (3, 4, 5), (6,)) == (1, 2, 3, 4, 5, 6)
+    @test tuple_cat((1, 2)) == (1, 2)
+end
+@testset "allocations: tuple_cat" begin
+    @test 0 == @allocated tuple_cat((1, 2), (3, 4, 5), (6,))
 end

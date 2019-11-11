@@ -1,5 +1,5 @@
 using NamedDims
-using NamedDims: names, tuple_flatten
+using NamedDims: names
 using Test
 using Statistics
 
@@ -251,11 +251,6 @@ using Statistics
 
         # can't see inside eachslice generators
         @test names([sum(c) for c in eachcol(nda)]) == (:_,)
-
-        # used by Iterators.product but should probably live elsewhere
-        @test tuple_flatten((1, 2), (3, 4, 5), (6,)) == (1, 2, 3, 4, 5, 6)
-        @test tuple_flatten((1, 2)) == (1, 2)
-        @test 0 == @allocated tuple_flatten((1, 2), (3, 4, 5), (6,))
     end
 
 end  # Base

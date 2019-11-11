@@ -180,10 +180,6 @@ end
 
 function Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:Tuple{<:NamedDimsArray,Vararg{Any}}}})
     data = collect(Base.Generator(x.f, Iterators.product(unname.(x.iter.iterators)...)))
-    all_names = tuple_flatten(names.(x.iter.iterators)...)
+    all_names = tuple_cat(names.(x.iter.iterators)...)
     NamedDimsArray(data, all_names)
 end
-
-tuple_flatten(x::Tuple, ys::Tuple...) = (x..., tuple_flatten(ys...)...)
-tuple_flatten() = ()
-# @btime tuple_flatten((1, 2), (3, 4, 5), (6,)) # 0 allocations
