@@ -247,6 +247,8 @@ using Statistics
         @test names([x+y for x in nda, y in ndv]) == (:x, :y, :z)
         @test names([x+y for x in nda, y in 1:5]) == (:x, :y, :_)
         @test names([x+y for x in 1:5, y in ndv]) == (:_, :z)
+        four = [x*y/z^p for p in 1:2, x in ndv, y in 1:2, z in nda]
+        @test names(four) == (:_, :z, :_, :x, :y)
 
         # Iterators.flatten -- no obvious name to use
         @test names([x+y for x in nda for y in ndv]) == (:_,)
