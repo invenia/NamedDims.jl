@@ -82,12 +82,13 @@ end
     if VERSION >= v"1.1"
         @test 0 == @allocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
         @test 0 == @allocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
+        @test 0 == @allocated (()->unify_names((:a, :b), (:a, :_), (:_, :b)))()
     else
         @test_broken 0 == @allocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
         @test_broken 0 == @allocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
+        @test_broken 0 == @allocated (()->unify_names((:a, :b), (:a, :_), (:_, :b)))()
     end
-    # vararg version
-    @test 0 == @allocated (()->unify_names((:a, :b), (:a, :_), (:_, :b)))()
+
 end
 
 
