@@ -245,6 +245,8 @@ using Statistics
 
         # Iterators.product -- has all names
         @test names([x+y for x in nda, y in ndv]) == (:x, :y, :z)
+        @test names([x+y for x in nda, y in 1:5]) == (:x, :y, :_)
+        @test names([x+y for x in 1:5, y in ndv]) == (:_, :z)
 
         # Iterators.flatten -- no obvious name to use
         @test names([x+y for x in nda for y in ndv]) == (:_,)

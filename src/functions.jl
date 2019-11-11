@@ -178,7 +178,11 @@ function Base.collect(x::Base.Generator{<:Iterators.Enumerate{<:NamedDimsArray{L
     NamedDimsArray(data, L)
 end
 
-function Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:Tuple{<:NamedDimsArray,Vararg{Any}}}})
+Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:Tuple{<:NamedDimsArray,Vararg{Any}}}}) = collect_product(x)
+Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:Tuple{<:Any,<:NamedDimsArray,Vararg{Any}}}}) = collect_product(x)
+Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:Tuple{<:NamedDimsArray,<:NamedDimsArray,Vararg{Any}}}}) = collect_product(x)
+
+function collect_product(x)
     data = collect(Base.Generator(x.f, Iterators.product(unname.(x.iter.iterators)...)))
     all_names = tuple_cat(names.(x.iter.iterators)...)
     NamedDimsArray(data, all_names)
