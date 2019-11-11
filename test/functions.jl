@@ -210,12 +210,13 @@ using Statistics
 
         # map! may return a different wrapper of the same data, like sum!
         semi = NamedDimsArray(rand(2,2), (:x, :_))
-        @test names(map!(sqrt, rand(2,2), nda)) == (:x, :y)
         if VERSION < v"1.1"
-            # This hits an ambiguity on 1.0., because Base has a method
+            # These hit an ambiguity on 1.0., because Base has a method
             # map!(f::F, dest::AbstractArray, A::AbstractArray) where F
+            @test_broken names(map!(sqrt, rand(2,2), nda)) == (:x, :y)
             @test_broken names(map!(sqrt, semi, nda)) == (:x, :y)
         else
+            @test names(map!(sqrt, rand(2,2), nda)) == (:x, :y)
             @test names(map!(sqrt, semi, nda)) == (:x, :y)
         end
 
