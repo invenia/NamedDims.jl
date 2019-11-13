@@ -1,7 +1,7 @@
 using LinearAlgebra
 using FFTW
 using NamedDims
-using NamedDims: matrix_prod_names, names, symmetric_names
+using NamedDims: matrix_prod_names, names, symmetric_names, wave_name
 using Test
 using Statistics
 
@@ -245,13 +245,23 @@ end
 
 @testset "FFT" begin
     ndv = NamedDimsArray(zeros(ComplexF64, 16), :μ)
-    ndv[μ=2] = 1
+    ndv[μ=2] = sqrt(2)
 
     @testset "vector" begin
+        @test names(fft(ndv, :μ => :κ)) == (:κ,)
+        @test names(ifft(ndv, :μ => :κ)) == (:κ,)
+        @test names(bfft(ndv, :μ => :κ)) == (:κ,)
+        @test_throws ArgumentError fft(ndv, :nope => :κ)
+        @test_throws ArgumentError ifft(ndv, :μ => :κ, :μ => :again)
+
         @test names(fft(ndv)) == (:μ∿,)
         @test names(ifft(ndv)) == (:μ∿,)
         @test names(bfft(ndv)) == (:μ∿,)
         @test names(ifft(fft(ndv))) == (:μ,)
+
+        @test ifft(fft(ndv, :μ => :κ), :κ => :μ) ≈ ndv
+        @test ifft(fft(ndv)) ≈ ndv
+        @test bfft(fft(ndv)) ≈ 16 * ndv
     end
 
     @testset "vector plan" begin
@@ -273,6 +283,9 @@ end
     nda[1,2,3] = nda[2,3,4] = 1
 
     @testset "three dims" begin
+        @test names(fft(nda, :a => :k)) == (:k, :b′, :c)
+        @test names(ifft(nda, :a => :k, :c => :k′)) == (:k, :b′, :k′)
+
         @test names(fft(nda)) == (:a∿, :b′∿, :c∿)
         @test names(ifft(nda, 1)) == (:a∿, :b′, :c)
         @test names(bfft(nda, :b′)) == (:a, :b′∿, :c)
@@ -293,4 +306,12 @@ end
         @test names(p2 * (p1 * nda)) == (:a∿, :b′∿, :c)
         @test names(p3 * (p4 * nda)) == (:a∿, :b′, :c)
     end
+end
+@testset "allocations: FFT" begin
+
+    @test 0 == @allocated wave_name(:k)
+    @test 0 == @allocated wave_name((:k1, :k2∿))
+    @test 0 == @allocated wave_name((:k1, :k2, :k3), 2)
+    @test 0 == @allocated wave_name((:k1, :k2, :k3), (1,3))
+
 end
