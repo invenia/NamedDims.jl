@@ -204,21 +204,14 @@ using Statistics
         # this method only called based on first two arguments:
         @test names(map(+, parent(nda), parent(nda), nda)) == (:_, :_)
 
-        # one-arg forms work without adding anything, @which map(sqrt, nda) # Base
+        # one-arg forms work without adding anything... except on 1.0...
         @test names(map(sqrt, nda)) == (:x, :y)
         @test foreach(sqrt, nda) === nothing
 
         # map! may return a different wrapper of the same data, like sum!
         semi = NamedDimsArray(rand(2,2), (:x, :_))
-        if VERSION < v"1.1"
-            # These hit an ambiguity on 1.0., because Base has a method
-            # map!(f::F, dest::AbstractArray, A::AbstractArray) where F
-            @test_broken names(map!(sqrt, rand(2,2), nda)) == (:x, :y)
-            @test_broken names(map!(sqrt, semi, nda)) == (:x, :y)
-        else
-            @test names(map!(sqrt, rand(2,2), nda)) == (:x, :y)
-            @test names(map!(sqrt, semi, nda)) == (:x, :y)
-        end
+        @test names(map!(sqrt, rand(2,2), nda)) == (:x, :y)
+        @test names(map!(sqrt, semi, nda)) == (:x, :y)
 
         zed = similar(nda, Float64)
         @test map!(sqrt, zed, nda) == sqrt.(nda)
@@ -260,8 +253,11 @@ using Statistics
         # Iterators.flatten -- no obvious name to use
         @test names([x+y for x in nda for y in ndv]) == (:_,)
 
-        # can't see inside eachslice generators
-        @test names([sum(c) for c in eachcol(nda)]) == (:_,)
+        if VERSION >= v"1.1"
+            # can't see inside eachslice generators, until:
+            # https://github.com/JuliaLang/julia/pull/32310
+            @test names([sum(c) for c in eachcol(nda)]) == (:_,)
+        end
     end
 
 end  # Base

@@ -142,7 +142,9 @@ end
 ################################################
 # map, collect
 
-# no explicit method needed for map(f, ::NamedDimsArray)
+# this method is only needed for Julia 1.0 in fact:
+Base.map(f, A::NamedDimsArray) = NamedDimsArray(map(f, parent(A)), names(A))
+
 for (T, S) in [
     (:NamedDimsArray, :AbstractArray),
     (:AbstractArray, :NamedDimsArray),
@@ -150,7 +152,8 @@ for (T, S) in [
     ]
     for fun in [:map, :map!]
 
-        @eval function Base.$fun(f, A::$T, B::$S, Cs::AbstractArray...)
+        # Here f::F where {F} is needed to avoid ambiguities in Julia 1.0
+        @eval function Base.$fun(f::F, A::$T, B::$S, Cs::AbstractArray...) where {F}
             data = $fun(f, unname(A), unname(B), unname.(Cs)...)
             new_names = unify_names(names(A), names(B), names.(Cs)...)
             return NamedDimsArray(data, new_names)
@@ -158,7 +161,7 @@ for (T, S) in [
 
     end
 
-    @eval function Base.foreach(f, A::$T, B::$S, Cs::AbstractArray...)
+    @eval function Base.foreach(f::F, A::$T, B::$S, Cs::AbstractArray...) where {F}
         data = foreach(f, unname(A), unname(B), unname.(Cs)...)
         unify_names(names(A), names(B), names.(Cs)...)
         return nothing
