@@ -142,7 +142,6 @@ end
 ################################################
 # map, collect
 
-# this method is only needed for Julia 1.0 in fact:
 Base.map(f, A::NamedDimsArray) = NamedDimsArray(map(f, parent(A)), names(A))
 
 for (T, S) in [
@@ -153,17 +152,17 @@ for (T, S) in [
     for fun in [:map, :map!]
 
         # Here f::F where {F} is needed to avoid ambiguities in Julia 1.0
-        @eval function Base.$fun(f::F, A::$T, B::$S, Cs::AbstractArray...) where {F}
-            data = $fun(f, unname(A), unname(B), unname.(Cs)...)
-            new_names = unify_names(names(A), names(B), names.(Cs)...)
+        @eval function Base.$fun(f::F, a::$T, b::$S, cs::AbstractArray...) where {F}
+            data = $fun(f, unname(a), unname(b), unname.(cs)...)
+            new_names = unify_names(names(a), names(b), names.(cs)...)
             return NamedDimsArray(data, new_names)
         end
 
     end
 
-    @eval function Base.foreach(f::F, A::$T, B::$S, Cs::AbstractArray...) where {F}
-        data = foreach(f, unname(A), unname(B), unname.(Cs)...)
-        unify_names(names(A), names(B), names.(Cs)...)
+    @eval function Base.foreach(f::F, a::$T, b::$S, cs::AbstractArray...) where {F}
+        data = foreach(f, unname(a), unname(b), unname.(cs)...)
+        unify_names(names(a), names(b), names.(cs)...)
         return nothing
     end
 end
@@ -172,12 +171,12 @@ Base.filter(f, A::NamedDimsArray{L,T,1}) where {L,T} = NamedDimsArray(filter(f, 
 Base.filter(f, A::NamedDimsArray{L,T,N}) where {L,T,N} = filter(f, parent(A))
 
 function Base.collect(x::Base.Generator{<:NamedDimsArray{L}}) where {L}
-    data = collect(Base.Generator(x.f, x.iter.data))
+    data = collect(Base.Generator(x.f, parent(x.iter)))
     return NamedDimsArray(data, L)
 end
 
 function Base.collect(x::Base.Generator{<:Iterators.Enumerate{<:NamedDimsArray{L}}}) where {L}
-    data = collect(Base.Generator(x.f, enumerate(x.iter.itr.data)))
+    data = collect(Base.Generator(x.f, enumerate(parent(x.iter.itr))))
     NamedDimsArray(data, L)
 end
 
