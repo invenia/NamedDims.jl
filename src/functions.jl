@@ -170,6 +170,8 @@ end
 Base.filter(f, A::NamedDimsArray{L,T,1}) where {L,T} = NamedDimsArray(filter(f, parent(A)), L)
 Base.filter(f, A::NamedDimsArray{L,T,N}) where {L,T,N} = filter(f, parent(A))
 
+
+# We overload collect on various kinds of `Generators` so that that can keep names.
 function Base.collect(x::Base.Generator{<:NamedDimsArray{L}}) where {L}
     data = collect(Base.Generator(x.f, parent(x.iter)))
     return NamedDimsArray(data, L)
@@ -177,7 +179,7 @@ end
 
 function Base.collect(x::Base.Generator{<:Iterators.Enumerate{<:NamedDimsArray{L}}}) where {L}
     data = collect(Base.Generator(x.f, enumerate(parent(x.iter.itr))))
-    NamedDimsArray(data, L)
+    return NamedDimsArray(data, L)
 end
 
 Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:Tuple{<:NamedDimsArray,Vararg{Any}}}}) = collect_product(x)
@@ -187,5 +189,5 @@ Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:Tuple{<:NamedDimsAr
 function collect_product(x)
     data = collect(Base.Generator(x.f, Iterators.product(unname.(x.iter.iterators)...)))
     all_names = tuple_cat(names.(x.iter.iterators)...)
-    NamedDimsArray(data, all_names)
+    return NamedDimsArray(data, all_names)
 end
