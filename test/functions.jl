@@ -194,6 +194,72 @@ using Statistics
         @test length(ndv) == 0
     end
 
+    @testset "map, map!" begin
+        nda = NamedDimsArray([11 12; 21 22], (:x, :y))
+
+        @test names(map(+, nda, nda, nda)) == (:x, :y)
+        @test names(map(+, nda, parent(nda), nda)) == (:x, :y)
+        @test names(map(+, parent(nda), nda)) == (:x, :y)
+
+        # this method only called based on first two arguments:
+        @test names(map(+, parent(nda), parent(nda), nda)) == (:_, :_)
+
+        # one-arg forms work without adding anything... except on 1.0...
+        @test names(map(sqrt, nda)) == (:x, :y)
+        @test foreach(sqrt, nda) === nothing
+
+        # map! may return a different wrapper of the same data, like sum!
+        semi = NamedDimsArray(rand(2,2), (:x, :_))
+        @test names(map!(sqrt, rand(2,2), nda)) == (:x, :y)
+        @test names(map!(sqrt, semi, nda)) == (:x, :y)
+
+        zed = similar(nda, Float64)
+        @test map!(sqrt, zed, nda) == sqrt.(nda)
+        @test zed[1,1] == sqrt(nda[1,1])
+
+        # mismatching names
+        @test_throws DimensionMismatch map(+, nda, transpose(nda))
+        @test_throws DimensionMismatch map(+, nda, parent(nda), nda, transpose(nda))
+        @test_throws DimensionMismatch map!(sqrt, semi, transpose(nda))
+
+        @test foreach(+, semi, nda) === nothing
+        @test_throws DimensionMismatch foreach(+, semi, transpose(nda))
+    end
+
+    @testset "filter" begin
+        nda = NamedDimsArray([11 12; 21 22], (:x, :y))
+        ndv = NamedDimsArray(1:7, (:z,))
+
+        @test names(filter(isodd, ndv)) == (:z,)
+        @test names(filter(isodd, nda)) == (:_,)
+    end
+
+    @testset "collect(generator)" begin
+        nda = NamedDimsArray([11 12; 21 22], (:x, :y))
+        ndv = NamedDimsArray([10, 20, 30], (:z,))
+
+        @test names([sqrt(x) for x in nda]) == (:x, :y)
+
+        @test names([x^i for (i,x) in enumerate(ndv)]) == (:z,)
+        @test names([x^i for (i,x) in enumerate(nda)]) == (:x, :y)
+
+        # Iterators.product -- has all names
+        @test names([x+y for x in nda, y in ndv]) == (:x, :y, :z)
+        @test names([x+y for x in nda, y in 1:5]) == (:x, :y, :_)
+        @test names([x+y for x in 1:5, y in ndv]) == (:_, :z)
+        four = [x*y/z^p for p in 1:2, x in ndv, y in 1:2, z in nda]
+        @test names(four) == (:_, :z, :_, :x, :y)
+
+        # Iterators.flatten -- no obvious name to use
+        @test names([x+y for x in nda for y in ndv]) == (:_,)
+
+        if VERSION >= v"1.1"
+            # can't see inside eachslice generators, until:
+            # https://github.com/JuliaLang/julia/pull/32310
+            @test names([sum(c) for c in eachcol(nda)]) == (:_,)
+        end
+    end
+
 end  # Base
 
 @testset "Statistics" begin

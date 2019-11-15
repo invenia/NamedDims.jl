@@ -6,6 +6,7 @@ using NamedDims:
     unify_names_shortest,
     dim_noerror,
     tuple_issubset,
+    tuple_cat,
     order_named_inds,
     permute_dimnames,
     remaining_dimnames_from_indexing,
@@ -64,6 +65,11 @@ end
         @test_throws DimensionMismatch unify((:a,:b), (:b, :a))
         @test_throws DimensionMismatch unify((:a, :b, :c), (:_, :_, :d))
     end
+
+    # vararg version
+    @test unify_names((:a, :_), (:a, :b,), (:_, :b)) == (:a, :b)
+    @test unify_names((:a, :b,)) == (:a, :b)
+    @test_throws DimensionMismatch unify_names((:a, :_), (:a, :b,), (:_, :c))
 end
 @testset "allocations: unify_names_*" begin
     for unify in (unify_names, unify_names_longest, unify_names_shortest)
@@ -76,10 +82,13 @@ end
     if VERSION >= v"1.1"
         @test 0 == @allocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
         @test 0 == @allocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
+        @test 0 == @allocated (()->unify_names((:a, :b), (:a, :_), (:_, :b)))()
     else
         @test_broken 0 == @allocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
         @test_broken 0 == @allocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
+        @test_broken 0 == @allocated (()->unify_names((:a, :b), (:a, :_), (:_, :b)))()
     end
+
 end
 
 
@@ -155,4 +164,13 @@ end
 @testset "allocations: tuple_issubset" begin
     @test 0 == @allocated tuple_issubset((:a, :c), (:a, :b, :c))
     @test 0 == @allocated tuple_issubset((:a, :b, :c), (:a, :c))
+end
+
+
+@testset "tuple_cat" begin
+    @test tuple_cat((1, 2), (3, 4, 5), (6,)) == (1, 2, 3, 4, 5, 6)
+    @test tuple_cat((1, 2)) == (1, 2)
+end
+@testset "allocations: tuple_cat" begin
+    @test 0 == @allocated tuple_cat((1, 2), (3, 4, 5), (6,))
 end

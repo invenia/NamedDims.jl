@@ -184,6 +184,10 @@ function unify_names(names_a, names_b)
     return compile_time_return_hack(ret)
 end
 
+unify_names(a) = a
+unify_names(a, b, cs...) = unify_names(unify_names(a,b), cs...)
+# @btime (()->unify_names((:a, :b), (:a, :_), (:_, :b)))()
+
 """
     unify_names_longest(a, b)
 
@@ -292,3 +296,13 @@ end
     keep_names = [:(getfield(dimnames, $ii)) for ii in 1:N if ii ∉ dropped_dims_vals]
     return Expr(:call, :compile_time_return_hack, Expr(:tuple, keep_names...))
 end
+
+"""
+    tuple_cat(x, y, zs...)
+
+This is like `vcat` for tuples, it splats everything into one long tuple.
+"""
+tuple_cat(x::Tuple, ys::Tuple...) = (x..., tuple_cat(ys...)...)
+tuple_cat() = ()
+# @btime tuple_cat((1, 2), (3, 4, 5), (6,)) # 0 allocations
+

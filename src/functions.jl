@@ -12,7 +12,7 @@ function nameddimsarray_result(original_nda, reduced_data, reduction_dims::Colon
     return reduced_data
 end
 
-###################################################################################
+################################################
 # Overloads
 
 # 1 Arg
@@ -137,4 +137,57 @@ function Base.append!(A::NamedDimsArray{L,T,1}, B::AbstractVector) where {L,T}
     newL = unify_names(L, names(B))
     data = append!(parent(A), unname(B))
     return NamedDimsArray{newL}(data)
+end
+
+################################################
+# map, collect
+
+Base.map(f, A::NamedDimsArray) = NamedDimsArray(map(f, parent(A)), names(A))
+
+for (T, S) in [
+    (:NamedDimsArray, :AbstractArray),
+    (:AbstractArray, :NamedDimsArray),
+    (:NamedDimsArray, :NamedDimsArray),
+    ]
+    for fun in [:map, :map!]
+
+        # Here f::F where {F} is needed to avoid ambiguities in Julia 1.0
+        @eval function Base.$fun(f::F, a::$T, b::$S, cs::AbstractArray...) where {F}
+            data = $fun(f, unname(a), unname(b), unname.(cs)...)
+            new_names = unify_names(names(a), names(b), names.(cs)...)
+            return NamedDimsArray(data, new_names)
+        end
+
+    end
+
+    @eval function Base.foreach(f::F, a::$T, b::$S, cs::AbstractArray...) where {F}
+        data = foreach(f, unname(a), unname(b), unname.(cs)...)
+        unify_names(names(a), names(b), names.(cs)...)
+        return nothing
+    end
+end
+
+Base.filter(f, A::NamedDimsArray{L,T,1}) where {L,T} = NamedDimsArray(filter(f, parent(A)), L)
+Base.filter(f, A::NamedDimsArray{L,T,N}) where {L,T,N} = filter(f, parent(A))
+
+
+# We overload collect on various kinds of `Generators` so that that can keep names.
+function Base.collect(x::Base.Generator{<:NamedDimsArray{L}}) where {L}
+    data = collect(Base.Generator(x.f, parent(x.iter)))
+    return NamedDimsArray(data, L)
+end
+
+function Base.collect(x::Base.Generator{<:Iterators.Enumerate{<:NamedDimsArray{L}}}) where {L}
+    data = collect(Base.Generator(x.f, enumerate(parent(x.iter.itr))))
+    return NamedDimsArray(data, L)
+end
+
+Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:Tuple{<:NamedDimsArray,Vararg{Any}}}}) = collect_product(x)
+Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:Tuple{<:Any,<:NamedDimsArray,Vararg{Any}}}}) = collect_product(x)
+Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:Tuple{<:NamedDimsArray,<:NamedDimsArray,Vararg{Any}}}}) = collect_product(x)
+
+function collect_product(x)
+    data = collect(Base.Generator(x.f, Iterators.product(unname.(x.iter.iterators)...)))
+    all_names = tuple_cat(names.(x.iter.iterators)...)
+    return NamedDimsArray(data, all_names)
 end
