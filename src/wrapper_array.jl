@@ -136,29 +136,6 @@ function Base.similar(
 end
 
 
-###############################
-# kwargs indexing
-
-"""
-    order_named_inds(A, named_inds...)
-
-Returns the indices that have the names and values given by `named_inds`
-sorted into the order expected for the dimension of the array `A`.
-If any dimensions of `A` are not present in the named_inds,
-then they are given the value `:`, for slicing
-
-For example:
-```
-A = NamedDimArray(rand(4,4), (:x,, :y))
-order_named_inds(A; y=10, x=13) == (13,10)
-order_named_inds(A; x=2, y=1:3) == (2, 1:3)
-order_named_inds(A; y=5) == (:, 5)
-```
-
-This provides the core indexed lookup for `getindex` and `setindex` on the Array `A`
-"""
-order_named_inds(A::AbstractArray; named_inds...) = order_named_inds(dimnames(A); named_inds...)
-
 ###################
 # getindex / view / dotview
 # Note that `dotview` is undocumented but needed for making `a[x=2] .= 3` work
