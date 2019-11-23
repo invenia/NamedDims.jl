@@ -7,7 +7,7 @@ using Pkg
 using Requires
 using Statistics
 
-export NamedDimsArray, dim, rename, unname
+export NamedDimsArray, dim, rename, unname, dimnames
 
 function __init__()
     # NOTE: NamedDims is only compatible with Tracker v0.2.2; but no nice way to enforce that.

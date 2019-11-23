@@ -59,7 +59,7 @@ end
 function Base.copyto!(dest::AbstractArray, bc::Broadcasted{NamedDimsStyle{S}}) where S
     inner_bc = unwrap_broadcasted(bc)
     copyto!(dest, inner_bc)
-    L = unify_names(names(dest), broadcasted_names(bc))
+    L = unify_names(dimnames(dest), broadcasted_names(bc))
     return NamedDimsArray{L}(dest)
 end
 
@@ -69,5 +69,5 @@ function broadcasted_names(a, bs...)
     b_name = broadcasted_names(bs...)
     unify_names_longest(a_name, b_name)
 end
-broadcasted_names(a::AbstractArray) = names(a)
+broadcasted_names(a::AbstractArray) = dimnames(a)
 broadcasted_names(a) = tuple()

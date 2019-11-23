@@ -73,13 +73,13 @@ unname(x::NamedDimsArray) = parent(x)
 unname(x::AbstractArray) = x
 
 """
-    names(A) -> Tuple
+    dimnames(A) -> Tuple
 
 Return the names of all the dimensions of the array `A`.
 """
-names(::Type{<:NamedDimsArray{L}}) where L = L
-names(::Type{<:AbstractArray{T, N}}) where {T, N} = ntuple(_->:_, N)
-names(x::T) where T<:AbstractArray = names(T)
+dimnames(::Type{<:NamedDimsArray{L}}) where L = L
+dimnames(::Type{<:AbstractArray{T, N}}) where {T, N} = ntuple(_->:_, N)
+dimnames(x::T) where T<:AbstractArray = dimnames(T)
 
 dim(a::NamedDimsArray{L}, name) where L = dim(L, name)
 
@@ -103,7 +103,7 @@ Base.axes(a::NamedDimsArray, d) = axes(parent(a), dim(a, d))
 
 
 function named_size(a::AbstractArray{T,N}) where {T,N}
-    L = names(a)
+    L = dimnames(a)
     NamedTuple{L, NTuple{N,Int}}(size(a))
 end
 function Base.similar(
@@ -157,7 +157,7 @@ order_named_inds(A; y=5) == (:, 5)
 
 This provides the core indexed lookup for `getindex` and `setindex` on the Array `A`
 """
-order_named_inds(A::AbstractArray; named_inds...) = order_named_inds(names(A); named_inds...)
+order_named_inds(A::AbstractArray; named_inds...) = order_named_inds(dimnames(A); named_inds...)
 
 ###################
 # getindex / view / dotview
@@ -183,7 +183,7 @@ for f in (:getindex, :view, :dotview)
         @propagate_inbounds function Base.$f(a::NamedDimsArray, inds...)
             # Some nonscalar case, will return an array, so need to give that names.
             data = Base.$f(parent(a), inds...)
-            L = remaining_dimnames_from_indexing(names(a), inds)
+            L = remaining_dimnames_from_indexing(dimnames(a), inds)
             return NamedDimsArray{L}(data)
         end
     end

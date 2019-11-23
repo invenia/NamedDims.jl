@@ -15,8 +15,8 @@ using Tracker: data, TrackedReal
     y = tw*nx .+ tb
 
     @test data(y) == 15ones(3,10)
-    @test names(y) == (:_, :obs)
-    @test names(data(y)) == (:_, :obs)
+    @test dimnames(y) == (:_, :obs)
+    @test dimnames(data(y)) == (:_, :obs)
 
 
     loss = sum((y .- ny).^2)
