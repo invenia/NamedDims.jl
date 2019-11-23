@@ -24,4 +24,6 @@ include("functions.jl")
 include("functions_dims.jl")
 include("functions_math.jl")
 
+@deprecate names dimnames false
+
 end # module
