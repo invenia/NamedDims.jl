@@ -9,13 +9,13 @@ using Test
 
     @testset "standard case" begin
         @test +(nda) == ones(3)
-        @test names(+(nda)) == (:a,)
+        @test dimnames(+(nda)) == (:a,)
 
         @test +(nda, nda) == 2ones(3)
-        @test names(+(nda, nda)) == (:a,)
+        @test dimnames(+(nda, nda)) == (:a,)
 
         @test +(nda, nda, nda) == 3ones(3)
-        @test names(+(nda, nda, nda)) == (:a,)
+        @test dimnames(+(nda, nda, nda)) == (:a,)
     end
 
     @testset "partially named dims" begin
@@ -24,7 +24,7 @@ using Test
 
         lhs = ndx + ndy
         rhs = ndy + ndx
-        @test names(lhs) == (:x, :y) == names(rhs)
+        @test dimnames(lhs) == (:x, :y) == dimnames(rhs)
         @test lhs == 2ones(3, 5) == rhs
     end
 
@@ -46,7 +46,7 @@ using Test
             ones(3, 3, 3, 3)
         )
         @test lhs_sum == ones(3, 3, 3, 3)
-        @test names(lhs_sum) == (:a, :b, :c, :d)
+        @test dimnames(lhs_sum) == (:a, :b, :c, :d)
 
 
         rhs_sum = +(
@@ -54,7 +54,7 @@ using Test
             NamedDimsArray{(:w, :x, :y, :z)}(ones(3, 3, 3, 3))
         )
         @test rhs_sum == ones(3, 3, 3, 3)
-        @test names(rhs_sum) == (:w, :x, :y, :z)
+        @test dimnames(rhs_sum) == (:w, :x, :y, :z)
 
 
         casts = (NamedDimsArray{(:foo, :bar)}, identity)
@@ -62,7 +62,7 @@ using Test
             all(isequal(identity), (T1, T2, T3, T4)) && continue
             total = T1(ones(3, 6)) + T2(2ones(3, 6)) + T3(3ones(3, 6)) + T4(4ones(3, 6))
             @test total == 10ones(3, 6)
-            @test names(total) == (:foo, :bar)
+            @test dimnames(total) == (:foo, :bar)
         end
     end
 end
@@ -73,14 +73,14 @@ end
     # just one extra as a sensability check
     nda = NamedDimsArray{(:a, :b)}(ones(3, 100))
     @test nda - nda == zeros(3, 100)
-    @test names(nda - nda) == (:a, :b)
+    @test dimnames(nda - nda) == (:a, :b)
 end
 
 
 @testset "scalar product" begin
     nda = NamedDimsArray{(:a, :b, :c, :d, :e)}(ones(10, 20, 30, 40, 50))
     @test 10nda == 10ones(10, 20, 30, 40, 50)
-    @test names(10nda) == (:a, :b, :c, :d, :e)
+    @test dimnames(10nda) == (:a, :b, :c, :d, :e)
 end
 
 
@@ -109,13 +109,13 @@ end
 
         @testset "standard case" begin
             @test nda * ndb == 3ones(2, 2)
-            @test names(nda * ndb) == (:a, :c)
+            @test dimnames(nda * ndb) == (:a, :c)
 
             @test ones(4, 3) * ndb == 3ones(4, 2)
-            @test names(ones(4, 3) * ndb) == (:_, :c)
+            @test dimnames(ones(4, 3) * ndb) == (:_, :c)
 
             @test nda * ones(3, 7) == 3ones(2, 7)
-            @test names(nda * ones(3,7)) == (:a, :_)
+            @test dimnames(nda * ones(3,7)) == (:a, :_)
         end
 
         @testset "Dimension disagreement" begin
@@ -128,7 +128,7 @@ end
         ndv = NamedDimsArray{(:b, )}(ones(1))
 
         @test ndm * ndv == ones(1)
-        @test names(ndm * ndv) == (:a,)
+        @test dimnames(ndm * ndv) == (:a,)
     end
 
     @testset "Vector-Matrix" begin
@@ -136,7 +136,7 @@ end
         ndv = NamedDimsArray{(:a, )}(ones(1))
 
         @test ndv * ndm == ones(1, 1)
-        @test names(ndv * ndm) == (:a, :b)
+        @test dimnames(ndv * ndm) == (:a, :b)
     end
 
     @testset "Vector-Vector" begin
@@ -162,15 +162,15 @@ end
     nda = NamedDimsArray{(:a, :b)}(ones(5,5))
     @testset "$T" for T in (Diagonal, Symmetric, Tridiagonal, SymTridiagonal, BitArray,)
         x = T(ones(5,5))
-        @test names(x * nda) == (:_, :b)
-        @test names(nda * x) == (:a, :_)
+        @test dimnames(x * nda) == (:_, :b)
+        @test dimnames(nda * x) == (:a, :_)
     end
 end
 
 
 @testset "inv" begin
     nda = NamedDimsArray{(:a, :b)}([1.0 2; 3 4])
-    @test names(inv(nda)) == (:b, :a)
+    @test dimnames(inv(nda)) == (:b, :a)
     @test nda * inv(nda) ≈ NamedDimsArray{(:a, :a)}([1.0 0; 0 1])
     @test inv(nda) * nda ≈ NamedDimsArray{(:b, :b)}([1.0 0; 0 1])
 end
@@ -189,10 +189,10 @@ end
             A = rand(3, 5)
             nda = NamedDimsArray{(:a, :b)}(A)
             @test f(nda; dims=:a) == f(A, dims=1)
-            @test names(f(nda; dims=:a)) == (:b, :b)
-            @test names(f(nda, dims=:b)) == (:a, :a)
+            @test dimnames(f(nda; dims=:a)) == (:b, :b)
+            @test dimnames(f(nda, dims=:b)) == (:a, :a)
             # `Statistic.cov/cor(A, dims=p)` for `p > 2` is allowed but returns NaNs.
-            @test names(f(nda, dims=3)) == (:_, :_)
+            @test dimnames(f(nda, dims=3)) == (:_, :_)
         end
         @testset "vector input, scalar result" begin
             a = rand(4)

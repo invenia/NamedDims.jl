@@ -3,7 +3,7 @@
 ## Helpers:
 
 function nameddimsarray_result(original_nda, reduced_data, reduction_dims)
-    L = names(original_nda)
+    L = dimnames(original_nda)
     return NamedDimsArray{L}(reduced_data)
 end
 
@@ -43,7 +43,7 @@ for (mod, funs) in (
         # Vector case
         @eval function $mod.$fun(a::NamedDimsArray{L, T, 1}; kwargs...) where {L, T}
             data = $mod.$fun(parent(a); kwargs...)
-            return NamedDimsArray{NamedDims.names(a)}(data)
+            return NamedDimsArray{dimnames(a)}(data)
         end
     end
 end
@@ -134,7 +134,7 @@ Base.pop!(A::NamedDimsArray) = pop!(parent(A))
 Base.popfirst!(A::NamedDimsArray) = popfirst!(parent(A))
 
 function Base.append!(A::NamedDimsArray{L,T,1}, B::AbstractVector) where {L,T}
-    newL = unify_names(L, names(B))
+    newL = unify_names(L, dimnames(B))
     data = append!(parent(A), unname(B))
     return NamedDimsArray{newL}(data)
 end
@@ -142,7 +142,7 @@ end
 ################################################
 # map, collect
 
-Base.map(f, A::NamedDimsArray) = NamedDimsArray(map(f, parent(A)), names(A))
+Base.map(f, A::NamedDimsArray) = NamedDimsArray(map(f, parent(A)), dimnames(A))
 
 for (T, S) in [
     (:NamedDimsArray, :AbstractArray),
@@ -154,7 +154,7 @@ for (T, S) in [
         # Here f::F where {F} is needed to avoid ambiguities in Julia 1.0
         @eval function Base.$fun(f::F, a::$T, b::$S, cs::AbstractArray...) where {F}
             data = $fun(f, unname(a), unname(b), unname.(cs)...)
-            new_names = unify_names(names(a), names(b), names.(cs)...)
+            new_names = unify_names(dimnames(a), dimnames(b), dimnames.(cs)...)
             return NamedDimsArray(data, new_names)
         end
 
@@ -162,7 +162,7 @@ for (T, S) in [
 
     @eval function Base.foreach(f::F, a::$T, b::$S, cs::AbstractArray...) where {F}
         data = foreach(f, unname(a), unname(b), unname.(cs)...)
-        unify_names(names(a), names(b), names.(cs)...)
+        unify_names(dimnames(a), dimnames(b), dimnames.(cs)...)
         return nothing
     end
 end
@@ -188,6 +188,6 @@ Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:Tuple{<:NamedDimsAr
 
 function collect_product(x)
     data = collect(Base.Generator(x.f, Iterators.product(unname.(x.iter.iterators)...)))
-    all_names = tuple_cat(names.(x.iter.iterators)...)
+    all_names = tuple_cat(dimnames.(x.iter.iterators)...)
     return NamedDimsArray(data, all_names)
 end
