@@ -144,9 +144,12 @@ end
 
 """
     unify_names(a, b)
+    unify_names(a, b, cs...)
 
 Produces the merged set of names for tuples of names `a` and `b`,
 or an error if it is not possibly to unify them.
+Then continues with further names `cs`, if any.
+
 Two tuples of names can be unified they are the same length
 and if for each position the names are either the same, or one is a wildcard (`:_`).
 When combining wildcard with non-wildcard the resulting name is the non-wildcard.
@@ -160,19 +163,32 @@ For example:
 
 This is the type of name combination used for binary array operations.
 Where the dimensions of both arrays must be the same.
+
+See also `names_are_unifiable(a, b)`, which returns `true` instead of the merged names,
+and `false` instead of an error.
 """
 function unify_names(names_a, names_b)
     # @btime (()->unify_names((:a, :b), (:a, :_)))()
-    names_a === names_b && return names_a
-    length(names_a) == length(names_b) || incompatible_dimension_error(names_a, names_b)
-
     ret = try_unify_names(names_a, names_b)
-    ret === nothing && incompatible_dimension_error(names_a, names_b)
-
-    return compile_time_return_hack(ret)
+    if ret === nothing
+        incompatible_dimension_error(names_a, names_b)
+    else
+        return compile_time_return_hack(ret)
+    end
 end
+unify_names(a) = a
+unify_names(a, b, cs...) = unify_names(unify_names(a,b), cs...)
+# @btime (()->unify_names((:a, :b), (:a, :_), (:_, :b)))()
+
+names_are_unifiable(names_a, names_b) = try_unify_names(names_a, names_b) !== nothing
 
 function try_unify_names(names_a, names_b)
+    if names_a === names_b
+        return names_a
+    elseif length(names_a) != length(names_b)
+        return nothing
+    end
+
     ret = ntuple(length(names_a)) do ii  # remove :_ wildcards
         a = getfield(names_a, ii)
         b = names_b[ii]
@@ -181,22 +197,13 @@ function try_unify_names(names_a, names_b)
         a === b && return a
         return false  # mismatch occured, we mark this with a non-Symbol result
     end
+
     if ret isa Tuple{Vararg{Symbol}}
         return compile_time_return_hack(ret)
     else
         return nothing
     end
 end
-
-function names_are_unifiable(names_a, names_b)
-    names_a === names_b && return true
-    length(names_a) == length(names_b) || return false
-    return try_unify_names(names_a, names_b) !== nothing
-end
-
-unify_names(a) = a
-unify_names(a, b, cs...) = unify_names(unify_names(a,b), cs...)
-# @btime (()->unify_names((:a, :b), (:a, :_), (:_, :b)))()
 
 """
     unify_names_longest(a, b)
