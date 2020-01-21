@@ -68,10 +68,10 @@ macro declare_matmul(MatrixT, VectorT=nothing)
 
         quote
             function Base.:*(a::$TA_named, b::$TB_other)
-                return *(a, NamedDims.NamedDimsArray{NamedDims.names(b)}(b))
+                return *(a, NamedDims.NamedDimsArray{dimnames(b)}(b))
             end
             function Base.:*(a::$TA_other, b::$TB_named)
-                return *(NamedDims.NamedDimsArray{NamedDims.names(a)}(a), b)
+                return *(NamedDims.NamedDimsArray{dimnames(a)}(a), b)
             end
         end
     end

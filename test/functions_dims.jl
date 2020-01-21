@@ -7,7 +7,7 @@ using Test
     nda = NamedDimsArray{(:a, :b, :c, :d)}(ones(10, 1, 1, 20))
     new_nda = rename(nda, (:w, :x, :y, :z))
 
-    @test names(new_nda) === (:w, :x, :y, :z)
+    @test dimnames(new_nda) === (:w, :x, :y, :z)
     @test parent(new_nda) === parent(nda)
 end
 
@@ -18,10 +18,10 @@ end
     @test_throws ArgumentError dropdims(nda; dims=:a)
 
     @test dropdims(nda; dims=:b) == ones(10, 1, 20) == dropdims(nda; dims=2)
-    @test names(dropdims(nda; dims=:b)) == (:a, :c, :d) == names(dropdims(nda; dims=2))
+    @test dimnames(dropdims(nda; dims=:b)) == (:a, :c, :d) == dimnames(dropdims(nda; dims=2))
 
     @test dropdims(nda; dims=(:b,:c)) == ones(10, 20) == dropdims(nda; dims=(2, 3))
-    @test names(dropdims(nda; dims=(:b, :c))) == (:a, :d) == names(dropdims(nda; dims=(2, 3)))
+    @test dimnames(dropdims(nda; dims=(:b, :c))) == (:a, :d) == dimnames(dropdims(nda; dims=(2, 3)))
 
 end
 
@@ -38,8 +38,8 @@ end
     nda = NamedDimsArray{(:r, :c)}(rand(2, 3))
 
     @test selectdim(nda, :r, 1) == nda[r=1]
-    @test NamedDims.names(selectdim(nda, :r, 1)) == (:c,)
-    @test NamedDims.names(selectdim(nda, :r, 1:1)) == (:r, :c)
+    @test dimnames(selectdim(nda, :r, 1)) == (:c,)
+    @test dimnames(selectdim(nda, :r, 1:1)) == (:r, :c)
 
     @test_throws ArgumentError selectdim(nda, :z, 4)
 end
@@ -48,30 +48,30 @@ end
     @testset "Vector $f" begin
         ndv = NamedDimsArray{(:foo,)}([10, 20, 30])
         @test f(ndv) == [10 20 30]
-        @test names(f(ndv)) == (:_, :foo)
+        @test dimnames(f(ndv)) == (:_, :foo)
 
 
         if f === permutedims
             # unlike adjoint and tranpose, permutedims should not be its own inverse
             # The new dimension should stick around
             @test f(f(ndv)) == reshape([10, 20, 30], Val(2))
-            @test names(f(f(ndv))) == (:foo, :_)
+            @test dimnames(f(f(ndv))) == (:foo, :_)
         else
             # Make sure vector double adjoint gets you back to the start.
             @test f(f(ndv)) == [10, 20, 30]
-            @test names(f(f(ndv))) == (:foo,)
+            @test dimnames(f(f(ndv))) == (:foo,)
         end
     end
 
     @testset "Matrix $f" begin
         ndm = NamedDimsArray{(:foo,:bar)}([10 20 30; 11 22 33])
         @test f(ndm) == [10 11; 20 22; 30 33]
-        @test names(f(ndm)) == (:bar, :foo)
+        @test dimnames(f(ndm)) == (:bar, :foo)
 
         # Make sure implementation of matrix double adjoint is correct
         # since it is easy for the implementation of vector double adjoint broke it
         @test f(f(ndm)) == [10 20 30; 11 22 33]
-        @test names(f(f(ndm))) == (:foo, :bar)
+        @test dimnames(f(f(ndm))) == (:foo, :bar)
     end
 end
 
@@ -79,12 +79,12 @@ end
     ndv = NamedDimsArray([10, 20, 30], :foo)
     # mixed case missing from above $f tests:
     @test size(permutedims(adjoint(ndv))) == (3, 1)
-    @test names(permutedims(transpose(ndv))) == (:foo, :_)
+    @test dimnames(permutedims(transpose(ndv))) == (:foo, :_)
 
     nda = NamedDimsArray{(:w, :x, :y, :z)}(ones(10, 20, 30, 40))
     @test (
-        names(permutedims(nda, (:w, :x, :y, :z))) ==
-        names(permutedims(nda, 1:4)) ==
+        dimnames(permutedims(nda, (:w, :x, :y, :z))) ==
+        dimnames(permutedims(nda, 1:4)) ==
         (:w, :x, :y, :z)
     )
     @test (
@@ -94,8 +94,8 @@ end
     )
 
     @test (
-        names(permutedims(nda, (:w, :y, :x, :z))) ==
-        names(permutedims(nda, (1, 3, 2, 4))) ==
+        dimnames(permutedims(nda, (:w, :y, :x, :z))) ==
+        dimnames(permutedims(nda, (1, 3, 2, 4))) ==
         (:w, :y, :x, :z)
     )
     @test (
@@ -118,14 +118,14 @@ end
 @testset "pinv" begin
     @testset "Matrix" begin
         nda = NamedDimsArray{(:a, :b)}([1.0 2 3; 4 5 6])
-        @test names(pinv(nda)) == (:b, :a)
+        @test dimnames(pinv(nda)) == (:b, :a)
         @test nda * pinv(nda) ≈ NamedDimsArray{(:a, :a)}([1.0 0; 0 1])
     end
     @testset "Vector" begin
         nda = NamedDimsArray{(:a,)}([1.0, 2, 3])
-        @test names(pinv(nda)) == (:_, :a)
+        @test dimnames(pinv(nda)) == (:_, :a)
 
-        @test names(pinv(pinv(nda))) == (:a,)
+        @test dimnames(pinv(pinv(nda))) == (:a,)
         @test pinv(pinv(nda)) ≈ nda
 
         # See issue https://github.com/invenia/NamedDims.jl/issues/36
