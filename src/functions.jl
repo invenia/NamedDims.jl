@@ -90,6 +90,13 @@ end
 ################################################
 # Non-dim Overloads
 
+for fun in (:(==), :isequal, :isapprox)
+    @eval function Base.$fun(a::NamedDimsArray{La}, b::NamedDimsArray{Lb}; kw...) where {La, Lb}
+        names_are_unifiable(La, Lb) || return false
+        return $fun(parent(a), parent(b); kw...)
+    end
+end
+
 # Array then perhaps other args
 for (mod, funs) in (
     (:Base, (:zero, :one, :copy, :empty!, :push!, :pushfirst!)),

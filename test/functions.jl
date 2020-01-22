@@ -260,6 +260,23 @@ using Statistics
         end
     end
 
+    @testset "equality" begin
+        nda = NamedDimsArray([10 20; 30 40], (:x, :y))
+        nda2 = NamedDimsArray([10 20; 30 40], (:x, :_))
+        nda3 = NamedDimsArray([10 20; 30 40], (:x, :z))
+        nda4 = NamedDimsArray([11 22; 33 44], (:x, :y))
+        ndv = NamedDimsArray([10, 20, 30], (:x,))
+
+        @testset "$eq" for eq in (Base.:(==), isequal, isapprox)
+            @test eq(nda, nda)
+            @test eq(nda, nda2)
+            @test eq(nda, nda3) == false
+            @test eq(nda, nda4) == false
+            @test eq(nda, ndv) == false
+        end
+        @test isapprox(nda, nda4; atol=2π)
+    end
+
 end  # Base
 
 @testset "Statistics" begin

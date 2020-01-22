@@ -7,6 +7,7 @@ using NamedDims:
     dim_noerror,
     tuple_issubset,
     tuple_cat,
+    names_are_unifiable,
     order_named_inds,
     permute_dimnames,
     remaining_dimnames_from_indexing,
@@ -82,13 +83,15 @@ end
     if VERSION >= v"1.1"
         @test 0 == @allocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
         @test 0 == @allocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
-        @test 0 == @allocated (()->unify_names((:a, :b), (:a, :_), (:_, :b)))()
+        @test 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :_)))()
+        @test 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :c)))()
     else
         @test_broken 0 == @allocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
         @test_broken 0 == @allocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
-        @test_broken 0 == @allocated (()->unify_names((:a, :b), (:a, :_), (:_, :b)))()
+        @test_broken 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :_)))()
+        @test_broken 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :c)))()
     end
-
+    @test 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :b)))()
 end
 
 
