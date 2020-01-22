@@ -185,13 +185,8 @@ const cnda = NamedDimsArray([10 20; 30 40], (:x, :y))
     # indexing
     @test 0 == @allocated cnda[1,1]
     @test 0 == @allocated cnda[1,1] = 55
-    if v"1.1-" <= VERSION <= v"1.2-" # tests pass on 1.1, including 1.1.1
-        @test 0 == @allocated cnda[x=1,y=1]
-        @test @allocated(cnda[x=1]) == @allocated(cnda[1,:])
-        @test 0 == @allocated cnda[x=1,y=1] = 66
-    else
-        @test_broken 0 == @allocated cnda[x=1,y=1]
-        @test_broken @allocated(cnda[x=1]) == @allocated(cnda[1,:])
-        @test_broken 0 == @allocated cnda[x=1,y=1] = 66
-    end
+
+    @test 0 == @allocated cnda[x=1, y=1]
+    @test @allocated(cnda[x=1]) == @allocated(cnda[1, :])
+    @test 0 == @allocated cnda[x=1, y=1] = 66
 end

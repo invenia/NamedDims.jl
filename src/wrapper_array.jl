@@ -135,12 +135,11 @@ function Base.similar(
     return similar(a, eltype, dims)
 end
 
-
 ###############################
 # kwargs indexing
 
 """
-    order_named_inds(A, named_inds...)
+    order_named_inds(A; named_inds...)
 
 Returns the indices that have the names and values given by `named_inds`
 sorted into the order expected for the dimension of the array `A`.
@@ -157,7 +156,9 @@ order_named_inds(A; y=5) == (:, 5)
 
 This provides the core indexed lookup for `getindex` and `setindex` on the Array `A`
 """
-order_named_inds(A::AbstractArray; named_inds...) = order_named_inds(dimnames(A); named_inds...)
+function order_named_inds(A::NamedDimsArray{L}; named_inds...) where {L}
+    return order_named_inds(Val{L}(); named_inds...)
+end
 
 ###################
 # getindex / view / dotview

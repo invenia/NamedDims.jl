@@ -96,23 +96,18 @@ end
 
 
 @testset "order_named_inds" begin
-    @test order_named_inds((:x,)) == (:,)
-    @test order_named_inds((:x,); x=2) == (2,)
+    @test order_named_inds(Val((:x,))) == (:,)
+    @test order_named_inds(Val((:x,)); x=2) == (2,)
 
-    @test order_named_inds((:x, :y,)) == (:, :)
-    @test order_named_inds((:x, :y); x=2) == (2, :)
-    @test order_named_inds((:x, :y); y=2, ) == (:, 2)
-    @test order_named_inds((:x, :y); y=20, x=30) == (30, 20)
-    @test order_named_inds((:x, :y); x=30, y=20) == (30, 20)
+    @test order_named_inds(Val((:x, :y))) == (:, :)
+    @test order_named_inds(Val((:x, :y)); x=2) == (2, :)
+    @test order_named_inds(Val((:x, :y)); y=2, ) == (:, 2)
+    @test order_named_inds(Val((:x, :y)); y=20, x=30) == (30, 20)
+    @test order_named_inds(Val((:x, :y)); x=30, y=20) == (30, 20)
 end
 @testset "allocations: order_named_inds" begin
-    if v"1.1-" <= VERSION <= v"1.2-" # test passes on 1.1, including 1.1.1
-        @test 0 == @allocated (()->order_named_inds((:a, :b, :c); b=1, c=2))()
-        @test 0 == @allocated (()->order_named_inds((:a, :b, :c), (b=1, c=2)))()
-    else
-        @test_broken 0 == @allocated (()->order_named_inds((:a, :b, :c); b=1, c=2))()
-        @test_broken 0 == @allocated (()->order_named_inds((:a, :b, :c), (b=1, c=2)))()
-    end
+    @test 0 == @allocated (()->order_named_inds(Val((:a, :b, :c)); b=1, c=2))()
+    @test 0 == @allocated (()->order_named_inds(Val((:a, :b, :c)), (b=1, c=2)))()
 end
 
 

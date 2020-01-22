@@ -111,27 +111,30 @@ Base.@pure function tuple_issubset(lhs::Tuple{Vararg{Symbol,N}}, rhs::Tuple{Vara
     return true
 end
 
+
 """
-    order_named_inds(dimnames::Tuple; named_inds...)
+    order_named_inds(Val(names); kw...)
+    order_named_inds(Val(names), namedtuple)
 
-Returns the values of the `named_inds`, sorted as per the order they appear in `dimnames`,
-with any missing dimnames, having there value set to `:`.
-An error is thrown if any dimnames are given in `named_inds` that do not occur in `dimnames`.
+Returns the tuple of index values for an array with `names`, when indexed by keywords.
+Any dimensions not fixed are given as `:`, to make a slice.
+An error is thrown if any keywords are used which do not occur in `nda`'s names.
 """
-order_named_inds(dimnames::Tuple; named_inds...) = order_named_inds(dimnames, named_inds.data)
+order_named_inds(val::Val{L}; kw...) where {L} = order_named_inds(val, kw.data)
 
-function order_named_inds(dimnames::Tuple{Vararg{Symbol,N}}, named_inds::NamedTuple) where {N}
-    if !tuple_issubset(keys(named_inds), dimnames)
-        throw(DimensionMismatch("Expected subset of $(dimnames), got $(keys(named_inds))"))
+@generated function order_named_inds(val::Val{L}, ni::NamedTuple{K}) where {L,K}
+    tuple_issubset(K, L) || throw(DimensionMismatch("Expected subset of $L, got $K"))
+    exs = map(L) do n
+        if Base.sym_in(n, K)
+            qn = QuoteNode(n)
+            :(getfield(ni, $qn))
+        else
+            :(Colon())
+        end
     end
-
-    full_inds = ntuple(N) do ii
-        name_ii = dimnames[ii]
-        get(named_inds, name_ii, :)
-    end
-
-    return full_inds
+    return Expr(:tuple, exs...)
 end
+
 
 
 """
