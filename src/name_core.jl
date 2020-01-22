@@ -185,7 +185,7 @@ names_are_unifiable(names_a, names_b) = try_unify_names(names_a, names_b) !== no
 function try_unify_names(names_a, names_b)
     if names_a === names_b
         return names_a
-    elseif length(names_a) != length(names_b)
+    elseif length(names_a) !== length(names_b)
         return nothing
     end
 
@@ -223,7 +223,7 @@ unify_names_longest(::Tuple{}, ::Tuple{}) = tuple()
 function unify_names_longest(names_a, names_b)
     # 0 Allocations: @btime (()-> unify_names_longest((:a,:b), (:a,)))()
 
-    length(names_a) == length(names_b) && return unify_names(names_a, names_b)
+    length(names_a) === length(names_b) && return unify_names(names_a, names_b)
     long, short = length(names_a) > length(names_b) ? (names_a, names_b) : (names_b, names_a)
     ret = ntuple(length(long)) do ii
         a = getfield(long, ii)
@@ -243,7 +243,7 @@ unify_names_shortest(::Tuple{}, ::Tuple{}) = ()
 function unify_names_shortest(names_a, names_b)
     # 0 Allocations: @btime (()-> unify_names_shortest((:a,:b), (:a,)))()
 
-    length(names_a) == length(names_b) && return unify_names(names_a, names_b)
+    length(names_a) === length(names_b) && return unify_names(names_a, names_b)
     long, short = length(names_a) > length(names_b) ? (names_a, names_b) : (names_b, names_a)
     ret = ntuple(length(short)) do ii
         a = getfield(long, ii)
