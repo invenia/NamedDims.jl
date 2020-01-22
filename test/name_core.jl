@@ -93,21 +93,18 @@ end
 
 
 @testset "order_named_inds" begin
-    ndx = NamedDimsArray(ones(2), :x)
-    @test order_named_inds(ndx) == (:,)
-    @test order_named_inds(ndx; x=2) == (2,)
+    @test order_named_inds(Val((:x,))) == (:,)
+    @test order_named_inds(Val((:x,)); x=2) == (2,)
 
-    ndxy = NamedDimsArray(ones(2,2), (:x, :y))
-    @test order_named_inds(ndxy) == (:, :)
-    @test order_named_inds(ndxy; x=2) == (2, :)
-    @test order_named_inds(ndxy; y=2, ) == (:, 2)
-    @test order_named_inds(ndxy; y=20, x=30) == (30, 20)
-    @test order_named_inds(ndxy; x=30, y=20) == (30, 20)
+    @test order_named_inds(Val((:x, :y))) == (:, :)
+    @test order_named_inds(Val((:x, :y)); x=2) == (2, :)
+    @test order_named_inds(Val((:x, :y)); y=2, ) == (:, 2)
+    @test order_named_inds(Val((:x, :y)); y=20, x=30) == (30, 20)
+    @test order_named_inds(Val((:x, :y)); x=30, y=20) == (30, 20)
 end
 @testset "allocations: order_named_inds" begin
-    ndabc = NamedDimsArray(ones(2,2,2), (:a, :b, :c))
-    @test 0 == @allocated (()->order_named_inds(ndabc; b=1, c=2))()
-    @test 0 == @allocated (()->order_named_inds(ndabc, (b=1, c=2)))()
+    @test 0 == @allocated (()->order_named_inds(Val((:a, :b, :c)); b=1, c=2))()
+    @test 0 == @allocated (()->order_named_inds(Val((:a, :b, :c)), (b=1, c=2)))()
 end
 
 

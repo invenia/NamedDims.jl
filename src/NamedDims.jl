@@ -17,8 +17,8 @@ end
 # We use CoVector to workout if we are taking the tranpose of a tranpose etc
 const CoVector = Union{Adjoint{<:Any, <:AbstractVector}, Transpose{<:Any, <:AbstractVector}}
 
-include("wrapper_array.jl")
 include("name_core.jl")
+include("wrapper_array.jl")
 include("broadcasting.jl")
 include("functions.jl")
 include("functions_dims.jl")

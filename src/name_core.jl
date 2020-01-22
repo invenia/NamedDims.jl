@@ -111,17 +111,18 @@ Base.@pure function tuple_issubset(lhs::Tuple{Vararg{Symbol,N}}, rhs::Tuple{Vara
     return true
 end
 
-"""
-    order_named_inds(nda; kw...)
-    order_named_inds(nda, namedtuple)
 
-Returns the tuple of index values for `nda`, when indexed by keywords.
+"""
+    order_named_inds(Val(names); kw...)
+    order_named_inds(Val(names), namedtuple)
+
+Returns the tuple of index values for an array with `names`, when indexed by keywords.
 Any dimensions not fixed are given as `:`, to make a slice.
 An error is thrown if any keywords are used which do not occur in `nda`'s names.
 """
-order_named_inds(nda::NamedDimsArray; kw...) = order_named_inds(nda, kw.data)
+order_named_inds(val::Val{L}; kw...) where {L} = order_named_inds(val, kw.data)
 
-@generated function order_named_inds(nda::NamedDimsArray{L}, ni::NamedTuple{K}) where {L,K}
+@generated function order_named_inds(val::Val{L}, ni::NamedTuple{K}) where {L,K}
     tuple_issubset(K, L) || throw(DimensionMismatch("Expected subset of $L, got $K"))
     exs = map(L) do n
         if Base.sym_in(n, K)
