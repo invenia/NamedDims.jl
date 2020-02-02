@@ -44,10 +44,8 @@ function NamedDimsArray{L}(orig::AbstractArray{T, N}) where {L, T, N}
     return NamedDimsArray{L, T, N, typeof(orig)}(orig)
 end
 
-function NamedDimsArray(orig::AbstractArray{T, N}, names::NTuple{N, Symbol}) where {T, N}
-    return NamedDimsArray{names}(orig)
-end
-NamedDimsArray(orig::AbstractVector, name::Symbol) = NamedDimsArray(orig, (name,))
+@inline NamedDimsArray(orig::AbstractArray, names::Tuple) = NamedDimsArray{names}(orig)
+@inline NamedDimsArray(orig::AbstractVector, name::Symbol) = NamedDimsArray(orig, (name,))
 
 # Name-asserting constructor (like renaming, but only for wildcards (`:_`).)
 NamedDimsArray{L}(orig::NamedDimsArray{L}) where L = orig
