@@ -277,6 +277,9 @@ end
 
         @test dimnames(pv3 * (pv2 * ndv)) == (:μ,)
         @test dimnames(pv1 * (pv4 * ndv)) == (:μ,)
+
+        @test dimnames(inv(pv1) * ndv) == (:μ∿,)
+        @test dimnames(pv1 \ ndv) == (:μ∿,)
     end
 
     nda = NamedDimsArray(zeros(Float32, 4,4,4), (:a, :b′, :c))
@@ -305,6 +308,8 @@ end
         dimnames(p4 * nda) == (:a∿, :b′, :c∿)
         @test dimnames(p2 * (p1 * nda)) == (:a∿, :b′∿, :c)
         @test dimnames(p3 * (p4 * nda)) == (:a∿, :b′, :c)
+
+        @test_throws ArgumentError plan_fft(nda, :a => :b)
     end
 end
 @testset "allocations: FFT" begin

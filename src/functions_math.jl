@@ -1,6 +1,8 @@
 # This supports nonbroadcasting math on NamedDimArrays
 
+################################################
 # Matrix product
+
 valid_matmul_dims(a::Tuple{Symbol}, b::Tuple{Vararg{Symbol}}) = true
 function valid_matmul_dims(a::Tuple{Symbol,Symbol}, b::Tuple{Vararg{Symbol}})
     a_dim = a[end]
@@ -100,6 +102,9 @@ end
 )
 @declare_matmul(Diagonal,)
 
+################################################
+# Others
+
 function Base.inv(nda::NamedDimsArray{L,T,2}) where {L,T}
     data = inv(parent(nda))
     names = reverse(L)
@@ -128,7 +133,9 @@ function symmetric_names(L::Tuple{Symbol,Symbol}, dims::Integer)
     return compile_time_return_hack(names)
 end
 
+################################################
 # FFT
+
 for fun in (:fft, :ifft, :bfft)
     plan_fun = Symbol(:plan_, fun)
     @eval begin
@@ -146,14 +153,14 @@ for fun in (:fft, :ifft, :bfft)
         end
 
         """
-            $($fun)(A, :x => :k, :y => :ky)
+            $($fun)(A, :time => :freq, :x => :kx)
 
         Acting on a `NamedDimsArray`, this specifies to take the transform along the dimensions
-        named `:x, :y`, and return an array with names `:y` and `:ky` instead.
+        named `:time, :x`, and return an array with names `:freq` and `:kx` in their places.
 
-        If names are not given, then the default is `:x => :x∿` and `:x∿ => :x`,
-        applied to all dimensions, or to those specified as usual, e.g. `$($fun)(A, (1,2))`.
-        The symbol "∿" can be typed by `\\sinewave<tab>`.
+        If new names are not given, then the default is `:x => :x∿` and `:x∿ => :x`,
+        applied to all dimensions, or to those specified as usual, e.g. `$($fun)(A, (1,2))`
+        or `$($fun)(A, :time)`. The symbol "∿" can be typed by `\\sinewave<tab>`.
         """
         function AbstractFFTs.$fun(A::NamedDimsArray{L,T,N}, p::Pair{Symbol,Symbol}, ps::Pair{Symbol,Symbol}...) where {L,T,N}
             numerical_dims = dim(A, (first(p), first.(ps)...))
@@ -162,10 +169,22 @@ for fun in (:fft, :ifft, :bfft)
             return NamedDimsArray(data, newL)
         end
 
+        """
+            F = $($fun)(A, :name)
+            A∿ = F * A == $($fun)(A, :name)
+
+        FFT plans for `NamedDimsArray`s can select a dimension based on names,
+        but cannot specify the final name. The `A∿` returned here will have default name
+        `:name∿` in the transformed dimension.
+        """
         function AbstractFFTs.$plan_fun(A::NamedDimsArray, dims = ntuple(d->d, ndims(A)); kw...)
             numerical_dims = dim(A, dims)
             return AbstractFFTs.$plan_fun(parent(A), numerical_dims; kw...)
         end
+
+        AbstractFFTs.$plan_fun(A::NamedDimsArray, p::Pair{Symbol,Symbol}, ps::Pair{Symbol,Symbol}...) =
+            throw(ArgumentError(string($plan_fun, "(::NamedDimsArray, ::Pair...) is not implemented. ",
+                "FFT plans can only specify an input name, not an output.")))
 
     end
 
@@ -175,19 +194,25 @@ for plan_type in (:Plan, :ScaledPlan)
 
     @eval function Base.:*(plan::AbstractFFTs.$plan_type, A::NamedDimsArray{L,T,N}) where {L,T,N}
         data = plan * parent(A)
-        if Base.sym_in(:region, propertynames(plan)) # hasproperty(plan, :region) # plan from FFTW does
-            dims = plan.region # can be 1, (1,3) or 1:3
-        elseif Base.sym_in(:p, propertynames(plan)) # hasproperty(plan, :p)
+        if _hasproperty(plan, :region) # true for plan_fft from FFTW
+            dims = plan.region         # dims can be 1, (1,3) or 1:3
+        elseif _hasproperty(plan, :p)
             dims = plan.p.region
         else
             return data
         end
         newL = ntuple(d -> d in dims ? wave_name(L[d]) : L[d], N)::NTuple{N,Symbol}
-        # plan.region is not part of the type, so this much slower:
+        # plan.region is not part of the type, so using compile_time_return_hack is much slower:
         # newL = wave_name(L, Tuple(dims)) # 37μs instead of 7.
         return NamedDimsArray(data, newL)
     end
 
+end
+
+if VERSION > v"1.1"
+    _hasproperty(x, s)::Bool = hasproperty(x, s)
+else
+    _hasproperty(x, s)::Bool = Base.sym_in(s, propertynames(x))
 end
 
 #=
@@ -201,7 +226,7 @@ pp = plan_fft(nda)
 @btime plan_fft($nda, :k)
 @btime plan_fft($nda, (:k,:l))
 
-@btime $pp * $nda           # 7.803 μs
+@btime $pp * $nda           # 7.803 μs -> 19.392 μs μs now :(
 @btime $pp * $(parent(nda)) # 6.495 μs, but very variable, 4 to 7
 @code_warntype pp * nda # pretty awful!
 =#
