@@ -1,7 +1,7 @@
 using LinearAlgebra
 using FFTW
 using NamedDims
-using NamedDims: matrix_prod_names, names, symmetric_names, wave_name
+using NamedDims: matrix_prod_names, dimnames, symmetric_names, wave_name
 using Test
 using Statistics
 
@@ -248,16 +248,16 @@ end
     ndv[μ=2] = sqrt(2)
 
     @testset "vector" begin
-        @test names(fft(ndv, :μ => :κ)) == (:κ,)
-        @test names(ifft(ndv, :μ => :κ)) == (:κ,)
-        @test names(bfft(ndv, :μ => :κ)) == (:κ,)
+        @test dimnames(fft(ndv, :μ => :κ)) == (:κ,)
+        @test dimnames(ifft(ndv, :μ => :κ)) == (:κ,)
+        @test dimnames(bfft(ndv, :μ => :κ)) == (:κ,)
         @test_throws ArgumentError fft(ndv, :nope => :κ)
         @test_throws ArgumentError ifft(ndv, :μ => :κ, :μ => :again)
 
-        @test names(fft(ndv)) == (:μ∿,)
-        @test names(ifft(ndv)) == (:μ∿,)
-        @test names(bfft(ndv)) == (:μ∿,)
-        @test names(ifft(fft(ndv))) == (:μ,)
+        @test dimnames(fft(ndv)) == (:μ∿,)
+        @test dimnames(ifft(ndv)) == (:μ∿,)
+        @test dimnames(bfft(ndv)) == (:μ∿,)
+        @test dimnames(ifft(fft(ndv))) == (:μ,)
 
         @test ifft(fft(ndv, :μ => :κ), :κ => :μ) ≈ ndv
         @test ifft(fft(ndv)) ≈ ndv
@@ -270,27 +270,27 @@ end
         pv3 = plan_ifft(ndv)
         pv4 = plan_bfft(ndv)
 
-        @test names(pv1 * ndv) == (:μ∿,)
-        @test names(pv2 * ndv) == (:μ∿,)
-        @test names(pv3 * ndv) == (:μ∿,)
-        @test names(pv4 * ndv) == (:μ∿,)
+        @test dimnames(pv1 * ndv) == (:μ∿,)
+        @test dimnames(pv2 * ndv) == (:μ∿,)
+        @test dimnames(pv3 * ndv) == (:μ∿,)
+        @test dimnames(pv4 * ndv) == (:μ∿,)
 
-        @test names(pv3 * (pv2 * ndv)) == (:μ,)
-        @test names(pv1 * (pv4 * ndv)) == (:μ,)
+        @test dimnames(pv3 * (pv2 * ndv)) == (:μ,)
+        @test dimnames(pv1 * (pv4 * ndv)) == (:μ,)
     end
 
     nda = NamedDimsArray(zeros(Float32, 4,4,4), (:a, :b′, :c))
     nda[1,2,3] = nda[2,3,4] = 1
 
     @testset "three dims" begin
-        @test names(fft(nda, :a => :k)) == (:k, :b′, :c)
-        @test names(ifft(nda, :a => :k, :c => :k′)) == (:k, :b′, :k′)
+        @test dimnames(fft(nda, :a => :k)) == (:k, :b′, :c)
+        @test dimnames(ifft(nda, :a => :k, :c => :k′)) == (:k, :b′, :k′)
 
-        @test names(fft(nda)) == (:a∿, :b′∿, :c∿)
-        @test names(ifft(nda, 1)) == (:a∿, :b′, :c)
-        @test names(bfft(nda, :b′)) == (:a, :b′∿, :c)
-        @test_broken names(fft(nda, 1:2)) == (:a∿, :b′∿, :c)
-        @test names(fft(nda, (:a, :c))) == (:a∿, :b′, :c∿)
+        @test dimnames(fft(nda)) == (:a∿, :b′∿, :c∿)
+        @test dimnames(ifft(nda, 1)) == (:a∿, :b′, :c)
+        @test dimnames(bfft(nda, :b′)) == (:a, :b′∿, :c)
+        @test_broken dimnames(fft(nda, 1:2)) == (:a∿, :b′∿, :c)
+        @test dimnames(fft(nda, (:a, :c))) == (:a∿, :b′, :c∿)
     end
 
     @testset "three plan" begin
@@ -299,12 +299,12 @@ end
         p3 = plan_bfft(nda, :c)
         p4 = plan_fft(nda, (:a, :c))
 
-        names(p1 * nda) == (:a∿, :b′, :c)
-        names(p2 * nda) == (:a, :b′∿, :c)
-        names(p3 * nda) == (:a, :b′, :c∿)
-        names(p4 * nda) == (:a∿, :b′, :c∿)
-        @test names(p2 * (p1 * nda)) == (:a∿, :b′∿, :c)
-        @test names(p3 * (p4 * nda)) == (:a∿, :b′, :c)
+        dimnames(p1 * nda) == (:a∿, :b′, :c)
+        dimnames(p2 * nda) == (:a, :b′∿, :c)
+        dimnames(p3 * nda) == (:a, :b′, :c∿)
+        dimnames(p4 * nda) == (:a∿, :b′, :c∿)
+        @test dimnames(p2 * (p1 * nda)) == (:a∿, :b′∿, :c)
+        @test dimnames(p3 * (p4 * nda)) == (:a∿, :b′, :c)
     end
 end
 @testset "allocations: FFT" begin
