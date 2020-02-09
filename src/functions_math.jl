@@ -175,9 +175,9 @@ for plan_type in (:Plan, :ScaledPlan)
 
     @eval function Base.:*(plan::AbstractFFTs.$plan_type, A::NamedDimsArray{L,T,N}) where {L,T,N}
         data = plan * parent(A)
-        if hasproperty(plan, :region) # plan from FFTW does
+        if Base.sym_in(:region, propertynames(plan)) # hasproperty(plan, :region) # plan from FFTW does
             dims = plan.region # can be 1, (1,3) or 1:3
-        elseif hasproperty(plan, :p)
+        elseif Base.sym_in(:p, propertynames(plan)) # hasproperty(plan, :p)
             dims = plan.p.region
         else
             return data

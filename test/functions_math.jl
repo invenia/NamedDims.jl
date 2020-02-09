@@ -308,10 +308,10 @@ end
     end
 end
 @testset "allocations: FFT" begin
-
     @test 0 == @allocated wave_name(:k)
     @test 0 == @allocated wave_name((:k1, :k2∿))
-    @test 0 == @allocated wave_name((:k1, :k2, :k3), 2)
-    @test 0 == @allocated wave_name((:k1, :k2, :k3), (1,3))
-
+    if VERSION >= v"1.1"
+        @test 0 == @allocated wave_name((:k1, :k2, :k3), 2)
+        @test 0 == @allocated wave_name((:k1, :k2, :k3), (1,3))
+    end
 end

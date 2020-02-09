@@ -215,7 +215,9 @@ end
     @test replace_names((:a, :b, :c, :d), :a => :c, :c => :z) == (:z, :b, :z, :d)
 end
 @testset "allocations: replace_names" begin
-    @test 0 == @allocated replace_names((:a, :b), :b => :c)
-    @test 0 == @allocated replace_names((:a, :b), :b => :c, :a => :z)
-    @test 0 == @allocated replace_names((:a, :b, :c, :d), :a => :c, :c => :z)
+    if VERSION >= v"1.1"
+        @test 0 == @allocated replace_names((:a, :b), :b => :c)
+        @test 0 == @allocated replace_names((:a, :b), :b => :c, :a => :z)
+        @test 0 == @allocated replace_names((:a, :b, :c, :d), :a => :c, :c => :z)
+    end
 end
