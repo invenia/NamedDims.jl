@@ -19,16 +19,26 @@ end
 end
 
 
-@testset "Name-asserting constructor" begin
-    orig_full = NamedDimsArray(ones(3, 4, 5), (:a, :b, :c))
-    @test dimnames(NamedDimsArray(orig_full, (:a, :b, :c))) == (:a, :b, :c)
-    @test dimnames(NamedDimsArray(orig_full, (:a, :b, :_))) == (:a, :b, :c)
-    @test_throws DimensionMismatch NamedDimsArray(orig_full, (:a, :b, :wrong))
-    @test_throws DimensionMismatch NamedDimsArray(orig_full, (:c, :a, :b))
+@testset "refine_names" begin
+    @testset "Named Array into a NamedDimsArray" begin
+        nda = refine_names(ones(3, 4, 5), (:a, :b, :c))
+        @test dimnames(nda) == (:a, :b, :c)
+        @test nda isa NamedDimsArray
+    end
 
-    orig_partial = NamedDimsArray(ones(3, 4, 5), (:a, :_, :c))
-    @test dimnames(NamedDimsArray(orig_partial, (:a, :b, :c))) == (:a, :b, :c)
-    @test dimnames(NamedDimsArray(orig_partial, (:a, :_, :c))) == (:a, :_, :c)
+    @testset "Functioning on a fully named NamedDimsArray" begin
+        orig_full = NamedDimsArray(ones(3, 4, 5), (:a, :b, :c))
+        @test dimnames(refine_names(orig_full, (:a, :b, :c))) == (:a, :b, :c)
+        @test dimnames(refine_names(orig_full, (:a, :b, :_))) == (:a, :b, :c)
+        @test_throws DimensionMismatch refine_names(orig_full, (:a, :b, :wrong))
+        @test_throws DimensionMismatch refine_names(orig_full, (:c, :a, :b))
+    end
+
+    @testset "Functioning on a partially named  NamedDimsArray" begin
+        orig_partial = NamedDimsArray(ones(3, 4, 5), (:a, :_, :c))
+        @test dimnames(refine_names(orig_partial, (:a, :b, :c))) == (:a, :b, :c)
+        @test dimnames(refine_names(orig_partial, (:a, :_, :c))) == (:a, :_, :c)
+    end
 end
 
 
@@ -175,9 +185,9 @@ const cnda = NamedDimsArray([10 20; 30 40], (:x, :y))
     @test 0 == @allocated parent(cnda)
     @test 0 == @allocated dimnames(cnda)
 
-    @test 0 == @allocated NamedDimsArray(cnda, (:x, :y))
+    @test 0 == @allocated refine_names(cnda, (:x, :y))
     if VERSION >= v"1.1"
-        @test 0 == @allocated NamedDimsArray(cnda, (:x, :_))
+        @test 0 == @allocated refine_names(cnda, (:x, :_))
     else
         @test_broken 0 == @allocated NamedDimsArray(cnda, (:x, :_))
     end

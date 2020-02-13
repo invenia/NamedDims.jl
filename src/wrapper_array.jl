@@ -47,12 +47,19 @@ end
 @inline NamedDimsArray(orig::AbstractArray, names::Tuple) = NamedDimsArray{names}(orig)
 @inline NamedDimsArray(orig::AbstractVector, name::Symbol) = NamedDimsArray(orig, (name,))
 
-# Name-asserting constructor (like renaming, but only for wildcards (`:_`).)
-NamedDimsArray{L}(orig::NamedDimsArray{L}) where L = orig
-function NamedDimsArray{L}(orig::NamedDimsArray{old_names, T, N, A}) where {L, old_names, T, N, A}
-    new_names = unify_names(L, old_names)
-    return NamedDimsArray{new_names, T, N, A}(parent(orig))
+"""
+    refine_names(x, names)
+
+Refine the names of the dimensions of `x` to match `names`.
+This is like [`rename`](ref), but it only affects unnamed dimensions.
+I.e. dimensions of a `NamedDimsArray` called `:_`, or any dimensions of an
+`AbstractArray` in general.
+"""
+@inline function refine_names(orig::NamedDimsArray{L}, names::Tuple) where {L}
+    new_names = unify_names(names, L)
+    return NamedDimsArray{new_names}(parent(orig))
 end
+@inline refine_names(orig::AbstractArray, names::Tuple) = NamedDimsArray{names}(orig)
 
 parent_type(::Type{<:NamedDimsArray{L, T, N, A}}) where {L, T, N, A} = A
 

@@ -43,7 +43,7 @@ function unwrap_broadcasted(bc::Broadcasted{NamedDimsStyle{S}}) where S
     return Broadcasted{S}(bc.f, inner_args)
 end
 unwrap_broadcasted(x) = x
-unwrap_broadcasted(nda::NamedDimsArray) = parent(nda)
+unwrap_broadcasted(nda::NamedDimsArray) = unname(nda)
 
 
 # We need to implement copy because if the wrapper array type does not support setindex
@@ -59,8 +59,8 @@ end
 function Base.copyto!(dest::AbstractArray, bc::Broadcasted{NamedDimsStyle{S}}) where S
     inner_bc = unwrap_broadcasted(bc)
     copyto!(dest, inner_bc)
-    L = unify_names(dimnames(dest), broadcasted_names(bc))
-    return NamedDimsArray{L}(dest)
+    # Check names compatible, and return refined form (even if can't change `dest`'s names)
+    return refine_names(dest, broadcasted_names(bc))
 end
 
 broadcasted_names(bc::Broadcasted) = broadcasted_names(bc.args...)
