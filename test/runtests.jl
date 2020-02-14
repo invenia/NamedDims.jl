@@ -4,6 +4,7 @@ using Test
 const testfiles = (
     "name_core.jl",
     "wrapper_array.jl",
+    "name_operations.jl",
     "functions.jl",
     "functions_dims.jl",
     "functions_math.jl",

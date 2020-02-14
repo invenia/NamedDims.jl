@@ -19,7 +19,10 @@ const CoVector = Union{Adjoint{<:Any, <:AbstractVector}, Transpose{<:Any, <:Abst
 
 include("name_core.jl")
 include("wrapper_array.jl")
+include("name_operations.jl")
+
 include("broadcasting.jl")
+
 include("functions.jl")
 include("functions_dims.jl")
 include("functions_math.jl")

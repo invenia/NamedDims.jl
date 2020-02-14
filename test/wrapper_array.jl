@@ -7,40 +7,8 @@ using Test
 @testset "get the parent array that was wrapped" begin
     for orig in ([1 2; 3 4], spzeros(2, 2))
         @test parent(NamedDimsArray(orig, (:x, :y))) === orig
-
-        @test unname(NamedDimsArray(orig, (:x, :y))) === orig
-        @test unname(orig) === orig
     end
 end
-
-
-@testset "get the named array that was wrapped" begin
-    @test dimnames(NamedDimsArray([10 20; 30 40], (:x, :y))) === (:x, :y)
-end
-
-
-@testset "refine_names" begin
-    @testset "Named Array into a NamedDimsArray" begin
-        nda = refine_names(ones(3, 4, 5), (:a, :b, :c))
-        @test dimnames(nda) == (:a, :b, :c)
-        @test nda isa NamedDimsArray
-    end
-
-    @testset "Functioning on a fully named NamedDimsArray" begin
-        orig_full = NamedDimsArray(ones(3, 4, 5), (:a, :b, :c))
-        @test dimnames(refine_names(orig_full, (:a, :b, :c))) == (:a, :b, :c)
-        @test dimnames(refine_names(orig_full, (:a, :b, :_))) == (:a, :b, :c)
-        @test_throws DimensionMismatch refine_names(orig_full, (:a, :b, :wrong))
-        @test_throws DimensionMismatch refine_names(orig_full, (:c, :a, :b))
-    end
-
-    @testset "Functioning on a partially named  NamedDimsArray" begin
-        orig_partial = NamedDimsArray(ones(3, 4, 5), (:a, :_, :c))
-        @test dimnames(refine_names(orig_partial, (:a, :b, :c))) == (:a, :b, :c)
-        @test dimnames(refine_names(orig_partial, (:a, :_, :c))) == (:a, :_, :c)
-    end
-end
-
 
 @testset "getindex" begin
     nda = NamedDimsArray([10 20; 30 40], (:x, :y))
