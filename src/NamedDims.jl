@@ -7,7 +7,7 @@ using Pkg
 using Requires
 using Statistics
 
-export NamedDimsArray, dim, rename, unname, dimnames
+export NamedDimsArray, dim, refine_names, rename, unname, dimnames
 
 function __init__()
     # NOTE: NamedDims is only compatible with Tracker v0.2.2; but no nice way to enforce that.
@@ -24,6 +24,6 @@ include("functions.jl")
 include("functions_dims.jl")
 include("functions_math.jl")
 
-@deprecate names dimnames false
+include("deprecations.jl")
 
 end # module
