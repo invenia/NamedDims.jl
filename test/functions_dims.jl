@@ -3,13 +3,6 @@ using NamedDims
 using NamedDims: names
 using Test
 
-@testset "rename" begin
-    nda = NamedDimsArray{(:a, :b, :c, :d)}(ones(10, 1, 1, 20))
-    new_nda = rename(nda, (:w, :x, :y, :z))
-
-    @test dimnames(new_nda) === (:w, :x, :y, :z)
-    @test parent(new_nda) === parent(nda)
-end
 
 @testset "dropdims" begin
     nda = NamedDimsArray{(:a, :b, :c, :d)}(ones(10, 1, 1, 20))
