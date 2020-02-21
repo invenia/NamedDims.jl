@@ -42,6 +42,17 @@ unname(x::AbstractArray) = x
 
 Return the names of all the dimensions of the array `A`.
 """
-dimnames(::Type{<:NamedDimsArray{L}}) where L = L
+dimnames(::Type{<:NamedDimsArray{L}}) where {L} = L
 dimnames(::Type{<:AbstractArray{T, N}}) where {T, N} = ntuple(_->:_, N)
 dimnames(x::T) where T<:AbstractArray = dimnames(T)
+
+function dimnames(AT::Type{<:AbstractArray{T,N}}, d::Integer) where {T,N}
+    if d in 1:N
+        return dimnames(AT)[d]
+    elseif d>N
+        return :_
+    else
+        error("dimnames: dimension out of range")
+    end
+end
+dimnames(x::T, d::Integer) where T<:AbstractArray = dimnames(T, d)
