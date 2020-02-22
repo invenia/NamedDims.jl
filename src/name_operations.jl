@@ -57,7 +57,7 @@ function dimnames(AT::Type{<:AbstractArray{T,N}}, d::Integer) where {T,N}
     elseif d>N
         return :_
     else
-        error("dimnames: dimension out of range")
+        throw(DimensionMismatch("dimnames: dimension out of range"))
     end
 end
 dimnames(x::T, d::Integer) where T<:AbstractArray = dimnames(T, d)
