@@ -52,9 +52,9 @@ dimnames(::Type{<:AbstractArray{T, N}}) where {T, N} = ntuple(_->:_, N)
 dimnames(x::T) where T<:AbstractArray = dimnames(T)
 
 function dimnames(AT::Type{<:AbstractArray{T,N}}, d::Integer) where {T,N}
-    if d in 1:N
+    if 1 <= d <= N
         return dimnames(AT)[d]
-    elseif d>N
+    elseif d > N
         return :_
     else
         throw(DimensionMismatch("dimnames: dimension out of range"))
