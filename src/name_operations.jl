@@ -45,7 +45,7 @@ Return the names of all the dimensions of the array `A`,
 or just the one for the `d`-th dimension. 
 
 Gives wildcards `:_` if this is not a `NamedDimsArray`.
-And like `size(A, d)`, it allows `d > ndims(A)`.
+Like `size(A, d)`, it allows `d > ndims(A)`, in this case all the trailing dimension are given the wildcard name (`:_`).
 """
 dimnames(::Type{<:NamedDimsArray{L}}) where {L} = L
 dimnames(::Type{<:AbstractArray{T, N}}) where {T, N} = ntuple(_->:_, N)
