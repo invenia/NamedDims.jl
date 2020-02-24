@@ -18,7 +18,7 @@ For `nda = NamedDimsArray{(:x, :y, :z)}(rand(10, 20, 30))`.
 
  - Indexing: `nda[y=2]` is the same as `nda[x=:, y=2, z=:]` which is the same as `nda[:, 2, :]`.
  - Functions taking a `dims` keyword: `sum(nda; dims=:y)` is the same as `sum(nda; dims=2)`.
-
+ - Identifying a dimension by name: `dim(nda, :y)` returns `2`, the numerical dimension named `:y`.
  - Unwrapping: `parent(nda)` returns the underlying `AbstractArray` that is wrapped by the `NamedDimsArray`.
  - Unnaming: `unname(a)` ensures an `AbstractArray` is _not_ a `NamedDimsArray`;
     if passed a `NamedDimsArray` it unwraps it, otherwise just returns the given `AbstractArray`.
