@@ -2,16 +2,15 @@
 
 ## Helpers:
 
-# if reducing over `:` then results is a scalar
-function nameddimsarray_result(original_nda, reduced_data, reduction_dims::Colon)
-    return reduced_data
-end
-
 function nameddimsarray_result(original_nda, reduced_data, reduction_dims)
     L = dimnames(original_nda)
     return NamedDimsArray{L}(reduced_data)
 end
 
+# if reducing over `:` then results is a scalar
+function nameddimsarray_result(original_nda, reduced_data, reduction_dims::Colon)
+    return reduced_data
+end
 
 ################################################
 # Overloads
