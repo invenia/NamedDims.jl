@@ -147,6 +147,12 @@ end
     end
 end
 
+@testset "Strided Array Interface" begin
+    x = ones(3, 5)
+    nda = NamedDimsArray{(:a, :b)}(x)
+    @test strides(nda) == (1, 3) == strides(x)
+    @test stride(nda, :b) == 3 == stride(nda, 2) == stride(x, 2)
+end
 
 const cnda = NamedDimsArray([10 20; 30 40], (:x, :y))
 @testset "allocations: wrapper" begin
