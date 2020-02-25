@@ -1,4 +1,5 @@
 using NamedDims
+using BenchmarkTools
 using Test
 
 const testfiles = (

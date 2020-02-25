@@ -150,9 +150,10 @@ end
 
 const cnda = NamedDimsArray([10 20; 30 40], (:x, :y))
 @testset "allocations: wrapper" begin
-    @test 0 == @allocated parent(cnda)
-    @test 0 == @allocated dimnames(cnda)
+    @test 0 == @ballocated parent(cnda)
+    @test 0 == @ballocated dimnames(cnda)
 
+    # These tests use `@allocated` as for some reason `@ballocated` reports 1 alloc
     @test 0 == @allocated refine_names(cnda, (:x, :y))
     if VERSION >= v"1.1"
         @test 0 == @allocated refine_names(cnda, (:x, :_))
@@ -161,10 +162,10 @@ const cnda = NamedDimsArray([10 20; 30 40], (:x, :y))
     end
 
     # indexing
-    @test 0 == @allocated cnda[1,1]
-    @test 0 == @allocated cnda[1,1] = 55
+    @test 0 == @ballocated cnda[1,1]
+    @test 0 == @ballocated cnda[1,1] = 55
 
-    @test 0 == @allocated cnda[x=1, y=1]
-    @test @allocated(cnda[x=1]) == @allocated(cnda[1, :])
-    @test 0 == @allocated cnda[x=1, y=1] = 66
+    @test 0 == @ballocated cnda[x=1, y=1]
+    @test @ballocated(cnda[x=1]) == @ballocated(cnda[1, :])
+    @test 0 == @ballocated cnda[x=1, y=1] = 66
 end

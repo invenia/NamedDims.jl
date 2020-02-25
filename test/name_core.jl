@@ -29,12 +29,12 @@ using Test
     end
 end
 @testset "allocations: dim" begin
-    @test 0 == @allocated (()->dim((:a, :b), :b))()
-    @test 0 == @allocated (()->dim_noerror((:a, :b, :c), :c))()
+    @test 0 == @ballocated (()->dim((:a, :b), :b))()
+    @test 0 == @ballocated (()->dim_noerror((:a, :b, :c), :c))()
     if VERSION >= v"1.1"
-        @test 0 == @allocated (()->dim((:a,:b), (:a,:b)))()
+        @test 0 == @ballocated (()->dim((:a,:b), (:a,:b)))()
     else
-        @test_broken 0 == @allocated (()->dim((:a,:b), (:a,:b)))()
+        @test_broken 0 == @ballocated (()->dim((:a,:b), (:a,:b)))()
     end
 end
 
@@ -75,23 +75,23 @@ end
 @testset "allocations: unify_names_*" begin
     for unify in (unify_names, unify_names_longest, unify_names_shortest)
         if VERSION >= v"1.2"
-            @test 0 == @allocated (()->unify((:a, :b), (:a, :_)))()
+            @test 0 == @ballocated (()->$unify((:a, :b), (:a, :_)))()
         else
-            @test_broken 0 == @allocated (()->unify((:a, :b), (:a, :_)))()
+            @test_broken 0 == @ballocated (()->$unify((:a, :b), (:a, :_)))()
         end
     end
     if VERSION >= v"1.1"
-        @test 0 == @allocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
-        @test 0 == @allocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
-        @test 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :_)))()
-        @test 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :c)))()
+        @test 0 == @ballocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
+        @test 0 == @ballocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
+        @test 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :_)))()
+        @test 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :c)))()
     else
-        @test_broken 0 == @allocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
-        @test_broken 0 == @allocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
-        @test_broken 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :_)))()
-        @test_broken 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :c)))()
+        @test_broken 0 == @ballocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
+        @test_broken 0 == @ballocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
+        @test_broken 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :_)))()
+        @test_broken 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :c)))()
     end
-    @test 0 == @allocated (()->names_are_unifiable((:a, :b), (:a, :b)))()
+    @test 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :b)))()
 end
 
 
@@ -106,8 +106,8 @@ end
     @test order_named_inds(Val((:x, :y)); x=30, y=20) == (30, 20)
 end
 @testset "allocations: order_named_inds" begin
-    @test 0 == @allocated (()->order_named_inds(Val((:a, :b, :c)); b=1, c=2))()
-    @test 0 == @allocated (()->order_named_inds(Val((:a, :b, :c)), (b=1, c=2)))()
+    @test 0 == @ballocated (()->order_named_inds(Val((:a, :b, :c)); b=1, c=2))()
+    @test 0 == @ballocated (()->order_named_inds(Val((:a, :b, :c)), (b=1, c=2)))()
 end
 
 
@@ -121,7 +121,7 @@ end
     @test remaining_dimnames_from_indexing((:a, :b, :c), (CartesianIndex(1,1), :)) == (:c,)
 end
 @testset "allocations: remaining_dimnames_from_indexing" begin
-    @test 0 == @allocated (()->remaining_dimnames_from_indexing((:a, :b, :c), (:,390,:)))()
+    @test 0 == @ballocated (()->remaining_dimnames_from_indexing((:a, :b, :c), (:,390,:)))()
 end
 
 
@@ -132,8 +132,8 @@ end
     @test remaining_dimnames_after_dropping((:a, :b, :c), (3,1)) == (:b,)
 end
 @testset "allocations: remaining_dimnames_after_dropping" begin
-    @test 0 == @allocated remaining_dimnames_after_dropping((:a,:b,:c,:d,:e), 4)
-    @test 0 == @allocated (()->remaining_dimnames_after_dropping((:a,:b,:c,:d,:e), (1,3)))()
+    @test 0 == @ballocated remaining_dimnames_after_dropping((:a,:b,:c,:d,:e), 4)
+    @test 0 == @ballocated (()->remaining_dimnames_after_dropping((:a,:b,:c,:d,:e), (1,3)))()
 end
 
 
@@ -150,7 +150,7 @@ end
 end
 @testset "allocations: permute_dimnames" begin
     if VERSION >= v"1.1"
-        @test 0 == @allocated permute_dimnames((:a,:b,:c), (1,3,2))
+        @test 0 == @ballocated permute_dimnames((:a,:b,:c), (1,3,2))
     end
 end
 
@@ -160,8 +160,8 @@ end
     @test tuple_issubset((:a, :b, :c), (:a, :c)) == false
 end
 @testset "allocations: tuple_issubset" begin
-    @test 0 == @allocated tuple_issubset((:a, :c), (:a, :b, :c))
-    @test 0 == @allocated tuple_issubset((:a, :b, :c), (:a, :c))
+    @test 0 == @ballocated tuple_issubset((:a, :c), (:a, :b, :c))
+    @test 0 == @ballocated tuple_issubset((:a, :b, :c), (:a, :c))
 end
 
 
@@ -170,5 +170,5 @@ end
     @test tuple_cat((1, 2)) == (1, 2)
 end
 @testset "allocations: tuple_cat" begin
-    @test 0 == @allocated tuple_cat((1, 2), (3, 4, 5), (6,))
+    @test 0 == @ballocated tuple_cat((1, 2), (3, 4, 5), (6,))
 end

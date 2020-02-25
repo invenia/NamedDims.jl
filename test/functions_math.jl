@@ -153,8 +153,8 @@ end
     end
 end
 @testset "allocations: matmul names" begin
-    @test 0 == @allocated (() -> matrix_prod_names((:foo, :bar), (:bar,)))()
-    @test 0 == @allocated (() -> symmetric_names((:foo, :bar), 1))()
+    @test 0 == @ballocated (() -> matrix_prod_names((:foo, :bar), (:bar,)))()
+    @test 0 == @ballocated (() -> symmetric_names((:foo, :bar), 1))()
 end
 
 

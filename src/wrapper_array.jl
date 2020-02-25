@@ -35,7 +35,7 @@ struct NamedDimsArray{L, T, N, A<:AbstractArray{T, N}} <: AbstractArray{T, N}
     data::A
 end
 
-function NamedDimsArray{L}(orig::AbstractArray{T, N}) where {L, T, N}
+@inline function NamedDimsArray{L}(orig::AbstractArray{T, N}) where {L, T, N}
     if !(L isa NTuple{N, Symbol})
         throw(ArgumentError(
             "A $N dimensional array, needs a $N-tuple of dimension names. Got: $L"
