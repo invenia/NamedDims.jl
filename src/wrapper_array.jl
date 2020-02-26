@@ -112,6 +112,9 @@ Base.stride(a::NamedDimsArray, k::Symbol) = stride(parent(a), dim(a, k))
 Base.stride(a::NamedDimsArray, k::Integer) = stride(parent(a), k)
 Base.strides(a::NamedDimsArray) = strides(parent(a))
 
+function Base.unsafe_convert(::Type{Ptr{T}}, nda::NamedDimsArray{L, T}) where {T,L}
+    return Base.unsafe_convert(Ptr{T}, parent(nda))
+end
 
 ###############################
 # kwargs indexing
