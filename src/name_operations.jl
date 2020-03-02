@@ -39,9 +39,25 @@ unname(x::AbstractArray) = x
 
 """
     dimnames(A) -> Tuple
+    dimnames(A, d) -> Symbol
 
-Return the names of all the dimensions of the array `A`.
+Return the names of all the dimensions of the array `A`, 
+or just the one for the `d`-th dimension. 
+
+Gives wildcards `:_` if this is not a `NamedDimsArray`.
+Like `size(A, d)`, it allows `d > ndims(A)`, in this case all the trailing dimension are given the wildcard name (`:_`).
 """
-dimnames(::Type{<:NamedDimsArray{L}}) where L = L
+dimnames(::Type{<:NamedDimsArray{L}}) where {L} = L
 dimnames(::Type{<:AbstractArray{T, N}}) where {T, N} = ntuple(_->:_, N)
 dimnames(x::T) where T<:AbstractArray = dimnames(T)
+
+function dimnames(AT::Type{<:AbstractArray{T,N}}, d::Integer) where {T,N}
+    if 1 <= d <= N
+        return dimnames(AT)[d]
+    elseif d > N
+        return :_
+    else
+        throw(DimensionMismatch("dimnames: dimension out of range"))
+    end
+end
+dimnames(x::T, d::Integer) where T<:AbstractArray = dimnames(T, d)

@@ -5,8 +5,22 @@
     end
 end
 
-@testset "get the names" begin
-    @test dimnames(NamedDimsArray([10 20; 30 40], (:x, :y))) === (:x, :y)
+
+@testset "dimnames" begin   
+    nda = NamedDimsArray([10 20; 30 40], (:x, :y))
+
+    @test dimnames(nda) === (:x, :y)
+    @test dimnames(nda, 2) === :y
+    @test dimnames(nda, 3) === :_
+
+    @test dimnames([10 20; 30 40]) === (:_, :_)
+    @test dimnames([10 20; 30 40], 2) === :_
+    @test dimnames([10 20; 30 40], 3) === :_
+    
+    v = NamedDimsArray(1:2, :a)
+    @test dimnames(v, 2) == dimnames(permutedims(v), 1) # That's why :_ for d > ndims
+
+    @test_throws Exception dimnames(nda, 0)
 end
 
 
