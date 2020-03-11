@@ -74,7 +74,7 @@ end
 end
 @testset "allocations: unify_names_*" begin
     for unify in (unify_names, unify_names_longest, unify_names_shortest)
-        if VERSION >= v"1.2"
+        if VERSION >= v"1.1"
             @test 0 == @ballocated (()->$unify((:a, :b), (:a, :_)))()
         else
             @test_broken 0 == @ballocated (()->$unify((:a, :b), (:a, :_)))()
