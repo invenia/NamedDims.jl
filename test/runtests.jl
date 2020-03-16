@@ -11,7 +11,6 @@ const testfiles = (
     "functions_math.jl",
     "broadcasting.jl",
     "tracker_compat.jl",
-    "deprecations.jl",
 )
 
 @testset "NamedDims.jl" begin
