@@ -62,6 +62,7 @@ and also getting the assertion when a `NamedDimsArray` _is_  passed in, that it 
 expected dimensions.
 The way to do this is to call the `NamedDimsArray` constructor, with the expected names
 within the function.
+This operation corresponds to [PyTorch's `refine_names`](https://pytorch.org/docs/stable/named_tensor.html#torch.Tensor.refine_names).
 As in the following example:
 
 ```
