@@ -28,5 +28,6 @@ include("functions_dims.jl")
 include("functions_math.jl")
 
 @deprecate names dimnames false
+@deprecate refine_names NamedDimsArray true
 
 end # module

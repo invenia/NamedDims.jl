@@ -29,6 +29,11 @@ end
     orig_partial = NamedDimsArray(ones(3, 4, 5), (:a, :_, :c))
     @test dimnames(NamedDimsArray(orig_partial, (:a, :b, :c))) == (:a, :b, :c)
     @test dimnames(NamedDimsArray(orig_partial, (:a, :_, :c))) == (:a, :_, :c)
+
+    @testset "deprecated: refine_names" begin
+        @test dimnames(refine_names(orig_full, (:a, :b, :_))) == (:a, :b, :c)
+        @test_throws DimensionMismatch NamedDimsArray(orig_full, (:a, :b, :wrong))
+    end
 end
 
 @testset "getindex" begin
