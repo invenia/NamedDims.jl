@@ -47,6 +47,12 @@ end
 @inline NamedDimsArray(orig::AbstractArray, names::Tuple) = NamedDimsArray{names}(orig)
 @inline NamedDimsArray(orig::AbstractVector, name::Symbol) = NamedDimsArray(orig, (name,))
 
+# Name-asserting constructor (like renaming, but only for wildcards (`:_`).)
+NamedDimsArray{L}(orig::NamedDimsArray{L}) where L = orig
+function NamedDimsArray{L}(orig::NamedDimsArray{old_names, T, N, A}) where {L, old_names, T, N, A}
+    new_names = unify_names(L, old_names)
+    return NamedDimsArray{new_names, T, N, A}(parent(orig))
+end
 
 parent_type(::Type{<:NamedDimsArray{L, T, N, A}}) where {L, T, N, A} = A
 

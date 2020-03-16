@@ -7,6 +7,32 @@ using Test
 @testset "get the parent array that was wrapped" begin
     for orig in ([1 2; 3 4], spzeros(2, 2))
         @test parent(NamedDimsArray(orig, (:x, :y))) === orig
+
+        @test unname(NamedDimsArray(orig, (:x, :y))) === orig
+        @test unname(orig) === orig
+    end
+end
+
+
+@testset "get the named array that was wrapped" begin
+    @test dimnames(NamedDimsArray([10 20; 30 40], (:x, :y))) === (:x, :y)
+end
+
+
+@testset "Name-asserting constructor" begin
+    orig_full = NamedDimsArray(ones(3, 4, 5), (:a, :b, :c))
+    @test dimnames(NamedDimsArray(orig_full, (:a, :b, :c))) == (:a, :b, :c)
+    @test dimnames(NamedDimsArray(orig_full, (:a, :b, :_))) == (:a, :b, :c)
+    @test_throws DimensionMismatch NamedDimsArray(orig_full, (:a, :b, :wrong))
+    @test_throws DimensionMismatch NamedDimsArray(orig_full, (:c, :a, :b))
+
+    orig_partial = NamedDimsArray(ones(3, 4, 5), (:a, :_, :c))
+    @test dimnames(NamedDimsArray(orig_partial, (:a, :b, :c))) == (:a, :b, :c)
+    @test dimnames(NamedDimsArray(orig_partial, (:a, :_, :c))) == (:a, :_, :c)
+
+    @testset "deprecated: refine_names" begin
+        @test dimnames(refine_names(orig_full, (:a, :b, :_))) == (:a, :b, :c)
+        @test_throws DimensionMismatch NamedDimsArray(orig_full, (:a, :b, :wrong))
     end
 end
 
@@ -160,9 +186,9 @@ const cnda = NamedDimsArray([10 20; 30 40], (:x, :y))
     @test 0 == @ballocated dimnames(cnda)
 
     # These tests use `@allocated` as for some reason `@ballocated` reports 1 alloc
-    @test 0 == @allocated refine_names(cnda, (:x, :y))
+    @test 0 == @allocated NamedDimsArray(cnda, (:x, :y))
     if VERSION >= v"1.1"
-        @test 0 == @allocated refine_names(cnda, (:x, :_))
+        @test 0 == @allocated NamedDimsArray(cnda, (:x, :_))
     else
         @test_broken 0 == @allocated NamedDimsArray(cnda, (:x, :_))
     end

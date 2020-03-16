@@ -23,7 +23,7 @@ For `nda = NamedDimsArray{(:x, :y, :z)}(rand(10, 20, 30))`.
  - Unnaming: `unname(a)` ensures an `AbstractArray` is _not_ a `NamedDimsArray`;
     if passed a `NamedDimsArray` it unwraps it, otherwise just returns the given `AbstractArray`.
  - Renaming: `rename(nda, new_names)` returns a new `NamedDimsArray` with the `new_names` but still wrapping the same data.
- - Refining Names: `refine_names(nda, names)` returns a new `NamedDimsArray` with any unnamed dimensions of `nda` getting their names from `names`. It errors if any names present in both disagree.
+ - Refining Names: `NamedDimsArray(nda, names)` returns a new `NamedDimsArray` with any unnamed dimensions of `nda` getting their names from `names`. It errors if any names present in both disagree.
 
 ### Dimensionally Safe Operations
 
@@ -60,15 +60,14 @@ whether they are using `NamedDimsArray`s or not.
 While also being able to use `NamedDimsArray`s internally in its definition;
 and also getting the assertion when a `NamedDimsArray` _is_  passed in, that it has the
 expected dimensions.
-The way to do this is to use the `refine_names(x, expected_names)`.
-This will: apply the names to a unnamed array, or to unnamed dimensions in a `NamedDimsArray,
-while also asserting any names that were given are correct.
-
+The way to do this is to call the `NamedDimsArray` constructor, with the expected names
+within the function.
+This operation corresponds to [PyTorch's `refine_names`](https://pytorch.org/docs/stable/named_tensor.html#torch.Tensor.refine_names).
 As in the following example:
 
 ```
 function total_variance(data::AbstractMatrix)
-    n_data = refine_names(data, (:times, :locations))
+    n_data = NamedDimsArray(data, (:times, :locations))
     location_variance = var(n_data; dims=:times)  # calculate variance at each location
     return sum(location_variance; dims=:locations)  # total them
 end
