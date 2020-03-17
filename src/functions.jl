@@ -31,7 +31,7 @@ end
 
 # 1 Arg - no default for `dims` keyword
 for (mod, funs) in (
-    (:Base, (:cumsum, :cumprod, :sort, :sort!)),
+    (:Base, (:cumsum, :cumprod, :sort, :sort!, :sortslices)),
 )
     for fun in funs
         @eval function $mod.$fun(a::NamedDimsArray; dims, kwargs...)
