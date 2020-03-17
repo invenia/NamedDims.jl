@@ -140,6 +140,16 @@ for fun in (:fft, :ifft, :bfft)
     plan_fun = Symbol(:plan_, fun)
     @eval begin
 
+        """
+            $($fun)(A, :time => :freq, :x => :kx)
+
+        Acting on a `NamedDimsArray`, this specifies to take the transform along the dimensions
+        named `:time, :x`, and return an array with names `:freq` and `:kx` in their places.
+
+        If new names are not given, then the default is `:x => :x∿` and `:x∿ => :x`,
+        applied to all dimensions, or to those specified as usual, e.g. `$($fun)(A, (1,2))`
+        or `$($fun)(A, :time)`. The symbol "∿" can be typed by `\\sinewave<tab>`.
+        """
         function AbstractFFTs.$fun(A::NamedDimsArray{L}) where {L}
             data = AbstractFFTs.$fun(parent(A))
             return NamedDimsArray(data, wave_name(L))
@@ -152,16 +162,6 @@ for fun in (:fft, :ifft, :bfft)
             return NamedDimsArray(data, newL)
         end
 
-        """
-            $($fun)(A, :time => :freq, :x => :kx)
-
-        Acting on a `NamedDimsArray`, this specifies to take the transform along the dimensions
-        named `:time, :x`, and return an array with names `:freq` and `:kx` in their places.
-
-        If new names are not given, then the default is `:x => :x∿` and `:x∿ => :x`,
-        applied to all dimensions, or to those specified as usual, e.g. `$($fun)(A, (1,2))`
-        or `$($fun)(A, :time)`. The symbol "∿" can be typed by `\\sinewave<tab>`.
-        """
         function AbstractFFTs.$fun(A::NamedDimsArray{L,T,N}, p::Pair{Symbol,Symbol}, ps::Pair{Symbol,Symbol}...) where {L,T,N}
             numerical_dims = dim(A, (first(p), first.(ps)...))
             data = AbstractFFTs.$fun(parent(A), numerical_dims)
@@ -170,49 +170,77 @@ for fun in (:fft, :ifft, :bfft)
         end
 
         """
-            F = $($fun)(A, :name)
-            A∿ = F * A == $($fun)(A, :name)
+            F = $($fun)(A, :time => :freq)
+            A∿ = F * A
+            A ≈ F \\ A∿ == inv(F) * A∿
 
-        FFT plans for `NamedDimsArray`s can select a dimension based on names,
-        but cannot specify the final name. The `A∿` returned here will have default name
-        `:name∿` in the transformed dimension.
+        FFT plans for `NamedDimsArray`s, identical to `A∿ = $($fun)(A, :time => :freq)`.
         """
         function AbstractFFTs.$plan_fun(A::NamedDimsArray, dims = ntuple(d->d, ndims(A)); kw...)
-            numerical_dims = dim(A, dims)
-            return AbstractFFTs.$plan_fun(parent(A), numerical_dims; kw...)
+            numerical_dims = Tuple(dim(A, dims))
+            plan = AbstractFFTs.$plan_fun(parent(A), numerical_dims; kw...)
+            L1 = map(d -> dimnames(A)[d], numerical_dims)
+            L2 = wave_name(dimnames(A))
+            NamedPlan{L1,L2,numerical_dims,eltype(A),typeof(plan)}(plan)
         end
 
-        AbstractFFTs.$plan_fun(A::NamedDimsArray, p::Pair{Symbol,Symbol}, ps::Pair{Symbol,Symbol}...) =
-            throw(ArgumentError(string($plan_fun, "(::NamedDimsArray, ::Pair...) is not implemented. ",
-                "FFT plans can only specify an input name, not an output.")))
+        function AbstractFFTs.$plan_fun(A::NamedDimsArray, p::Pair{Symbol,Symbol}, ps::Pair{Symbol,Symbol}...)
+            numerical_dims = Tuple(dim(A, (first(p), first.(ps)...)))
+            plan = AbstractFFTs.$plan_fun(parent(A), numerical_dims)
+            L1 = (first(p), first.(ps)...)
+            L2 = (last(p), last.(ps)...)
+            NamedPlan{L1,L2,numerical_dims,eltype(A),typeof(plan)}(plan)
+        end
 
     end
 
 end
 
+struct NamedPlan{L1,L2,D,T,PT} <: AbstractFFTs.Plan{T}
+    plan::PT
+end
+Base.parent(p::NamedPlan) = p.plan
+
+function Base.:*(F::NamedPlan{L1,L2,D}, A::NamedDimsArray{L,T,N}) where {L1,L2,D, L,T,N}
+    data = F.plan * parent(A)
+    i=0
+    new_names = ntuple(d -> d in D ? L2[i+=1] : L[d], N)
+    for (n,d) in zip(L1,D)
+        n === L[d] || throw(ArgumentError("FFT plan expected name $n in dimension $d, but got $(L[d])"))
+    end
+    return NamedDimsArray(data, new_names)
+end
+
+function Base.:*(F::NamedPlan{L1,L2,D}, A::AbstractArray{T,N}) where {L1,L2,D, T,N}
+    data = F.plan * A
+    i = 0
+    new_names = ntuple(d -> d in D ? L2[i+=1] : :_, N)
+    return NamedDimsArray(data, new_names)
+end
+
+function Base.inv(F::NamedPlan{L1,L2,D,T}) where {L1,L2,D,T}
+    plan = inv(F.plan)
+    NamedPlan{L2,L1,D,T,typeof(plan)}(plan)
+end
+
+# Fallback for plans without NamedPlan wrapper.
+# The dimensions on which they act are not part of the type
 for plan_type in (:Plan, :ScaledPlan)
 
     @eval function Base.:*(plan::AbstractFFTs.$plan_type, A::NamedDimsArray{L,T,N}) where {L,T,N}
         data = plan * parent(A)
-        if _hasproperty(plan, :region) # true for plan_fft from FFTW
-            dims = plan.region         # dims can be 1, (1,3) or 1:3
-        elseif _hasproperty(plan, :p)
+        if Base.sym_in(:region, propertynames(plan)) # true for plan_fft from FFTW
+            dims = plan.region  # dims can be 1, (1,3) or 1:3
+        elseif Base.sym_in(:p, propertynames(plan))
             dims = plan.p.region
         else
             return data
         end
         newL = ntuple(d -> d in dims ? wave_name(L[d]) : L[d], N)::NTuple{N,Symbol}
-        # plan.region is not part of the type, so using compile_time_return_hack is much slower:
-        # newL = wave_name(L, Tuple(dims)) # 37μs instead of 7.
+        # newL = wave_name(L, Tuple(dims)) # this, using compile_time_return_hack, is much slower
         return NamedDimsArray(data, newL)
     end
 
-end
-
-if VERSION > v"1.1"
-    _hasproperty(x, s)::Bool = hasproperty(x, s)
-else
-    _hasproperty(x, s)::Bool = Base.sym_in(s, propertynames(x))
 end
 
 #=
@@ -221,14 +249,15 @@ pp = plan_fft(nda)
 
 @btime fft($nda)           # 70.894 μs
 @btime fft($(parent(nda))) # 69.057 μs
-@code_warntype fft(nda) # names not inferred
+@code_warntype fft(nda)    # looks good
 
 @btime plan_fft($nda, :k)
 @btime plan_fft($nda, (:k,:l))
 
-@btime $pp * $nda           # 7.803 μs -> 19.392 μs μs now :(
-@btime $pp * $(parent(nda)) # 6.495 μs, but very variable, 4 to 7
-@code_warntype pp * nda # pretty awful!
+@btime $pp * $nda                     #  7.111 μs
+@btime $(parent(pp)) * nda            # 22.506 μs
+@btime $(parent(pp)) * $(parent(nda)) #  5.557 μs
+@code_warntype pp * nda               # pretty awful!
 =#
 
 wave_name(s::Symbol) = wave_name(Val(s))
@@ -249,8 +278,8 @@ end
 wave_name(tup::Tuple) = map(wave_name, tup) |> compile_time_return_hack
 # @btime wave_name((:k1, :k2∿)) # zero
 
-function wave_name(tup::Tuple, d::Int)
-    out = ntuple(i -> d==i ? wave_name(tup[d]) : tup[i], length(tup))
+function wave_name(tup::Tuple, dims)
+    out = ntuple(i -> i in dims ? wave_name(tup[i]) : tup[i], length(tup))
     return compile_time_return_hack(out)
 end
 # @btime wave_name((:k1, :k2, :k3), 2)
