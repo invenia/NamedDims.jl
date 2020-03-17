@@ -166,22 +166,20 @@ for f in (:getindex, :view, :dotview)
         end
 
         @propagate_inbounds function Base.$f(a::NamedDimsArray, inds...)
-            # Some nonscalar case, will return an array, so need to give that names.
+            # Some nonscalar case, will return an array, probably with names
             data = Base.$f(parent(a), inds...)
-            if ndims(a) > 1 && inds isa Union{
-                    # Cases like nda[nda .> 0]
-                    Tuple{BitArray},
-                    Tuple{NamedDimsArray{L,T,N,<:BitArray}} where {L,T,N},
-                    # Cases like nda[findall(f, nda)]
-                    Tuple{AbstractVector{CartesianIndex{ndims(a)}}},
-                    }
-                return data
-            end
             L = remaining_dimnames_from_indexing(dimnames(a), inds)
-            return NamedDimsArray{L}(data)
+            if L === nothing
+                return data
+            else
+                return NamedDimsArray{L}(data)
+            end
         end
     end
 end
+
+remaining_dimnames_from_indexing(dimnames::Tuple{Symbol, Symbol, Vararg{Symbol}},
+    inds::Tuple{NamedDimsArray{L,T,N,<:BitArray} where {L,T,N}}) = nothing
 
 ############################################
 # setindex!

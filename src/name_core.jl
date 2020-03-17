@@ -268,12 +268,18 @@ is_noninteger_type(::Any) = true
 
 """
     remaining_dimnames_from_indexing(dimnames::Tuple, inds)
-Given a tuple of dimension names
-and a set of index expressesion e.g `1, :, 1:3, [true, false]`,
-determine which are not dropped.
-Dimensions indexed with scalars are dropped
+
+Given a tuple of dimension names,
+and a tuple of indices e.g `(1, :, 1:3, [true, false])`,
+this drops those indexed with scalars or `CartesianIndex`,
+inserts `:_` for `newaxis = [CartesianIndex{0}()]`,
+and returns another tuple of names.
+
+It may also return `nothing`, to indicate that names should be dropped.
+This happens e.g. when indexing a matrix by a `BitArray{2}` such as `mat[mat .> 0.5]`,
+or by a vector of `CartesianIndex`es.
 """
-@generated function remaining_dimnames_from_indexing(dimnames::Tuple, inds)
+@generated function remaining_dimnames_from_indexing(dimnames::Tuple, inds::Tuple)
     # 0-Allocation see:
     # `@btime (()->remaining_dimnames_from_indexing((:a, :b, :c), (:,390,:)))()``
     keep_names = []
@@ -291,6 +297,16 @@ Dimensions indexed with scalars are dropped
         end
     end
     return Expr(:call, :compile_time_return_hack, Expr(:tuple, keep_names...))
+end
+
+for T in [
+    :BitArray,
+    # :(NamedDimsArray{L,T,N,<:BitArray} where {L,T,N}), # defined in wrapper_array.jl
+    :(AbstractVector{<:CartesianIndex}),
+]
+    # These only apply to ndims(A) >= 2
+    @eval remaining_dimnames_from_indexing(dimnames::Tuple{Symbol, Symbol, Vararg{Symbol}},
+    inds::Tuple{$T}) = nothing
 end
 
 """

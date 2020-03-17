@@ -119,6 +119,10 @@ end
     @test remaining_dimnames_from_indexing((:a, :b, :c), (:, [CartesianIndex()], :, :)) == (:a, :_, :b, :c)
     @test remaining_dimnames_from_indexing((:a, :b, :c), (1, [CartesianIndex()], 2, :)) == (:_, :c)
     @test remaining_dimnames_from_indexing((:a, :b, :c), (CartesianIndex(1,1), :)) == (:c,)
+
+    # Cases which drop dimension names
+    @test remaining_dimnames_from_indexing((:a, :b), (rand(2,3).>0.5,)) === nothing
+    @test remaining_dimnames_from_indexing((:a, :b), (findall(x -> x>0.5, rand(2,3)),)) === nothing
 end
 @testset "allocations: remaining_dimnames_from_indexing" begin
     @test 0 == @ballocated (()->remaining_dimnames_from_indexing((:a, :b, :c), (:,390,:)))()
