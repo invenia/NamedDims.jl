@@ -72,6 +72,24 @@ end
         @test size(nda[CartesianIndex(1, 1), newaxis]) == (1, )
         @test nda[CartesianIndex(1, 1), newaxis][1] == nda[1, 1]
     end
+
+    # https://github.com/invenia/NamedDims.jl/issues/70
+    @testset "BitArray etc" begin
+        nda = NamedDimsArray(rand(1:9, 3,3,3), (:x, :y, :z))
+        @test dimnames(nda[rand(3) .> 0.3, 1, :]) == (:x, :z)
+        @test dimnames(nda[[1,3], 1, :]) == (:x, :z)
+
+        # flattening operations should drop names
+        @test dimnames(nda[rand(3,3,3) .> 0.3]) == (:_,)
+        @test dimnames(nda[nda .> 3]) == (:_,)
+        @test dimnames(nda[findall(iseven, nda)]) == (:_,)
+
+        # but vectors are unambiguous
+        ndv = NamedDimsArray(rand(1:9, 10), :x)
+        @test dimnames(ndv[rand(10) .> 0.3]) == (:x,)
+        @test dimnames(ndv[ndv .> 3]) == (:x,)
+        @test dimnames(ndv[findall(iseven, ndv)]) == (:x,)
+    end
 end
 
 
