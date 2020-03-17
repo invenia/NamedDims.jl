@@ -24,27 +24,18 @@ for f in (
     :(Base.permutedims),
     :(LinearAlgebra.pinv)
 )
-    # Vector
-    @eval function $f(nda::NamedDimsArray{L,T,1}) where {L,T}
-        new_names = (:_, first(L))
-        return NamedDimsArray{new_names}($f(parent(nda)))
-    end
-
-    # Vector Double Transpose
-    if f != :(Base.permutedims)
-        @eval function $f(nda::NamedDimsArray{L,T,2,A}) where {L,T,A<:CoVector}
-            new_names = (last(L),)  # drop the name of the first dimensions
-            return NamedDimsArray{new_names}($f(parent(nda)))
+    @eval function $f(nda::NamedDimsArray{L}) where (L)
+        data = $f(parent(nda))
+        new_names = if ndims(nda) == 1 # vector input
+            (:_, first(L))
+        elseif ndims(data) == 1 # vector output
+            (last(L),)
+        else
+            (last(L), first(L))
         end
-    end
-
-    # Matrix
-    @eval function $f(nda::NamedDimsArray{L,T,2}) where {L,T}
-        new_names = (last(L), first(L))
-        return NamedDimsArray{new_names}($f(parent(nda)))
+        return NamedDimsArray{new_names}(data)
     end
 end
-
 
 # reshape
 # For now we only implement the version that drops dimension names
