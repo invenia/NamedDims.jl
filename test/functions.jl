@@ -23,7 +23,7 @@ using Statistics
         @test_throws UndefKeywordError f(a)
 
         # vector case does not require dims (although cumprod, cumsum do allow it)
-        if f != sortslices # sortslices doesn't work on vectors at all
+        if f != sortslices  # sortslices doesn't work on vectors at all
             @test f([1, 4, 3]) == f(NamedDimsArray([1, 4, 3], :vec))
         end
     end
