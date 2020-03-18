@@ -14,14 +14,18 @@ using Statistics
         @test dimnames(f(nda; dims=:x)) == (:x, :y) == dimnames(f(nda; dims=1))
     end
 
-    @testset "$f" for f in (cumsum, cumprod, sort)
+    @testset "$f" for f in (cumsum, cumprod, sort, sortslices)
         @test f(nda; dims=:x) == f(nda; dims=1) == f(a; dims=1)
 
         @test dimnames(f(nda; dims=:x)) == (:x, :y) == dimnames(f(nda; dims=1))
 
-        @test f([1, 4, 3]) == f(NamedDimsArray([1, 4, 3], :vec))
         @test_throws UndefKeywordError f(nda)
         @test_throws UndefKeywordError f(a)
+
+        # vector case does not require dims (although cumprod, cumsum do allow it)
+        if f != sortslices  # sortslices doesn't work on vectors at all
+            @test f([1, 4, 3]) == f(NamedDimsArray([1, 4, 3], :vec))
+        end
     end
 
     @testset "sort!" begin
