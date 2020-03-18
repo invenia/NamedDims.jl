@@ -74,20 +74,33 @@ end
     end
 
     # https://github.com/invenia/NamedDims.jl/issues/70
-    @testset "BitArray etc" begin
+    @testset "BitArray" begin
         nda = NamedDimsArray(rand(1:9, 3,3,3), (:x, :y, :z))
         @test dimnames(nda[rand(3) .> 0.3, 1, :]) == (:x, :z)
-        @test dimnames(nda[[1,3], 1, :]) == (:x, :z)
 
-        # flattening operations should drop names
+        # flattening of ndims>1 should drop names
         @test dimnames(nda[rand(3,3,3) .> 0.3]) == (:_,)
         @test dimnames(nda[nda .> 3]) == (:_,)
-        @test dimnames(nda[findall(iseven, nda)]) == (:_,)
 
-        # but vectors are unambiguous
+        # but vectors are unambiguous, so keep theirs
         ndv = NamedDimsArray(rand(1:9, 10), :x)
         @test dimnames(ndv[rand(10) .> 0.3]) == (:x,)
         @test dimnames(ndv[ndv .> 3]) == (:x,)
+    end
+
+    @testset "arrays of indices" begin
+        nda = NamedDimsArray(rand(1:9, 3,3,3), (:x, :y, :z))
+        ndv = NamedDimsArray(rand(1:9, 10), :x)
+
+        # integers
+        @test dimnames(nda[:, [1,3], :]) == (:x, :y, :z)
+        @test dimnames(nda[:, [1 3; 3 1], :]) == (:x, :_, :_, :z)
+
+        @test dimnames(ndv[[1, 3]]) == (:x,)
+        @test dimnames(ndv[[1 3; 3 1]]) == (:_, :_)
+
+        # Vector{CartesianIndex{N}}
+        @test dimnames(nda[findall(iseven, nda)]) == (:_,)
         @test dimnames(ndv[findall(iseven, ndv)]) == (:x,)
     end
 end
