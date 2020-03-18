@@ -282,6 +282,12 @@ or by a vector of `CartesianIndex`es.
 @generated function remaining_dimnames_from_indexing(dimnames::Tuple, inds::Tuple)
     # 0-Allocation see:
     # `@btime (()->remaining_dimnames_from_indexing((:a, :b, :c), (:,390,:)))()``
+    if length(inds.parameters) == 1 && length(dimnames.parameters) >= 2
+        type = inds.parameters[1]
+        if type <: BitArray || type <: AbstractVector{<:CartesianIndex}
+            return nothing
+        end
+    end
     keep_names = []
     dim_num = 0
     for type in inds.parameters
@@ -289,24 +295,19 @@ or by a vector of `CartesianIndex`es.
             dim_num += 1
         elseif type <: CartesianIndex
             dim_num += type.parameters[1]
-        elseif type == Array{CartesianIndex{0},1}
+        elseif type <: AbstractVector{CartesianIndex{0}}
             push!(keep_names, QuoteNode(:_))
+        elseif type <: AbstractArray{<:Integer} && ndims(type) > 1
+            dim_num += 1
+            for _ in 1:ndims(type)
+                push!(keep_names, QuoteNode(:_))
+            end
         else
             dim_num += 1
             push!(keep_names, :(getfield(dimnames, $dim_num)) )
         end
     end
     return Expr(:call, :compile_time_return_hack, Expr(:tuple, keep_names...))
-end
-
-for T in [
-    :BitArray,
-    # :(NamedDimsArray{L,T,N,<:BitArray} where {L,T,N}), # defined in wrapper_array.jl
-    :(AbstractVector{<:CartesianIndex}),
-]
-    # These only apply to ndims(A) >= 2
-    @eval remaining_dimnames_from_indexing(dimnames::Tuple{Symbol, Symbol, Vararg{Symbol}},
-    inds::Tuple{$T}) = nothing
 end
 
 """
