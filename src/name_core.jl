@@ -282,12 +282,6 @@ or by a vector of `CartesianIndex`es.
 @generated function remaining_dimnames_from_indexing(dimnames::Tuple, inds::Tuple)
     # 0-Allocation see:
     # `@btime (()->remaining_dimnames_from_indexing((:a, :b, :c), (:,390,:)))()``
-    if length(inds.parameters) == 1 && length(dimnames.parameters) >= 2
-        type = inds.parameters[1]
-        if type <: BitArray || type <: AbstractVector{<:CartesianIndex}
-            return nothing
-        end
-    end
     keep_names = []
     dim_num = 0
     for type in inds.parameters
@@ -308,6 +302,12 @@ or by a vector of `CartesianIndex`es.
         end
     end
     return Expr(:call, :compile_time_return_hack, Expr(:tuple, keep_names...))
+end
+
+function remaining_dimnames_from_indexing(
+    dimnames::Tuple{<:Any, <:Any, Vararg}, inds::Tuple{T}
+) where T <: Union{BitArray, AbstractVector{<:CartesianIndex}}
+    return nothing
 end
 
 """
