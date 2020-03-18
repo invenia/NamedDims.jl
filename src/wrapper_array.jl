@@ -170,6 +170,7 @@ for f in (:getindex, :view, :dotview)
             data = Base.$f(parent(a), inds...)
             L = remaining_dimnames_from_indexing(dimnames(a), inds)
             if L === nothing
+                # All names dropped, e.g. from mat[mat .> 0]
                 return data
             else
                 return NamedDimsArray{L}(data)
@@ -178,7 +179,7 @@ for f in (:getindex, :view, :dotview)
     end
 end
 
-remaining_dimnames_from_indexing(dimnames::Tuple{Symbol, Symbol, Vararg{Symbol}},
+remaining_dimnames_from_indexing(dimnames::Tuple{Any, Any, Vararg},
     inds::Tuple{NamedDimsArray{L,T,N,<:BitArray} where {L,T,N}}) = nothing
 
 ############################################
