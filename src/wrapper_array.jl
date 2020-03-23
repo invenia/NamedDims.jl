@@ -170,23 +170,15 @@ for f in (:getindex, :view, :dotview)
             data = Base.$f(parent(a), inds...)
             L = remaining_dimnames_from_indexing(dimnames(a), inds)
             if L === nothing
-                # This is a signal to drop all names, e.g. from mat[mat .> 0.5], see below
+                # This is a signal to drop all names, e.g.
+                # mat[mat .> 0.5] returns a vector, the same as vec(mat)[vec(mat .> 0.5)],
+                # whose dimension isn't any of the original dimensions, hence has no names.
                 return data
             else
                 return NamedDimsArray{L}(data)
             end
         end
     end
-end
-
-# mat[mat .> 0.5] returns a vector, the same as vec(mat)[vec(mat .> 0.5)],
-# whose dimension isn't any of the original dimensions, hence has no names.
-# However mat .> 0.5 is a named BitArray, which wasn't defined in name_core.jl:
-function remaining_dimnames_from_indexing(
-    dimnames::Tuple{Any, Any, Vararg},
-    inds::Tuple{NamedDimsArray{L,T,N,<:AbstractArray{Bool}} where {L,T,N}}
-    )
-    return nothing
 end
 
 ############################################
