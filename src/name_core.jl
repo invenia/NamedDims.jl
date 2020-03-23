@@ -276,8 +276,10 @@ inserts `:_` for `newaxis = [CartesianIndex{0}()]`,
 and returns another tuple of names.
 
 It may also return `nothing`, to indicate that names should be dropped.
-This happens e.g. when indexing a matrix by a `BitArray{2}` such as `mat[mat .> 0.5]`,
-or by a vector of `CartesianIndex`es.
+This happend for scalar indexing by integers, or one `CartesianIndex`.
+It also happens e.g. when indexing a matrix by a `BitArray{2}` such as `mat[mat .> 0.5]`:
+this returns a vector, the same as vec(mat)[vec(mat .> 0.5)], whose dimension isn't any
+of the original dimensions, hence has no name.
 """
 @generated function remaining_dimnames_from_indexing(dimnames::Tuple, inds::Tuple)
     # 0-Allocation see:
@@ -304,9 +306,12 @@ or by a vector of `CartesianIndex`es.
     return Expr(:call, :compile_time_return_hack, Expr(:tuple, keep_names...))
 end
 
+remaining_dimnames_from_indexing(dn::Tuple, inds::Tuple{Vararg{<:Integer}}) = nothing
+remaining_dimnames_from_indexing(dn::Tuple, ci::Tuple{CartesianIndex}) = nothing
+
 function remaining_dimnames_from_indexing(
     dimnames::Tuple{<:Any, <:Any, Vararg}, inds::Tuple{T}
-) where T <: Union{AbstractArray{Bool}, AbstractVector{<:CartesianIndex}}
+) where T <: Union{Base.LogicalIndex, AbstractVector{<:CartesianIndex}}
     return nothing
 end
 

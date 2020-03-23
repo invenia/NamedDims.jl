@@ -45,7 +45,7 @@ end
     # Unspecified dims become slices
     @test nda[y=1] == nda[y=1, x=:] == nda[:, 1] == [10; 30]
 
-    @test_broken nda[CartesianIndex(1), 1] == nda[1, 1]
+    @test nda[CartesianIndex(1), 1] == nda[1, 1]
 
     @testset "name preservation" begin
         @test dimnames(nda[y=1]) == (:x, )

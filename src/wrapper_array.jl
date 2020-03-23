@@ -155,24 +155,12 @@ for f in (:getindex, :view, :dotview)
             return Base.$f(A, inds...)
         end
 
-        @propagate_inbounds function Base.$f(a::NamedDimsArray, inds::Vararg{<:Integer})
-            # Easy scalar case, will just return the element
-            return Base.$f(parent(a), inds...)
-        end
-
-        @propagate_inbounds function Base.$f(a::NamedDimsArray, ci::CartesianIndex)
-            # Easy scalar case, will just return the element
-            return Base.$f(parent(a), ci)
-        end
-
-        @propagate_inbounds function Base.$f(a::NamedDimsArray, inds...)
-            # Some nonscalar case, will return an array, probably with names
+        @propagate_inbounds function Base.$f(a::NamedDimsArray, raw_inds...)
+            inds = Base.to_indices(a, raw_inds)
             data = Base.$f(parent(a), inds...)
             L = remaining_dimnames_from_indexing(dimnames(a), inds)
             if L === nothing
-                # This is a signal to drop all names, e.g.
-                # mat[mat .> 0.5] returns a vector, the same as vec(mat)[vec(mat .> 0.5)],
-                # whose dimension isn't any of the original dimensions, hence has no names.
+                # Case of scalar output, plus some weird cases like mat[mat .> 0]
                 return data
             else
                 return NamedDimsArray{L}(data)
@@ -188,6 +176,7 @@ end
     return setindex!(a, value, inds...)
 end
 
-@propagate_inbounds function Base.setindex!(a::NamedDimsArray, value, inds...)
+@propagate_inbounds function Base.setindex!(a::NamedDimsArray, value, raw_inds...)
+    inds = Base.to_indices(a, raw_inds)
     return setindex!(parent(a), value, inds...)
 end
