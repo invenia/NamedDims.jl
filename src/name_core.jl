@@ -306,7 +306,7 @@ end
 
 function remaining_dimnames_from_indexing(
     dimnames::Tuple{<:Any, <:Any, Vararg}, inds::Tuple{T}
-) where T <: Union{BitArray, AbstractVector{<:CartesianIndex}}
+) where T <: Union{AbstractArray{Bool}, AbstractVector{<:CartesianIndex}}
     return nothing
 end
 

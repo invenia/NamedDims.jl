@@ -184,7 +184,7 @@ end
 # However mat .> 0.5 is a named BitArray, which wasn't defined in name_core.jl:
 function remaining_dimnames_from_indexing(
     dimnames::Tuple{Any, Any, Vararg},
-    inds::Tuple{NamedDimsArray{L,T,N,<:BitArray} where {L,T,N}}
+    inds::Tuple{NamedDimsArray{L,T,N,<:AbstractArray{Bool}} where {L,T,N}}
     )
     return nothing
 end

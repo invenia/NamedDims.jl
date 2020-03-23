@@ -73,19 +73,28 @@ end
         @test nda[CartesianIndex(1, 1), newaxis][1] == nda[1, 1]
     end
 
-    # https://github.com/invenia/NamedDims.jl/issues/70
-    @testset "BitArray" begin
-        nda = NamedDimsArray(rand(1:9, 3,3,3), (:x, :y, :z))
-        @test dimnames(nda[rand(3) .> 0.3, 1, :]) == (:x, :z)
-
-        # flattening of ndims>1 should drop names
-        @test dimnames(nda[rand(3,3,3) .> 0.3]) == (:_,)
-        @test dimnames(nda[nda .> 3]) == (:_,)
-
-        # but vectors are unambiguous, so keep theirs
+    @testset "BitArray / Array{Bool}" begin
+        nda = NamedDimsArray(rand(1:9, 10,11,12), (:x, :y, :z))
         ndv = NamedDimsArray(rand(1:9, 10), :x)
+
+        # one of several dimensions:
+        @test dimnames(nda[rand(10) .> 0.3, 1, :]) == (:x, :z)          # BitArray
+        @test dimnames(nda[collect(rand(10) .> 0.3), 1, :]) == (:x, :z) # Array{Bool}
+        @test dimnames(nda[ndv .> 3, 1, :]) == (:x, :z)                 # NamedDimsArray{...}
+        @test dimnames(nda[NamedDimsArray(collect(rand(10) .> 0.3), :x), 1, :]) == (:x, :z)
+
+        # only dim of a vector:
         @test dimnames(ndv[rand(10) .> 0.3]) == (:x,)
+        @test dimnames(ndv[collect(rand(10) .> 0.3)]) == (:x,)
         @test dimnames(ndv[ndv .> 3]) == (:x,)
+        @test dimnames(ndv[NamedDimsArray(collect(ndv .> 3), :x)]) == (:x,)
+
+        # https://github.com/invenia/NamedDims.jl/issues/70
+        # flattening of ndims>1 should drop names, as new dim is none of original ones:
+        @test nda[rand(10,11,12) .> 0.3] isa Vector
+        @test nda[collect(rand(10,11,12) .> 0.3)] isa Vector
+        @test nda[nda .> 3] isa Vector
+        @test nda[NamedDimsArray(collect(nda .> 3), dimnames(nda))] isa Vector
     end
 
     @testset "arrays of indices" begin
