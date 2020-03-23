@@ -108,8 +108,8 @@ end
         @test dimnames(ndv[[1, 3]]) == (:x,)
         @test dimnames(ndv[[1 3; 3 1]]) == (:_, :_)
 
-        # Vector{CartesianIndex{N}}
-        @test dimnames(nda[findall(iseven, nda)]) == (:_,)
+        # Vector{CartesianIndex{N}}: for N>1 this makes a new dim, like nda[nda .> 3]
+        @test nda[findall(iseven, nda)] isa Vector
         @test dimnames(ndv[findall(iseven, ndv)]) == (:x,)
     end
 end
