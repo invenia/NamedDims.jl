@@ -154,7 +154,11 @@ for f in (:getindex, :view, :dotview)
             inds = order_named_inds(A; named_inds...)
             return Base.$f(A, inds...)
         end
+    end
+end
 
+for f in (:getindex, :view)
+    @eval begin
         @propagate_inbounds function Base.$f(a::NamedDimsArray, inds::Vararg{<:Integer})
             # Easy scalar case, will just return the element
             return Base.$f(parent(a), inds...)
