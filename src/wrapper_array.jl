@@ -160,7 +160,7 @@ for f in (:getindex, :view, :dotview)
             data = Base.$f(parent(a), inds...)
             L = remaining_dimnames_from_indexing(dimnames(a), inds)
             if L === nothing
-                # Case of scalar output, plus some weird cases like mat[mat .> 0]
+                # Case of scalar output, or cases that merge dimensions down to vector like `mat[mat .> 0]`
                 return data
             else
                 return NamedDimsArray{L}(data)
