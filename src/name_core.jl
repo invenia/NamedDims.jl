@@ -275,7 +275,7 @@ this drops those indexed with scalars or `CartesianIndex`,
 inserts `:_` for `newaxis = [CartesianIndex{0}()]`,
 and returns another tuple of names.
 
-It may also return `nothing`, to indicate that names should be dropped.
+It will return an empty tuple to indicate that all names should be dropped.
 This happend for scalar indexing by integers, or one `CartesianIndex`.
 It also happens e.g. when indexing a matrix by a `BitArray{2}` such as `mat[mat .> 0.5]`:
 this returns a vector, the same as vec(mat)[vec(mat .> 0.5)], whose dimension isn't any
@@ -306,13 +306,13 @@ of the original dimensions, hence has no name.
     return Expr(:call, :compile_time_return_hack, Expr(:tuple, keep_names...))
 end
 
-remaining_dimnames_from_indexing(dn::Tuple, inds::Tuple{Vararg{<:Integer}}) = nothing
-remaining_dimnames_from_indexing(dn::Tuple, ci::Tuple{CartesianIndex}) = nothing
+remaining_dimnames_from_indexing(dn::Tuple, inds::Tuple{Vararg{<:Integer}}) = ()
+remaining_dimnames_from_indexing(dn::Tuple, ci::Tuple{CartesianIndex}) = ()
 
 function remaining_dimnames_from_indexing(
     dimnames::Tuple{<:Any, <:Any, Vararg}, inds::Tuple{T}
 ) where T <: Union{Base.LogicalIndex, AbstractVector{<:CartesianIndex}}
-    return nothing
+    return ()
 end
 
 """

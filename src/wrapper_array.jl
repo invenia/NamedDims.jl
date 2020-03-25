@@ -160,7 +160,7 @@ for f in (:getindex, :view, :dotview)
             data = Base.$f(parent(a), inds...)
             data isa AbstractArray || return data # Case of scalar output
             L = remaining_dimnames_from_indexing(dimnames(a), inds)
-            if L === nothing
+            if L === ()
                 # Cases that merge dimensions down to vector like `mat[mat .> 0]`,
                 # and also zero-dimensional `view(mat, 1,1)`
                 return data
