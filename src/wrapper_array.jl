@@ -156,11 +156,13 @@ for f in (:getindex, :view, :dotview)
         end
 
         @propagate_inbounds function Base.$f(a::NamedDimsArray, raw_inds...)
-            inds = Base.to_indices(a, raw_inds)
+            inds = Base.to_indices(parent(a), raw_inds)
             data = Base.$f(parent(a), inds...)
+            data isa AbstractArray || return data # Case of scalar output
             L = remaining_dimnames_from_indexing(dimnames(a), inds)
             if L === nothing
-                # Case of scalar output, or cases that merge dimensions down to vector like `mat[mat .> 0]`
+                # Cases that merge dimensions down to vector like `mat[mat .> 0]`,
+                # and also zero-dimensional `view(mat, 1,1)`
                 return data
             else
                 return NamedDimsArray{L}(data)
@@ -171,12 +173,12 @@ end
 
 ############################################
 # setindex!
+
 @propagate_inbounds function Base.setindex!(a::NamedDimsArray, value; named_inds...)
     inds = order_named_inds(a; named_inds...)
     return setindex!(a, value, inds...)
 end
 
-@propagate_inbounds function Base.setindex!(a::NamedDimsArray, value, raw_inds...)
-    inds = Base.to_indices(a, raw_inds)
+@propagate_inbounds function Base.setindex!(a::NamedDimsArray, value, inds...)
     return setindex!(parent(a), value, inds...)
 end
