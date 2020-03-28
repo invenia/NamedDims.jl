@@ -112,13 +112,19 @@ end
 
 
 @testset "remaining_dimnames_from_indexing" begin
-    @test remaining_dimnames_from_indexing((:a, :b, :c), (10,20,30)) == tuple()
+    @test remaining_dimnames_from_indexing((:a, :b, :c), (10,20,30)) === ()
     @test remaining_dimnames_from_indexing((:a, :b, :c), (10, :,30)) == (:b,)
     @test remaining_dimnames_from_indexing((:a, :b, :c), (1:1, [true], [20])) == (:a, :b, :c)
 
     @test remaining_dimnames_from_indexing((:a, :b, :c), (:, [CartesianIndex()], :, :)) == (:a, :_, :b, :c)
     @test remaining_dimnames_from_indexing((:a, :b, :c), (1, [CartesianIndex()], 2, :)) == (:_, :c)
     @test remaining_dimnames_from_indexing((:a, :b, :c), (CartesianIndex(1,1), :)) == (:c,)
+
+    # Cases which drop dimension names
+    logical = Base.to_indices(ones(2,3), (rand(2,3).>0.5,))
+    @test remaining_dimnames_from_indexing((:a, :b), logical) === ()
+    cart_vec = findall(x -> x>0.5, rand(2,3))
+    @test remaining_dimnames_from_indexing((:a, :b), (cart_vec,)) === ()
 end
 @testset "allocations: remaining_dimnames_from_indexing" begin
     @test 0 == @ballocated (()->remaining_dimnames_from_indexing((:a, :b, :c), (:,390,:)))()

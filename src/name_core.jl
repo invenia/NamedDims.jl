@@ -268,12 +268,20 @@ is_noninteger_type(::Any) = true
 
 """
     remaining_dimnames_from_indexing(dimnames::Tuple, inds)
-Given a tuple of dimension names
-and a set of index expressesion e.g `1, :, 1:3, [true, false]`,
-determine which are not dropped.
-Dimensions indexed with scalars are dropped
+
+Given a tuple of dimension names,
+and a tuple of indices e.g `(1, :, 1:3, [true, false])`,
+this drops those indexed with scalars or `CartesianIndex`,
+inserts `:_` for `newaxis = [CartesianIndex{0}()]`,
+and returns another tuple of names.
+
+It will return an empty tuple to indicate that all names should be dropped.
+This happend for scalar indexing by integers, or one `CartesianIndex`.
+It also happens e.g. when indexing a matrix by a `BitArray{2}` such as `mat[mat .> 0.5]`:
+this returns a vector, the same as vec(mat)[vec(mat .> 0.5)], whose dimension isn't any
+of the original dimensions, hence has no name.
 """
-@generated function remaining_dimnames_from_indexing(dimnames::Tuple, inds)
+@generated function remaining_dimnames_from_indexing(dimnames::Tuple, inds::Tuple)
     # 0-Allocation see:
     # `@btime (()->remaining_dimnames_from_indexing((:a, :b, :c), (:,390,:)))()``
     keep_names = []
@@ -283,14 +291,28 @@ Dimensions indexed with scalars are dropped
             dim_num += 1
         elseif type <: CartesianIndex
             dim_num += type.parameters[1]
-        elseif type == Array{CartesianIndex{0},1}
+        elseif type <: AbstractVector{CartesianIndex{0}}
             push!(keep_names, QuoteNode(:_))
+        elseif type <: AbstractArray{<:Integer} && ndims(type) > 1
+            dim_num += 1
+            for _ in 1:ndims(type)
+                push!(keep_names, QuoteNode(:_))
+            end
         else
             dim_num += 1
             push!(keep_names, :(getfield(dimnames, $dim_num)) )
         end
     end
     return Expr(:call, :compile_time_return_hack, Expr(:tuple, keep_names...))
+end
+
+remaining_dimnames_from_indexing(dn::Tuple, inds::Tuple{Vararg{<:Integer}}) = ()
+remaining_dimnames_from_indexing(dn::Tuple, ci::Tuple{CartesianIndex}) = ()
+
+function remaining_dimnames_from_indexing(
+    dimnames::Tuple{<:Any, <:Any, Vararg}, inds::Tuple{T}
+) where T <: Union{Base.LogicalIndex, AbstractVector{<:CartesianIndex}}
+    return ()
 end
 
 """
