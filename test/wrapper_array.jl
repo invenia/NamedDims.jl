@@ -47,9 +47,10 @@ end
 
     @test nda[CartesianIndex(1), 1] == nda[1, 1]
 
-    # Views with all dims specified are not scalars
-    @test view(nda, x=1, y=1) isa SubArray{Int, 0}
-    @test view(nda, 1,1) == view(nda.data, 1,1)
+    @testset "Views with all dims specified are not scalars" begin
+        @test view(nda, x=1, y=1) isa SubArray{Int, 0}
+        @test view(nda, 1,1) == view(nda.data, 1,1)
+    end
 
     @testset "name preservation" begin
         @test dimnames(nda[y=1]) == (:x, )
