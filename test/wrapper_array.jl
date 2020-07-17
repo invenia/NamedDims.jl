@@ -231,10 +231,14 @@ const cnda = NamedDimsArray([10 20; 30 40], (:x, :y))
     @test 0 == @ballocated dimnames(cnda)
 
     # These tests use `@allocated` as for some reason `@ballocated` reports 1 alloc
-    @test 0 == @allocated NamedDimsArray(cnda, (:x, :y))
-    if VERSION >= v"1.1"
+    if VERSION >= v"1.4"
+        @test_broken 0 == @allocated NamedDimsArray(cnda, (:x, :y))
+        @test_broken 0 == @allocated NamedDimsArray(cnda, (:x, :_))
+    elseif VERSION >= v"1.1"
+        @test 0 == @allocated NamedDimsArray(cnda, (:x, :y))
         @test 0 == @allocated NamedDimsArray(cnda, (:x, :_))
     else
+        @test 0 == @allocated NamedDimsArray(cnda, (:x, :y))
         @test_broken 0 == @allocated NamedDimsArray(cnda, (:x, :_))
     end
 
