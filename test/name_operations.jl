@@ -1,3 +1,5 @@
+using SparseArrays
+
 @testset "unname" begin
     for orig in ([1 2; 3 4], spzeros(2, 2))
         @test unname(NamedDimsArray(orig, (:x, :y))) === orig
