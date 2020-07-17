@@ -1,5 +1,6 @@
 using NamedDims
 using BenchmarkTools
+using SparseArrays
 using Test
 
 const testfiles = (
