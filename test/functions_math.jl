@@ -159,12 +159,27 @@ end
 
 
 @testset "Mutmul with special types" begin
-    nda = NamedDimsArray{(:a, :b)}(ones(5,5))
-    @testset "$T" for T in (Diagonal, Symmetric, Tridiagonal, SymTridiagonal, BitArray,)
-        x = T(ones(5,5))
-        @test dimnames(x * nda) == (:_, :b)
-        @test dimnames(nda * x) == (:a, :_)
+
+    special_types = (Adjoint, Diagonal, Symmetric, Tridiagonal, SymTridiagonal, BitArray,)
+
+    @testset "matrix" begin
+        ndm = NamedDimsArray{(:a, :b)}(ones(5,5))
+        @testset "$T" for T in special_types
+            x = T(ones(5,5))
+            @test dimnames(x * ndm) == (:_, :b)
+            @test dimnames(ndm * x) == (:a, :_)
+        end
     end
+
+    @testset "vector" begin
+        ndv = NamedDimsArray{(:vec,)}(ones(5))
+        @testset "$T" for T in special_types
+            x = T(ones(5,5))
+            @test dimnames(x * ndv) == (:_,)
+            @test dimnames(ndv' * x) == (:_, :_)
+        end
+    end
+
 end
 
 
