@@ -151,7 +151,7 @@ end
 for f in (:getindex, :view, :dotview)
     @eval begin
         @propagate_inbounds function Base.$f(A::NamedDimsArray; named_inds...)
-            length(named_inds) == 0 && return Base.$f(parent(A))
+            length(named_inds) == 0 && return Base.$f(parent(A))  # cases like A[]
             inds = order_named_inds(A; named_inds...)
             return Base.$f(A, inds...)
         end
