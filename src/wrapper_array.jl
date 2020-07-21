@@ -151,6 +151,7 @@ end
 for f in (:getindex, :view, :dotview)
     @eval begin
         @propagate_inbounds function Base.$f(A::NamedDimsArray; named_inds...)
+            length(named_inds) == 0 && return Base.$f(parent(A))
             inds = order_named_inds(A; named_inds...)
             return Base.$f(A, inds...)
         end
@@ -175,6 +176,7 @@ end
 # setindex!
 
 @propagate_inbounds function Base.setindex!(a::NamedDimsArray, value; named_inds...)
+    length(named_inds) == 0 && return setindex!(parent(a), value)
     inds = order_named_inds(a; named_inds...)
     return setindex!(a, value, inds...)
 end
