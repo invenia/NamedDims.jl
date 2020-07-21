@@ -176,7 +176,7 @@ end
 # setindex!
 
 @propagate_inbounds function Base.setindex!(a::NamedDimsArray, value; named_inds...)
-    length(named_inds) == 0 && return setindex!(parent(a), value)
+    length(named_inds) == 0 && return setindex!(parent(a), value)  # cases like A[]=x
     inds = order_named_inds(a; named_inds...)
     return setindex!(a, value, inds...)
 end
