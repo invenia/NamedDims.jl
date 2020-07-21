@@ -54,13 +54,15 @@ end
 
     @testset "No arguments" begin
         ndm = NamedDimsArray([10 20; 30 40], (:x, :y))
-        ndv = NamedDimsArray([1, 2, 3], (:x,))
         @test_throws BoundsError ndm[]
+
+        ndv = NamedDimsArray([1, 2, 3], (:x,))
         @test_throws BoundsError ndv[]
 
         nds = NamedDimsArray([4], (:x,))  # 1d 1el array (vector with one element)
-        nds2 = NamedDimsArray{()}(fill(4)); # 0d 1el array (scalar)
         @test nds[] == 4
+
+        nds2 = NamedDimsArray{()}(fill(4)); # 0d 1el array (kind of like a scalar)
         @test nds2[] == 4
     end
 
@@ -157,9 +159,12 @@ end
 
     @testset "no arguments" begin
         nds = NamedDimsArray([4], (:x,))  # 1d 1el array (vector with one element)
-        nds2 = NamedDimsArray{()}(fill(4)); # 0d 1el array (kind of like a scalar)
         @test (nds[] = 2) == 2
+        @test nds[] == 2
+
+        nds2 = NamedDimsArray{()}(fill(4)); # 0d 1el array (kind of like a scalar)
         @test (nds2[] = 2) == 2
+        @test nds2[] == 2
     end
 
     @testset "by position" begin
