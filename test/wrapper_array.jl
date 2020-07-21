@@ -157,7 +157,7 @@ end
 
     @testset "no arguments" begin
         nds = NamedDimsArray([4], (:x,))  # 1d 1el array (vector with one element)
-        nds2 = NamedDimsArray{()}(fill(4)); # 0d 1el array (scalar)
+        nds2 = NamedDimsArray{()}(fill(4)); # 0d 1el array (kind of like a scalar)
         @test (nds[] = 2) == 2
         @test (nds2[] = 2) == 2
     end
