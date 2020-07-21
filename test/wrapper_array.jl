@@ -52,6 +52,18 @@ end
         @test view(nda, 1,1) == view(nda.data, 1,1)
     end
 
+    @testset "No arguments" begin
+        ndm = NamedDimsArray([10 20; 30 40], (:x, :y))
+        ndv = NamedDimsArray([1, 2, 3], (:x,))
+        @test_throws BoundsError ndm[]
+        @test_throws BoundsError ndv[]
+
+        nds = NamedDimsArray([4], (:x,))  # 1d 1el array (vector with one element)
+        nds2 = NamedDimsArray{()}(fill(4)); # 0d 1el array (scalar)
+        @test nds[] == 4
+        @test nds2[] == 4
+    end
+
     @testset "name preservation" begin
         @test dimnames(nda[y=1]) == (:x, )
         @test dimnames(nda[y=1:1]) == (:x, :y)
@@ -141,6 +153,13 @@ end
 
         nda[x=1] .= 1000
         @test nda == [1000 1000; 30 40]
+    end
+
+    @testset "no arguments" begin
+        nds = NamedDimsArray([4], (:x,))  # 1d 1el array (vector with one element)
+        nds2 = NamedDimsArray{()}(fill(4)); # 0d 1el array (scalar)
+        @test (nds[] = 2) == 2
+        @test (nds2[] = 2) == 2
     end
 
     @testset "by position" begin
