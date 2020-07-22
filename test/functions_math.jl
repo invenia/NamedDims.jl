@@ -168,6 +168,9 @@ end
             x = T(ones(5,5))
             @test dimnames(x * ndm) == (:_, :b)
             @test dimnames(ndm * x) == (:a, :_)
+
+            @test typeof(x * ndm) <: NamedDimsArray
+            @test typeof(ndm * x) <: NamedDimsArray
         end
     end
 
@@ -177,6 +180,9 @@ end
             x = T(ones(5,5))
             @test dimnames(x * ndv) == (:_,)
             @test dimnames(ndv' * x) == (:_, :_)
+
+            @test typeof(x * ndv) <: NamedDimsArray
+            @test typeof(ndv' * x) <: NamedDimsArray
         end
     end
 

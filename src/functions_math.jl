@@ -83,6 +83,8 @@ macro declare_matmul(MatrixT, VectorT=nothing)
 end
 
 @declare_matmul(AbstractMatrix, AbstractVector)
+@declare_matmul(Adjoint{<:Any, <:AbstractMatrix{T1}} where T1, Adjoint{<:Any, <:AbstractVector})
+@declare_matmul(Diagonal, AbstractVector)
 @declare_matmul(Diagonal,)
 
 function Base.inv(nda::NamedDimsArray{L, T, 2}) where {L,T}
