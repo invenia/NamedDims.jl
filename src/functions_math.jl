@@ -78,9 +78,20 @@ macro declare_matmul(MatrixT, VectorT=nothing)
     return esc(Expr(:block, codes...))
 end
 
+# The following two methods can be defined by using
+# @declare_matmul(Diagonal, AbstractVector)
+# but that overwrites existing *(1D NDA, Vector) methods
+# should improve the macro above to deal with this case
+function Base.:*(a::Diagonal, b::NamedDimsArray{<:Any, <:Any, 1})
+    return *(NamedDims.NamedDimsArray{dimnames(a)}(a), b)
+end
+
+function Base.:*(a::NamedDimsArray{<:Any, <:Any, 1}, b::Diagonal)
+    return *(a, NamedDims.NamedDimsArray{dimnames(b)}(b))
+end
+
 @declare_matmul(AbstractMatrix, AbstractVector)
 @declare_matmul(Adjoint{<:Any, <:AbstractMatrix{T1}} where T1, Adjoint{<:Any, <:AbstractVector})
-@declare_matmul(Diagonal, AbstractVector)
 @declare_matmul(Diagonal,)
 
 function Base.inv(nda::NamedDimsArray{L, T, 2}) where {L,T}
