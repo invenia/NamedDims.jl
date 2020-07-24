@@ -87,7 +87,7 @@ function Base.:*(a::Diagonal, b::NamedDimsArray{<:Any, <:Any, 1})
 end
 
 function Base.:*(a::NamedDimsArray{<:Any, <:Any, 1}, b::Diagonal)
-    return *(a, NamedDims.NamedDimsArray{dimnames(b)}(b))
+    return *(a, NamedDimsArray{dimnames(b)}(b))
 end
 
 @declare_matmul(AbstractMatrix, AbstractVector)
