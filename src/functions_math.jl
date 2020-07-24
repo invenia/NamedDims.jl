@@ -43,7 +43,7 @@ function Base.:*(a::NamedDimsArray{L,T,2,<:CoVector}, b::AbstractVector) where {
     return *(parent(a), b)
 end
 
-# Using `CovVector` results in Method ambiguities; have to define more specific methods.
+# Using `CoVector` results in Method ambiguities; have to define more specific methods.
 for A in (Adjoint{<:Any, <:AbstractVector}, Transpose{<:Real, <:AbstractVector{<:Real}})
     @eval function Base.:*(a::$A, b::NamedDimsArray{L,T,1,<:AbstractVector{T}}) where {L,T}
         return *(a, parent(b))
@@ -78,7 +78,20 @@ macro declare_matmul(MatrixT, VectorT=nothing)
     return esc(Expr(:block, codes...))
 end
 
+# The following two methods can be defined by using
+# @declare_matmul(Diagonal, AbstractVector)
+# but that overwrites existing *(1D NDA, Vector) methods
+# should improve the macro above to deal with this case
+function Base.:*(a::Diagonal, b::NamedDimsArray{<:Any, <:Any, 1})
+    return *(NamedDimsArray{dimnames(a)}(a), b)
+end
+
+function Base.:*(a::NamedDimsArray{<:Any, <:Any, 1}, b::Diagonal)
+    return *(a, NamedDimsArray{dimnames(b)}(b))
+end
+
 @declare_matmul(AbstractMatrix, AbstractVector)
+@declare_matmul(Adjoint{<:Any, <:AbstractMatrix{T1}} where T1, Adjoint{<:Any, <:AbstractVector})
 @declare_matmul(Diagonal,)
 
 function Base.inv(nda::NamedDimsArray{L, T, 2}) where {L,T}
