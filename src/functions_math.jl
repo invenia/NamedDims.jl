@@ -83,7 +83,7 @@ end
 # but that overwrites existing *(1D NDA, Vector) methods
 # should improve the macro above to deal with this case
 function Base.:*(a::Diagonal, b::NamedDimsArray{<:Any, <:Any, 1})
-    return *(NamedDims.NamedDimsArray{dimnames(a)}(a), b)
+    return *(NamedDimsArray{dimnames(a)}(a), b)
 end
 
 function Base.:*(a::NamedDimsArray{<:Any, <:Any, 1}, b::Diagonal)
