@@ -17,6 +17,7 @@ const testfiles = (
     "broadcasting.jl",
     "fft.jl",
     "tracker_compat.jl",
+    "cov_compat.jl",
 )
 
 @testset "NamedDims.jl" begin
