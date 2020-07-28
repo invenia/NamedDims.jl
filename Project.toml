@@ -5,6 +5,7 @@ version = "0.2.35"
 
 [deps]
 AbstractFFTs = "621f4979-c628-5d54-868e-fcf4e3e8185c"
+CovarianceEstimation = "587fd27a-f159-11e8-2dae-1979310e6154"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Requires = "ae029012-a4dd-5104-9daa-d747884805df"
@@ -13,6 +14,7 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 [compat]
 AbstractFFTs = "0.4, 0.5, 1"
 BenchmarkTools = "0.5"
+CovarianceEstimation = "0.2.4"
 Requires = "0.5, 1"
 Tracker = "0.2.2"
 julia = "1"
