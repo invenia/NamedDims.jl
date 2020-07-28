@@ -2,7 +2,6 @@ module NamedDims
 using Base: @propagate_inbounds
 using Base.Broadcast:
     Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
-using CovarianceEstimation
 using LinearAlgebra
 using Pkg
 using Requires
@@ -13,6 +12,7 @@ export NamedDimsArray, dim, rename, unname, dimnames
 function __init__()
     # NOTE: NamedDims is only compatible with Tracker v0.2.2; but no nice way to enforce that.
     @require Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c" include("tracker_compat.jl")
+    @require CovarianceEstimation = "587fd27a-f159-11e8-2dae-1979310e6154" include("cov_compat.jl")
 end
 
 # We use CoVector to workout if we are taking the tranpose of a tranpose etc
