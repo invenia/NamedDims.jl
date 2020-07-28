@@ -2,6 +2,7 @@ module NamedDims
 using Base: @propagate_inbounds
 using Base.Broadcast:
     Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
+using CovarianceEstimation
 using LinearAlgebra
 using Pkg
 using Requires
