@@ -1,8 +1,8 @@
 using LinearAlgebra
 using NamedDims
 using NamedDims: matrix_prod_names, names, symmetric_names
+using Statistics
 using Test
-
 
 @testset "+" begin
     nda = NamedDimsArray{(:a,)}(ones(3))
