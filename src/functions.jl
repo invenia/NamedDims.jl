@@ -171,7 +171,24 @@ function Base.cat(a::NamedDimsArray{La}, b::NamedDimsArray{Lb}; dims) where {La,
     return NamedDimsArray{newL}(data)
 end
 
+for (fun, d) in zip((:vcat, :hcat), (1, 2))
 
+    @eval begin
+
+        function Base.$fun(a::NamedDimsArray, b::AbstractArray)
+            return Base.cat(a, b, dims=$d)
+        end
+
+        function Base.$fun(a::AbstractArray, b::NamedDimsArray)
+            return Base.cat(a, b, dims=$d)
+        end
+
+        function Base.$fun(a::NamedDimsArray, b::NamedDimsArray)
+            return Base.cat(a, b, dims=$d)
+        end
+
+    end
+end
 
 ################################################
 # map, collect
