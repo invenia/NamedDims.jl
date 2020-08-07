@@ -5,6 +5,7 @@ using NamedDims:
     unify_names_longest,
     unify_names_shortest,
     dim_noerror,
+    expand_dimnames,
     tuple_issubset,
     tuple_cat,
     names_are_unifiable,
@@ -92,6 +93,30 @@ end
         @test_broken 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :c)))()
     end
     @test 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :b)))()
+end
+
+@testset "expand_dimnames" begin
+
+    @testset "single symbol" begin
+        @test expand_dimnames((), :x) == (:x, )
+        @test expand_dimnames((), :x) == (:x, )
+
+        @test expand_dimnames((:x, :y), :x) == (:x, :y)
+        @test expand_dimnames((:x, :y), :z) == (:x, :y, :z)
+    end
+
+    @testset "multiple symbols" begin
+        @test expand_dimnames((), (:x, :y)) == (:x, :y)
+        @test expand_dimnames((:x, :y), (:z, :w)) == (:x, :y, :z, :w)
+        @test expand_dimnames((:x, :y), (:x, :w)) == (:x, :y, :w)
+    end
+
+    @testset "number" begin
+        @test expand_dimnames((:x, :y), 1) == (:x, :y)
+        @test expand_dimnames((:x, :y), 3) == (:x, :y)
+        @test expand_dimnames((:x, :y), (1, 2, 3)) == (:x, :y)
+    end
+
 end
 
 

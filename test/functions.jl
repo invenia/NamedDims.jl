@@ -74,7 +74,7 @@ using Statistics
             @test cat(nda, nda, dims=1) == cat(nda, nda, dims=:x)
             @test cat(nda, nda, dims=2) == cat(nda, nda, dims=:y)
 
-            @test_skip dimnames(cat(nda, nda, dims=:z)) == (:x, :y, :z)
+            @test dimnames(cat(nda, nda, dims=:z)) == (:x, :y, :z)
         end
 
     end

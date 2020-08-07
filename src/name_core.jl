@@ -71,6 +71,30 @@ Base.@pure function dim_noerror(dimnames::Tuple{Vararg{Symbol, N}}, name::Symbol
     return 0
 end
 
+"""
+    expand_dimnames(dimnames, name)
+
+For `dimnames` being a tuple of names (symbols) for the dimensions.
+and `name` being a name.
+This expands the `dimnames` if `name` is not in `dimnames`.
+e.g. `expand_dimnames((:a, :b), :c) == (:a, :b, :c)`
+If `name` is already in `dimnames` then `dimnames` is returned.
+"""
+function expand_dimnames(dimnames::Tuple, name::Symbol)
+    if name in dimnames
+        return dimnames
+    else
+        return (dimnames..., name)
+    end
+end
+
+function expand_dimnames(dimnames::Tuple, name::Union{Integer, Colon, Tuple{}})
+    return dimnames
+end
+
+function expand_dimnames(dimnames::Tuple, names)
+    expand_dimnames(expand_dimnames(dimnames, names[1]), names[2:end])
+end
 
 
 """
