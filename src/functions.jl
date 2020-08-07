@@ -187,26 +187,32 @@ for (T, S) in [
     (:NamedDimsArray, :AbstractArray),
     (:AbstractArray, :NamedDimsArray),
     (:NamedDimsArray, :NamedDimsArray)
-]
+    ]
+
     @eval function Base.cat(a::$T, b::$S, c::AbstractArray...; dims)
         return Base.cat(a, Base.cat(b, Base.cat(c...; dims=dims); dims=dims); dims=dims)
     end
+
 end
 
-for (fun, d) in zip((:vcat, :hcat), (1, 2))
+# Base.hcat and Base.vcat specialise on this Union
+const AbsVecOrMat = Union{AbstractVector, AbstractMatrix}
+for (T, S) in [
+    (:NamedDimsArray, :AbsVecOrMat),
+    (:NamedDimsArray, :AbstractArray),
+    (:AbsVecOrMat, :NamedDimsArray),
+    (:AbstractArray, :NamedDimsArray),
+    (:NamedDimsArray, :NamedDimsArray)
+    ]
 
-    @eval begin
+    for (fun, d) in zip((:vcat, :hcat), (1, 2))
 
-        function Base.$fun(a::NamedDimsArray, b::AbstractArray)
+        @eval function Base.$fun(a::$T, b::$S)
             return Base.cat(a, b, dims=$d)
         end
 
-        function Base.$fun(a::AbstractArray, b::NamedDimsArray)
-            return Base.cat(a, b, dims=$d)
-        end
-
-        function Base.$fun(a::NamedDimsArray, b::NamedDimsArray)
-            return Base.cat(a, b, dims=$d)
+        @eval function Base.$fun(a::$T, b::$S, c::NamedDimsArray...)
+            return Base.cat(a, b, c..., dims=$d)
         end
 
     end

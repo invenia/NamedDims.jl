@@ -84,17 +84,23 @@ using Statistics
         @testset "$f" begin
 
             @testset "basic functionality" begin
-                @test_skip f(nda, nda) == cat(nda, nda, dims=d)
-                @test_skip f(nda, nda, nda) == cat(nda, nda, nda, dims=d)
+                @test f(nda, nda) == cat(nda, nda, dims=d)
+                @test f(a, nda) == cat(a, nda, dims=d)
+                @test f(nda, a) == cat(nda, a, dims=d)
+
+                @test f(nda, nda, nda) == cat(nda, nda, nda, dims=d)
+                @test f(a, nda, nda) == cat(a, nda, nda, dims=d)
+                @test f(nda, a, nda) == cat(nda, a, nda, dims=d)
+                @test f(nda, nda, a) == cat(nda, nda, a, dims=d)
             end
 
             @testset "dimension requirements" begin
-                @test_skip @test_throws DimensionMismatch f(nda, nda')
-                @test_skip @test_throws DimensionMismatch f(nda, nda, nda')
+                @test_throws DimensionMismatch f(nda, nda')
+                @test_throws DimensionMismatch f(nda, nda, nda')
                 
-                @test_skip dimnames(f(nda, nda)) == dimnames(cat(nda, nda, dims=d))
-                @test_skip dimnames(f(nda, a)) == dimnames(cat(nda, a, dims=d))
-                @test_skip dimnames(f(a, nda)) == dimnames(cat(a, nda, dims=d))
+                @test dimnames(f(nda, nda)) == dimnames(cat(nda, nda, dims=d))
+                @test dimnames(f(nda, a)) == dimnames(cat(nda, a, dims=d))
+                @test dimnames(f(a, nda)) == dimnames(cat(a, nda, dims=d))
             end
 
         end
