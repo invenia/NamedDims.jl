@@ -41,6 +41,8 @@ using Statistics
                       parent(cat(nda, a, nda, dims=d)) == 
                       parent(cat(nda, nda, nda, dims=d))
             end
+
+            @test dimnames(cat(nda, dims=3)) == (dimnames(nda)..., :_)
         end
 
         @testset "dimensions requirements" begin
