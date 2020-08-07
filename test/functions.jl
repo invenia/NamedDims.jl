@@ -32,6 +32,8 @@ using Statistics
 
         @testset "basic functionality" begin
             for d in 1:3
+                @test cat(a, dims=d) ==
+                      parent(cat(nda, dims=d))
                 @test cat(a, a, dims=d) ==
                       parent(cat(nda, a, dims=d)) ==
                       parent(cat(a, nda, dims=d)) ==
@@ -43,13 +45,18 @@ using Statistics
             end
 
             @test dimnames(cat(nda, dims=3)) == (dimnames(nda)..., :_)
+            @test dimnames(cat(nda, nda, dims=3)) == (dimnames(nda)..., :_)
+            @test dimnames(cat(nda, nda, nda, dims=3)) == (dimnames(nda)..., :_)
+            @test dimnames(cat(a, nda, nda, dims=3)) == (dimnames(nda)..., :_)
+            @test dimnames(cat(nda, a, nda, dims=3)) == (dimnames(nda)..., :_)
         end
 
         @testset "dimensions requirements" begin
             for d in 1:3
                 @test_throws DimensionMismatch cat(nda, nda', dims=d)
                 @test_throws DimensionMismatch cat(nda, nda, nda', dims=d)
-                @test_skip @test_throws DimensionMismatch cat(a, nda, nda', dims=d)
+                @test_throws DimensionMismatch cat(a, nda, nda', dims=d)
+                @test_broken @test_throws DimensionMismatch cat(a, a, nda, nda', dims=d)
             end
 
             for d in 1:2

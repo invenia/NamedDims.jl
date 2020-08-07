@@ -152,7 +152,7 @@ end
 function Base.cat(a::NamedDimsArray{L}; dims) where L
     numerical_dims = dim(dimnames(a), dims)
     data = Base.cat(parent(a); dims=numerical_dims)
-    newL = unify_names_longest(L, dimnames(data)) # when dims=3 for two 2d arrays
+    newL = unify_names_longest(L, dimnames(data))
     return NamedDimsArray{newL}(data)
 end
 
@@ -178,8 +178,15 @@ function Base.cat(a::NamedDimsArray{La}, b::NamedDimsArray{Lb}; dims) where {La,
     return NamedDimsArray{newL}(data)
 end
 
-function Base.cat(a::NamedDimsArray, b::AbstractArray...; dims)
-    return Base.cat(a, Base.cat(b...; dims=dims); dims=dims)
+# to dispatch on the first or the second argument being the NDA
+for (T, S) in [
+    (:NamedDimsArray, :AbstractArray),
+    (:AbstractArray, :NamedDimsArray),
+    (:NamedDimsArray, :NamedDimsArray)
+]
+    @eval function Base.cat(a::$T, b::$S, c::AbstractArray...; dims)
+        return Base.cat(a, Base.cat(b, Base.cat(c...; dims=dims); dims=dims); dims=dims)
+    end
 end
 
 for (fun, d) in zip((:vcat, :hcat), (1, 2))
