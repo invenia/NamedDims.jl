@@ -56,7 +56,7 @@ using Statistics
                 @test_throws DimensionMismatch cat(nda, nda', dims=d)
                 @test_throws DimensionMismatch cat(nda, nda, nda', dims=d)
                 @test_throws DimensionMismatch cat(a, nda, nda', dims=d)
-                @test_broken @test_throws DimensionMismatch cat(a, a, nda, nda', dims=d)
+                @test_skip @test_throws DimensionMismatch cat(a, a, nda, nda', dims=d)
             end
 
             for d in 1:2
