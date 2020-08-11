@@ -167,8 +167,13 @@ using Statistics
         nda = NamedDimsArray(a, (:x, :y))
 
         @test count(nda) == count(a) == 3
-        @test_throws Exception count(nda; dims=:x)
-        @test_throws Exception count(a; dims=1)
+
+        if VERSION >= v"1.5"
+            @test parent(count(nda, dims=:x)) == count(a, dims=1) == [2 1]
+        else
+            @test_throws Exception count(nda; dims=:x)
+            @test_throws Exception count(a; dims=1)
+        end
     end
 
     @testset "push!, pop!, etc" begin
