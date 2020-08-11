@@ -206,7 +206,6 @@ for (T, S) in [
     ]
 
     for (fun, d) in zip((:vcat, :hcat), (1, 2))
-
         @eval function Base.$fun(a::$T, b::$S)
             return Base.cat(a, b, dims=$d)
         end

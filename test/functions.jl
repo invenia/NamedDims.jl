@@ -70,19 +70,15 @@ using Statistics
         end
 
         @testset "dims argument is named" begin
-
             @test cat(nda, nda, dims=1) == cat(nda, nda, dims=:x)
             @test cat(nda, nda, dims=2) == cat(nda, nda, dims=:y)
 
             @test dimnames(cat(nda, nda, dims=:z)) == (:x, :y, :z)
         end
-
     end
 
     for (f, d) in zip((vcat, hcat), (1, 2))
-
         @testset "$f" begin
-
             @testset "basic functionality" begin
                 @test f(nda, nda) == cat(nda, nda, dims=d)
                 @test f(a, nda) == cat(a, nda, dims=d)
@@ -102,7 +98,6 @@ using Statistics
                 @test dimnames(f(nda, a)) == dimnames(cat(nda, a, dims=d))
                 @test dimnames(f(a, nda)) == dimnames(cat(a, nda, dims=d))
             end
-
         end
     end
 
