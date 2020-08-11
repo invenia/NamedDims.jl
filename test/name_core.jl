@@ -97,8 +97,8 @@ end
 
 @testset "expand_dimnames" begin
     @testset "single symbol" begin
-        @test expand_dimnames((), :x) == (:x, )
-        @test expand_dimnames((), :x) == (:x, )
+        @test expand_dimnames((), :x) == (:x,)
+        @test expand_dimnames(:x, ()) == (:x,)
 
         @test expand_dimnames((:x, :y), :x) == (:x, :y)
         @test expand_dimnames((:x, :y), :z) == (:x, :y, :z)
