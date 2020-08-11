@@ -32,71 +32,71 @@ using Statistics
 
         @testset "basic functionality" begin
             for d in 1:3
-                @test cat(a, dims=d) ==
-                      parent(cat(nda, dims=d))
-                @test cat(a, a, dims=d) ==
-                      parent(cat(nda, a, dims=d)) ==
-                      parent(cat(a, nda, dims=d)) ==
-                      parent(cat(nda, nda, dims=d))
-                @test cat(a, a, a, dims=d) ==
-                      parent(cat(a, nda, nda, dims=d)) == 
-                      parent(cat(nda, a, nda, dims=d)) == 
-                      parent(cat(nda, nda, nda, dims=d))
+                @test cat(a; dims=d) ==
+                      parent(cat(nda; dims=d))
+                @test cat(a, a; dims=d) ==
+                      parent(cat(nda, a; dims=d)) ==
+                      parent(cat(a, nda; dims=d)) ==
+                      parent(cat(nda, nda; dims=d))
+                @test cat(a, a, a; dims=d) ==
+                      parent(cat(a, nda, nda; dims=d)) == 
+                      parent(cat(nda, a, nda; dims=d)) == 
+                      parent(cat(nda, nda, nda; dims=d))
             end
 
-            @test dimnames(cat(nda, dims=3)) == (dimnames(nda)..., :_)
-            @test dimnames(cat(nda, nda, dims=3)) == (dimnames(nda)..., :_)
-            @test dimnames(cat(nda, nda, nda, dims=3)) == (dimnames(nda)..., :_)
-            @test dimnames(cat(a, nda, nda, dims=3)) == (dimnames(nda)..., :_)
-            @test dimnames(cat(nda, a, nda, dims=3)) == (dimnames(nda)..., :_)
+            @test dimnames(cat(nda; dims=3)) == (dimnames(nda)..., :_)
+            @test dimnames(cat(nda, nda; dims=3)) == (dimnames(nda)..., :_)
+            @test dimnames(cat(nda, nda, nda; dims=3)) == (dimnames(nda)..., :_)
+            @test dimnames(cat(a, nda, nda; dims=3)) == (dimnames(nda)..., :_)
+            @test dimnames(cat(nda, a, nda; dims=3)) == (dimnames(nda)..., :_)
         end
 
         @testset "dimensions requirements" begin
             for d in 1:3
-                @test_throws DimensionMismatch cat(nda, nda', dims=d)
-                @test_throws DimensionMismatch cat(nda, nda, nda', dims=d)
-                @test_throws DimensionMismatch cat(a, nda, nda', dims=d)
-                @test_skip @test_throws DimensionMismatch cat(a, a, nda, nda', dims=d)
+                @test_throws DimensionMismatch cat(nda, nda'; dims=d)
+                @test_throws DimensionMismatch cat(nda, nda, nda'; dims=d)
+                @test_throws DimensionMismatch cat(a, nda, nda'; dims=d)
+                @test_skip @test_throws DimensionMismatch cat(a, a, nda, nda'; dims=d)
             end
 
             for d in 1:2
-                @test dimnames(cat(nda, nda, dims=d)) == dimnames(nda)
-                @test dimnames(cat(nda, a, dims=d)) == dimnames(nda)
-                @test dimnames(cat(a, nda, dims=d)) == dimnames(nda)
+                @test dimnames(cat(nda, nda; dims=d)) == dimnames(nda)
+                @test dimnames(cat(nda, a; dims=d)) == dimnames(nda)
+                @test dimnames(cat(a, nda; dims=d)) == dimnames(nda)
             end
-            @test dimnames(cat(nda, nda, dims=3)) == (dimnames(nda)..., :_)
-            @test dimnames(cat(nda, a, dims=3)) == (dimnames(nda)..., :_)
-            @test dimnames(cat(a, nda, dims=3)) == (dimnames(nda)..., :_)
+            @test dimnames(cat(nda, nda; dims=3)) == (dimnames(nda)..., :_)
+            @test dimnames(cat(nda, a; dims=3)) == (dimnames(nda)..., :_)
+            @test dimnames(cat(a, nda; dims=3)) == (dimnames(nda)..., :_)
         end
 
         @testset "dims argument is named" begin
-            @test cat(nda, nda, dims=1) == cat(nda, nda, dims=:x)
-            @test cat(nda, nda, dims=2) == cat(nda, nda, dims=:y)
+            @test cat(nda, nda; dims=1) == cat(nda, nda; dims=:x)
+            @test cat(nda, nda; dims=2) == cat(nda, nda; dims=:y)
 
-            @test dimnames(cat(nda, nda, dims=:z)) == (:x, :y, :z)
+            @test dimnames(cat(nda, nda; dims=:z)) == (:x, :y, :z)
         end
     end
 
     for (f, d) in zip((vcat, hcat), (1, 2))
         @testset "$f" begin
             @testset "basic functionality" begin
-                @test f(nda, nda) == cat(nda, nda, dims=d)
-                @test f(a, nda) == cat(a, nda, dims=d)
-                @test f(nda, a) == cat(nda, a, dims=d)
+                @test f(nda, nda) == cat(nda, nda; dims=d)
+                @test f(a, nda) == cat(a, nda; dims=d)
+                @test f(nda, a) == cat(nda, a; dims=d)
 
-                @test f(nda, nda, nda) == cat(nda, nda, nda, dims=d)
-                @test f(a, nda, nda) == cat(a, nda, nda, dims=d)
-                @test f(nda, a, nda) == cat(nda, a, nda, dims=d)
-                @test f(nda, nda, a) == cat(nda, nda, a, dims=d)
+                @test f(nda, nda, nda) == cat(nda, nda, nda; dims=d)
+                @test f(a, nda, nda) == cat(a, nda, nda; dims=d)
+                @test f(nda, a, nda) == cat(nda, a, nda; dims=d)
+                @test f(nda, nda, a) == cat(nda, nda, a; dims=d)
             end
 
             @testset "dimension requirements" begin
                 @test_throws DimensionMismatch f(nda, nda')
                 @test_throws DimensionMismatch f(nda, nda, nda')
                 
-                @test dimnames(f(nda, nda)) == dimnames(cat(nda, nda, dims=d))
-                @test dimnames(f(nda, a)) == dimnames(cat(nda, a, dims=d))
-                @test dimnames(f(a, nda)) == dimnames(cat(a, nda, dims=d))
+                @test dimnames(f(nda, nda)) == dimnames(cat(nda, nda; dims=d))
+                @test dimnames(f(nda, a)) == dimnames(cat(nda, a; dims=d))
+                @test dimnames(f(a, nda)) == dimnames(cat(a, nda; dims=d))
             end
         end
     end
@@ -113,7 +113,7 @@ using Statistics
 
         # Higher-dim case: `dims` keyword in `sort!` requires Julia v1.1+
         if VERSION > v"1.1-"
-            sort!(nda, dims=:y)
+            sort!(nda; dims=:y)
             @test issorted(a[2, :])
             @test_throws UndefKeywordError sort!(nda)
 
@@ -126,11 +126,11 @@ using Statistics
         a = [10 20; 31 40]
         nda = NamedDimsArray(a, (:x, :y)) # size (2,2)
 
-        nda1 = sum(nda, dims=1)           # size (1,2)
-        nda2 = sum(nda, dims=2)           # size (2,1)
+        nda1 = sum(nda; dims=1)           # size (1,2)
+        nda2 = sum(nda; dims=2)           # size (2,1)
         @testset "ndims==2" begin
-            @test f!(nda1, nda) == f!(nda1, a) == f(a, dims=1)
-            @test f!(nda2, nda) == f!(nda2, a) == f(a, dims=2)
+            @test f!(nda1, nda) == f!(nda1, a) == f(a; dims=1)
+            @test f!(nda2, nda) == f!(nda2, a) == f(a; dims=2)
 
             @test dimnames(f!(nda1, nda)) == (:x, :y) == dimnames(f!(nda1, a))
             @test dimnames(f!(nda2, nda)) == (:x, :y) == dimnames(f!(nda2, a))
@@ -142,10 +142,10 @@ using Statistics
             ndy = NamedDimsArray([5,6], :y)
             nd_ = NamedDimsArray([7,8], :_)
 
-            @test f!(ndx, nda) == f!([0,0], nda) == dropdims(f(a, dims=2), dims=2)
+            @test f!(ndx, nda) == f!([0,0], nda) == dropdims(f(a; dims=2); dims=2)
             @test f!(nd_, nda) == f!(ndx, a)
 
-            @test f!(ndy', nda) == f!([0 0], nda) == f(a, dims=1)
+            @test f!(ndy', nda) == f!([0 0], nda) == f(a; dims=1)
 
             @test_throws DimensionMismatch f!(ndy, nda) # name y on wrong dimension
         end
