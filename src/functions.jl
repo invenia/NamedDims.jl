@@ -150,24 +150,24 @@ end
 # cat, vcat, hcat
 
 function Base.cat(a::NamedDimsArray{L}; dims) where L
-    newL = expand_dimnames(L, dims)
-    numerical_dims = dim(newL, dims)
+    newL = expand_dimnames(L; dims)
+    numerical_dims = dim(newL; dims)
     data = Base.cat(parent(a); dims=numerical_dims)
     newL = unify_names_longest(newL, dimnames(data))
     return NamedDimsArray{newL}(data)
 end
 
 function Base.cat(a::NamedDimsArray{L}, b::AbstractArray; dims) where L
-    newL = expand_dimnames(L, dims)
-    numerical_dims = dim(newL, dims)
+    newL = expand_dimnames(L; dims)
+    numerical_dims = dim(newL; dims)
     data = Base.cat(parent(a), b; dims=numerical_dims)
     newL = unify_names_longest(newL, dimnames(data)) # when dims=3 for two 2d arrays
     return NamedDimsArray{newL}(data)
 end
 
 function Base.cat(a::AbstractArray, b::NamedDimsArray{L}; dims) where L
-    newL = expand_dimnames(L, dims)
-    numerical_dims = dim(newL, dims)
+    newL = expand_dimnames(L; dims)
+    numerical_dims = dim(newL; dims)
     data = Base.cat(a, parent(b); dims=numerical_dims)
     newL = unify_names_longest(newL, dimnames(data)) # when dims=3 for two 2d arrays
     return NamedDimsArray{newL}(data)
@@ -175,8 +175,8 @@ end
 
 function Base.cat(a::NamedDimsArray{La}, b::NamedDimsArray{Lb}; dims) where {La, Lb}
     newL = unify_names_shortest(La, Lb)
-    newL = expand_dimnames(newL, dims)
-    numerical_dims = dim(newL, dims)
+    newL = expand_dimnames(newL; dims)
+    numerical_dims = dim(newL; dims)
     data = Base.cat(parent(a), parent(b); dims=numerical_dims)
     newL = unify_names_longest(newL, dimnames(data)) # when dims=3 for two 2d arrays
     return NamedDimsArray{newL}(data)
@@ -207,11 +207,11 @@ for (T, S) in [
 
     for (fun, d) in zip((:vcat, :hcat), (1, 2))
         @eval function Base.$fun(a::$T, b::$S)
-            return Base.cat(a, b, dims=$d)
+            return Base.cat(a, b; dims=$d)
         end
 
         @eval function Base.$fun(a::$T, b::$S, c::NamedDimsArray...)
-            return Base.cat(a, b, c..., dims=$d)
+            return Base.cat(a, b, c...; dims=$d)
         end
 
     end
