@@ -170,6 +170,8 @@ using Statistics
 
         if VERSION >= v"1.5"
             @test parent(count(nda, dims=:x)) == count(a, dims=1) == [2 1]
+            @test dimnames(count(nda, dims=:x)) ==
+                  dimnames(count(nda, dims=:y)) == (:x, :y)
         else
             @test_throws Exception count(nda; dims=:x)
             @test_throws Exception count(a; dims=1)
