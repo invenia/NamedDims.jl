@@ -112,11 +112,18 @@ end
 
     @testset "number" begin
         @test expand_dimnames((:x, :y), 1) == (:x, :y)
-        @test expand_dimnames((:x, :y), 3) == (:x, :y)
-        @test expand_dimnames((:x, :y), (1, 2, 3)) == (:x, :y)
+        @test expand_dimnames((:x, :y), 3) == (:x, :y, :_)
+        @test expand_dimnames((:x, :y), (1, 3)) == (:x, :y, :_)
     end
 end
 
+@testset "allocations: expand_dims" begin
+    @testset "number" begin
+        @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), 1))()
+        @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), 5))()
+        @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), (1, 5)))()
+    end
+end
 
 @testset "order_named_inds" begin
     @test order_named_inds(Val((:x,))) == (:,)

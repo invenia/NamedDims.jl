@@ -88,8 +88,18 @@ function expand_dimnames(dimnames::Tuple, name::Symbol)
     end
 end
 
-function expand_dimnames(dimnames::Tuple, name::Union{Integer, Colon, Tuple{}})
+function expand_dimnames(dimnames::Tuple, name::Union{Colon, Tuple{}})
     return dimnames
+end
+
+function expand_dimnames(dimnames::Tuple, name::Integer)
+    if name <= length(dimnames)
+        return dimnames
+    else
+        extra_length = name - length(dimnames)
+        new_dimnames = ntuple(i->:_, Val{extra_length}())
+        return (dimnames..., new_dimnames...)
+    end
 end
 
 function expand_dimnames(dimnames::Tuple, names)
