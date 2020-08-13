@@ -110,18 +110,22 @@ end
         @test expand_dimnames((:x, :y), (:x, :w)) == (:x, :y, :w)
     end
 
-    @testset "number" begin
+    @testset "numbers et al" begin
         @test expand_dimnames((:x, :y), 1) == (:x, :y)
         @test expand_dimnames((:x, :y), 3) == (:x, :y, :_)
         @test expand_dimnames((:x, :y), (1, 3)) == (:x, :y, :_)
+        @test expand_dimnames((:x, :y), :) == (:x, :y)
+        @test expand_dimnames((:x, :y), ()) == (:x, :y)
     end
 end
 
 @testset "allocations: expand_dims" begin
-    @testset "number" begin
+    @testset "numbers et al" begin
         @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), 1))()
         @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), 5))()
         @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), (1, 5)))()
+        @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), :))()
+        @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), ()))()
     end
 end
 
