@@ -2,7 +2,7 @@ using LinearAlgebra
 using NamedDims
 using NamedDims: matrix_prod_names, names, symmetric_names
 using Test
-
+using Statistics
 
 @testset "+" begin
     nda = NamedDimsArray{(:a,)}(ones(3))
@@ -150,6 +150,13 @@ end
 
         ndv2 = NamedDimsArray{(:b,)}([3, 2, 1])
         @test_throws DimensionMismatch ndv' * ndv2
+    end
+
+    @testset "NDAs from CoVectors" begin
+        v = [1, 2, 3]
+        ndv = NamedDimsArray{(:vec,)}(v)
+        @test NamedDimsArray{dimnames(v')}(v') * ndv == 14
+        @test NamedDimsArray{dimnames(v')}(transpose(v)) * ndv == 14
     end
 end
 @testset "allocations: matmul names" begin

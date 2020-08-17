@@ -35,7 +35,7 @@ end
 
 # vector^T * vector
 function Base.:*(a::NamedDimsArray{A,T,2,<:CoVector}, b::NamedDimsArray{B,S,1}) where {A,B,T,S}
-    last(A) === first(B) || throw_matrix_dim_error(last(A), first(B))
+    valid_matmul_dims(A, B) || throw_matrix_dim_error(last(A), first(B))
     return *(parent(a), parent(b))
 end
 
