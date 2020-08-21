@@ -1,12 +1,7 @@
-
-################################################
-# cat, vcat, hcat
-
 function Base.cat(a::NamedDimsArray{L}; dims) where L
     newL = expand_dimnames(L, dims)
     numerical_dims = dim(newL, dims)
     data = Base.cat(parent(a); dims=numerical_dims)
-    newL = unify_names_longest(newL, dimnames(data))
     return NamedDimsArray{newL}(data)
 end
 
@@ -14,7 +9,6 @@ function Base.cat(a::NamedDimsArray{L}, b::AbstractArray; dims) where L
     newL = expand_dimnames(L, dims)
     numerical_dims = dim(newL, dims)
     data = Base.cat(parent(a), b; dims=numerical_dims)
-    newL = unify_names_longest(newL, dimnames(data)) # when dims=3 for two 2d arrays
     return NamedDimsArray{newL}(data)
 end
 
@@ -22,7 +16,6 @@ function Base.cat(a::AbstractArray, b::NamedDimsArray{L}; dims) where L
     newL = expand_dimnames(L, dims)
     numerical_dims = dim(newL, dims)
     data = Base.cat(a, parent(b); dims=numerical_dims)
-    newL = unify_names_longest(newL, dimnames(data)) # when dims=3 for two 2d arrays
     return NamedDimsArray{newL}(data)
 end
 
@@ -31,7 +24,6 @@ function Base.cat(a::NamedDimsArray{La}, b::NamedDimsArray{Lb}; dims) where {La,
     newL = expand_dimnames(newL, dims)
     numerical_dims = dim(newL, dims)
     data = Base.cat(parent(a), parent(b); dims=numerical_dims)
-    newL = unify_names_longest(newL, dimnames(data)) # when dims=3 for two 2d arrays
     return NamedDimsArray{newL}(data)
 end
 
