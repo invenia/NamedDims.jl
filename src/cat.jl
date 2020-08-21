@@ -20,8 +20,8 @@ function Base.cat(a::AbstractArray, b::NamedDimsArray{L}; dims) where L
 end
 
 function Base.cat(a::NamedDimsArray{La}, b::NamedDimsArray{Lb}; dims) where {La, Lb}
-    newL = unify_names_shortest(La, Lb)
-    newL = expand_dimnames(newL, dims)
+    combL = unify_names_shortest(La, Lb)
+    newL = expand_dimnames(combL, dims)
     numerical_dims = dim(newL, dims)
     data = Base.cat(parent(a), parent(b); dims=numerical_dims)
     return NamedDimsArray{newL}(data)
