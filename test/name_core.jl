@@ -120,6 +120,12 @@ end
 end
 
 @testset "allocations: expand_dims" begin
+    @testset "names" begin
+        @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), :x))()
+        @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), :z))()
+        @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), (:x, :z)))()
+    end
+
     @testset "numbers et al" begin
         @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), 1))()
         @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), 5))()
