@@ -1,22 +1,28 @@
 function Base.cat(a::NamedDimsArray{L}; dims) where L
     newL = expand_dimnames(L, dims)
     numerical_dims = dim(newL, dims)
-    data = Base.cat(parent(a); dims=numerical_dims)
-    return NamedDimsArray{newL}(data)
+    data = Base.cat(parent(a); dims=numerical_dims) # Base.cat is type unstable
+    T = eltype(a) # therefore the element type has to be inferred manually
+    N = length(newL) # as must the size of the array
+    return NamedDimsArray{newL, T, N, Array{T,N}}(data)
 end
 
 function Base.cat(a::NamedDimsArray{L}, b::AbstractArray; dims) where L
     newL = expand_dimnames(L, dims)
     numerical_dims = dim(newL, dims)
     data = Base.cat(parent(a), b; dims=numerical_dims)
-    return NamedDimsArray{newL}(data)
+    T = promote_type(eltype(a), eltype(b))
+    N = length(newL)
+    return NamedDimsArray{newL, T, N, Array{T,N}}(data)
 end
 
 function Base.cat(a::AbstractArray, b::NamedDimsArray{L}; dims) where L
     newL = expand_dimnames(L, dims)
     numerical_dims = dim(newL, dims)
     data = Base.cat(a, parent(b); dims=numerical_dims)
-    return NamedDimsArray{newL}(data)
+    T = promote_type(eltype(a), eltype(b))
+    N = length(newL)
+    return NamedDimsArray{newL, T, N, Array{T,N}}(data)
 end
 
 function Base.cat(a::NamedDimsArray{La}, b::NamedDimsArray{Lb}; dims) where {La, Lb}
@@ -24,7 +30,9 @@ function Base.cat(a::NamedDimsArray{La}, b::NamedDimsArray{Lb}; dims) where {La,
     newL = expand_dimnames(combL, dims)
     numerical_dims = dim(newL, dims)
     data = Base.cat(parent(a), parent(b); dims=numerical_dims)
-    return NamedDimsArray{newL}(data)
+    T = promote_type(eltype(a), eltype(b))
+    N = length(newL)
+    return NamedDimsArray{newL, T, N, Array{T,N}}(data)
 end
 
 # to dispatch on the first or the second argument being the NDA
