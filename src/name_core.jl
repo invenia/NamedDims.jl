@@ -97,7 +97,7 @@ function expand_dimnames(dimnames::Tuple, name::Integer)
         return dimnames
     else
         extra_length = name - length(dimnames)
-        new_dimnames = ntuple(i->:_, Val{extra_length}())
+        new_dimnames = ntuple(i->:_, extra_length)
         return (dimnames..., new_dimnames...)
     end
 end
