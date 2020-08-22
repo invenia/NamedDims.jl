@@ -47,6 +47,17 @@ for (T, S) in [
     end
 end
 
+# vcat and hcat
+function Base.hcat(a::NamedDimsArray{L}) where L
+    newL = expand_dimnames(L, 2)
+    data = Base.hcat(parent(a))
+    T = eltype(a)
+    N = length(newL)
+    return NamedDimsArray{newL, T, N, Array{T,N}}(data)
+end
+
+Base.vcat(a::NamedDimsArray{L}) where L = a
+
 # Base.hcat and Base.vcat specialise on this Union
 const AbsVecOrMat = Union{AbstractVector, AbstractMatrix}
 for (T, S) in [

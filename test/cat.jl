@@ -64,9 +64,14 @@ end
 for (f, d) in zip((vcat, hcat), (1, 2))
     a = [10 20; 31 40]
     nda = NamedDimsArray(a, (:x, :y))
+    v = [1, 2, 3, 4]
+    ndv = NamedDimsArray(v, (:x, ))
 
     @testset "$f" begin
         @testset "basic functionality" begin
+            @test f(nda) == cat(nda; dims=d)
+            @test f(ndv) == cat(ndv; dims=d)
+
             @test f(nda, nda) == cat(nda, nda; dims=d)
             @test f(a, nda) == cat(a, nda; dims=d)
             @test f(nda, a) == cat(nda, a; dims=d)
@@ -80,6 +85,9 @@ for (f, d) in zip((vcat, hcat), (1, 2))
         @testset "dimension requirements" begin
             @test_throws DimensionMismatch f(nda, nda')
             @test_throws DimensionMismatch f(nda, nda, nda')
+
+            @test dimnames(f(nda)) == dimnames(cat(nda; dims=d))
+            @test dimnames(f(ndv)) == dimnames(cat(ndv; dims=d))
 
             @test dimnames(f(nda, nda)) == dimnames(cat(nda, nda; dims=d))
             @test dimnames(f(nda, a)) == dimnames(cat(nda, a; dims=d))
