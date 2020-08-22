@@ -2,8 +2,8 @@ function Base.cat(a::NamedDimsArray{L}; dims) where L
     newL = expand_dimnames(L, dims)
     numerical_dims = dim(newL, dims)
     data = Base.cat(parent(a); dims=numerical_dims) # Base.cat is type unstable
-    T = eltype(a) # therefore the element type has to be inferred manually
-    N = length(newL) # as must the size of the array
+    T = eltype(a)  # therefore the element type has to be inferred manually
+    N = length(newL)  # as must the size of the array
     return NamedDimsArray{newL, T, N, Array{T,N}}(data)
 end
 

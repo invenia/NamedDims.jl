@@ -81,7 +81,7 @@ e.g. `expand_dimnames((:a, :b), :c) == (:a, :b, :c)`
 If `name` is already in `dimnames` then `dimnames` is returned.
 """
 function expand_dimnames(dimnames::Tuple, name::Symbol)
-    if dim_noerror(dimnames, name) > 0 # name in dimnames, but optimised
+    if dim_noerror(dimnames, name) > 0  # name in dimnames, but optimised
         return dimnames
     else
         return (dimnames..., name)
