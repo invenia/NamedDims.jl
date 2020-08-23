@@ -56,6 +56,10 @@ function Base.hcat(a::NamedDimsArray{L}) where L
     return NamedDimsArray{newL, T, N, Array{T,N}}(data)
 end
 
+function Base.hcat(a::NamedDimsArray{L}) where L
+    return Base.cat(a; dims=2)
+end
+
 Base.vcat(a::NamedDimsArray{L}) where L = a
 
 # Base.hcat and Base.vcat specialise on this Union
