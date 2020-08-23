@@ -25,16 +25,6 @@ function Base.cat(a::AbstractArray, b::NamedDimsArray{L}; dims) where L
     return NamedDimsArray{newL, T, N, Array{T,N}}(data)
 end
 
-function Base.cat(a::NamedDimsArray{La}, b::NamedDimsArray{Lb}; dims) where {La, Lb}
-    combL = unify_names_shortest(La, Lb)
-    newL = expand_dimnames(combL, dims)
-    numerical_dims = dim(newL, dims)
-    data = Base.cat(parent(a), parent(b); dims=numerical_dims)
-    T = promote_type(eltype(a), eltype(b))
-    N = length(newL)
-    return NamedDimsArray{newL, T, N, Array{T,N}}(data)
-end
-
 # to dispatch on the first or the second argument being the NDA
 for (T, S) in [
     (:NamedDimsArray, :AbstractArray),
@@ -43,7 +33,13 @@ for (T, S) in [
     ]
 
     @eval function Base.cat(a::$T, b::$S, c::AbstractArray...; dims)
-        return Base.cat(a, Base.cat(b, Base.cat(c...; dims=dims); dims=dims); dims=dims)
+        combL = unify_names_shortest(dimnames(a), dimnames(b), ntuple(i->dimnames(c[i]), length(c))...)
+        newL = expand_dimnames(combL, dims)
+        numerical_dims = dim(combL, dims)
+        data = Base.cat(parent(a), parent(b), ntuple(i->parent(c[i]), length(c))...; dims=numerical_dims)
+        T = promote_type(eltype(a), eltype(b), ntuple(i->eltype(c[i]), length(c))...)
+        N = length(newL)
+        return NamedDimsArray{newL, T, N, Array{T,N}}(data)
     end
 end
 
