@@ -274,6 +274,10 @@ function unify_names_longest(names_a, names_b)
     return compile_time_return_hack(ret)
 end
 
+function unify_names_longest(names_a, names_b, names_c::Vararg{<:NTuple{Nd, Symbol} where Nd, N}) where N
+    return unify_names_longest(names_a, unify_names_longest(names_b, names_c...))
+end
+
 unify_names_shortest(names, ::Tuple{}) = ()
 unify_names_shortest(::Tuple{}, names) = ()
 unify_names_shortest(::Tuple{}, ::Tuple{}) = ()
@@ -292,6 +296,10 @@ function unify_names_shortest(names_a, names_b)
     end
     ret isa Tuple{Vararg{Symbol}} || incompatible_dimension_error(names_a, names_b)
     return compile_time_return_hack(ret)
+end
+
+function unify_names_shortest(names_a, names_b, names_c::Vararg{<:NTuple{Nd, Symbol} where Nd, N}) where N
+    return unify_names_shortest(names_a, unify_names_shortest(names_b, names_c...))
 end
 
 # The following are helpers for remaining_dimnames_from_indexing

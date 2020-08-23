@@ -46,12 +46,16 @@ end
     @test unify_names_longest((:a,), (:a, :b,)) == (:a, :b)
     @test unify_names_longest((:a,), (:a, :_)) == (:a, :_)
     @test unify_names_longest((:a, :b), (:a, :_, :c)) == (:a, :b, :c)
+    @test unify_names_longest((:a,), (:a, :b), (:a, :_, :c)) == (:a, :b, :c)
+
+    @test_throws DimensionMismatch unify_names_longest((:a, :b, :c), (:b, :a))
 
     @test unify_names_shortest((:a,), (:a, :b,)) == (:a,)
     @test unify_names_shortest((:a,), (:a, :_)) == (:a,)
     @test unify_names_shortest((:a, :b), (:a, :_, :c)) == (:a, :b)
+    @test unify_names_shortest((:a,), (:a, :b), (:a, :_, :c)) == (:a,)
 
-    @test_throws DimensionMismatch unify_names_longest((:a, :b, :c), (:b, :a))
+    @test_throws DimensionMismatch unify_names_shortest((:a, :b, :c), (:b, :a))
 
     for unify in (unify_names, unify_names_longest, unify_names_shortest)
         @test unify((:a,), (:a,)) == (:a,)
@@ -84,11 +88,15 @@ end
     if VERSION >= v"1.1"
         @test 0 == @ballocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
         @test 0 == @ballocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
+        @test 0 == @ballocated (()->unify_names_longest((:a,), (:a, :b), (:a, :_, :c)))()
+        @test 0 == @ballocated (()->unify_names_shortest((:a,), (:a, :b), (:a, :_, :c)))()
         @test 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :_)))()
         @test 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :c)))()
     else
         @test_broken 0 == @ballocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
         @test_broken 0 == @ballocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
+        @test_broken 0 == @ballocated (()->unify_names_longest((:a,), (:a, :b), (:a, :_, :c)))()
+        @test_broken 0 == @ballocated (()->unify_names_shortest((:a,), (:a, :b), (:a, :_, :c)))()
         @test_broken 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :_)))()
         @test_broken 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :c)))()
     end
