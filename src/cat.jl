@@ -74,7 +74,12 @@ for (T, S) in [
 
     for (fun, d) in zip((:vcat, :hcat), (1, 2))
         @eval function Base.$fun(a::$T, b::$S)
-            return Base.cat(a, b; dims=$d)
+            combL = unify_names_shortest(dimnames(a), dimnames(b))
+            newL = expand_dimnames(combL, $d)
+            data = Base.$fun(parent(a), parent(b))
+            T = promote_type(eltype(a), eltype(b))
+            N = length(newL)
+            return NamedDimsArray{newL, T, N, Array{T,N}}(data)
         end
 
         @eval function Base.$fun(a::$T, b::$S, c::NamedDimsArray...)
