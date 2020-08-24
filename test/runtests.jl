@@ -10,6 +10,7 @@ const testfiles = (
     "functions.jl",
     "functions_dims.jl",
     "functions_math.jl",
+    "cat.jl",
     "broadcasting.jl",
     "tracker_compat.jl",
 )

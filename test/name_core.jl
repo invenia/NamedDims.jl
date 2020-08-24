@@ -5,6 +5,7 @@ using NamedDims:
     unify_names_longest,
     unify_names_shortest,
     dim_noerror,
+    expand_dimnames,
     tuple_issubset,
     tuple_cat,
     names_are_unifiable,
@@ -45,12 +46,16 @@ end
     @test unify_names_longest((:a,), (:a, :b,)) == (:a, :b)
     @test unify_names_longest((:a,), (:a, :_)) == (:a, :_)
     @test unify_names_longest((:a, :b), (:a, :_, :c)) == (:a, :b, :c)
+    @test unify_names_longest((:a,), (:a, :b), (:a, :_, :c)) == (:a, :b, :c)
+
+    @test_throws DimensionMismatch unify_names_longest((:a, :b, :c), (:b, :a))
 
     @test unify_names_shortest((:a,), (:a, :b,)) == (:a,)
     @test unify_names_shortest((:a,), (:a, :_)) == (:a,)
     @test unify_names_shortest((:a, :b), (:a, :_, :c)) == (:a, :b)
+    @test unify_names_shortest((:a,), (:a, :b), (:a, :_, :c)) == (:a,)
 
-    @test_throws DimensionMismatch unify_names_longest((:a, :b, :c), (:b, :a))
+    @test_throws DimensionMismatch unify_names_shortest((:a, :b, :c), (:b, :a))
 
     for unify in (unify_names, unify_names_longest, unify_names_shortest)
         @test unify((:a,), (:a,)) == (:a,)
@@ -83,17 +88,60 @@ end
     if VERSION >= v"1.1"
         @test 0 == @ballocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
         @test 0 == @ballocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
+        @test 0 == @ballocated (()->unify_names_longest((:a,), (:a, :b), (:a, :_, :c)))()
+        @test 0 == @ballocated (()->unify_names_shortest((:a,), (:a, :b), (:a, :_, :c)))()
         @test 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :_)))()
         @test 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :c)))()
     else
         @test_broken 0 == @ballocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
         @test_broken 0 == @ballocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
+        @test_broken 0 == @ballocated (()->unify_names_longest((:a,), (:a, :b), (:a, :_, :c)))()
+        @test_broken 0 == @ballocated (()->unify_names_shortest((:a,), (:a, :b), (:a, :_, :c)))()
         @test_broken 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :_)))()
         @test_broken 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :c)))()
     end
     @test 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :b)))()
 end
 
+@testset "expand_dimnames" begin
+    @testset "single symbol" begin
+        @test expand_dimnames((), :x) == (:x,)
+        @test expand_dimnames((:x,), ()) == (:x,)
+
+        @test expand_dimnames((:x, :y), :x) == (:x, :y)
+        @test expand_dimnames((:x, :y), :z) == (:x, :y, :z)
+    end
+
+    @testset "multiple symbols" begin
+        @test expand_dimnames((), (:x, :y)) == (:x, :y)
+        @test expand_dimnames((:x, :y), (:z, :w)) == (:x, :y, :z, :w)
+        @test expand_dimnames((:x, :y), (:x, :w)) == (:x, :y, :w)
+    end
+
+    @testset "numbers et al" begin
+        @test expand_dimnames((:x, :y), 1) == (:x, :y)
+        @test expand_dimnames((:x, :y), 3) == (:x, :y, :_)
+        @test expand_dimnames((:x, :y), (1, 3)) == (:x, :y, :_)
+        @test expand_dimnames((:x, :y), :) == (:x, :y)
+        @test expand_dimnames((:x, :y), ()) == (:x, :y)
+    end
+end
+
+@testset "allocations: expand_dims" begin
+    @testset "names" begin
+        @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), :x))()
+        @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), :z))()
+        @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), (:x, :z)))()
+    end
+
+    @testset "numbers et al" begin
+        @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), 1))()
+        @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), 5))()
+        @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), (1, 5)))()
+        @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), :))()
+        @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), ()))()
+    end
+end
 
 @testset "order_named_inds" begin
     @test order_named_inds(Val((:x,))) == (:,)

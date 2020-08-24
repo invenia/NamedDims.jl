@@ -71,6 +71,40 @@ Base.@pure function dim_noerror(dimnames::Tuple{Vararg{Symbol, N}}, name::Symbol
     return 0
 end
 
+"""
+    expand_dimnames(dimnames, name)
+
+For `dimnames` being a tuple of names (symbols) for the dimensions.
+and `name` being a name.
+This expands the `dimnames` if `name` is not in `dimnames`.
+e.g. `expand_dimnames((:a, :b), :c) == (:a, :b, :c)`
+If `name` is already in `dimnames` then `dimnames` is returned.
+"""
+function expand_dimnames(dimnames::Tuple, name::Symbol)
+    if dim_noerror(dimnames, name) > 0  # name in dimnames, but optimised
+        return dimnames
+    else
+        return (dimnames..., name)
+    end
+end
+
+function expand_dimnames(dimnames::Tuple, name::Union{Colon, Tuple{}})
+    return dimnames
+end
+
+function expand_dimnames(dimnames::Tuple, name::Integer)
+    if name <= length(dimnames)
+        return dimnames
+    else
+        extra_length = name - length(dimnames)
+        new_dimnames = ntuple(i->:_, extra_length)
+        return (dimnames..., new_dimnames...)
+    end
+end
+
+function expand_dimnames(dimnames::Tuple, names)
+    expand_dimnames(expand_dimnames(dimnames, names[1]), names[2:end])
+end
 
 
 """
@@ -240,6 +274,10 @@ function unify_names_longest(names_a, names_b)
     return compile_time_return_hack(ret)
 end
 
+function unify_names_longest(names_a, names_b, names_c::Vararg{<:NTuple{Nd, Symbol} where Nd, N}) where N
+    return unify_names_longest(names_a, unify_names_longest(names_b, names_c...))
+end
+
 unify_names_shortest(names, ::Tuple{}) = ()
 unify_names_shortest(::Tuple{}, names) = ()
 unify_names_shortest(::Tuple{}, ::Tuple{}) = ()
@@ -258,6 +296,10 @@ function unify_names_shortest(names_a, names_b)
     end
     ret isa Tuple{Vararg{Symbol}} || incompatible_dimension_error(names_a, names_b)
     return compile_time_return_hack(ret)
+end
+
+function unify_names_shortest(names_a, names_b, names_c::Vararg{<:NTuple{Nd, Symbol} where Nd, N}) where N
+    return unify_names_shortest(names_a, unify_names_shortest(names_b, names_c...))
 end
 
 # The following are helpers for remaining_dimnames_from_indexing
