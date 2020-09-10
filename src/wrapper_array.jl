@@ -169,6 +169,10 @@ for f in (:getindex, :view, :dotview)
                 return NamedDimsArray{L}(data)
             end
         end
+
+        @propagate_inbounds function Base.$f(a::NamedDimsArray, mapping::Union{NamedTuple,AbstractDict})
+            Base.$f(a; mapping...)
+        end
     end
 end
 
@@ -183,4 +187,8 @@ end
 
 @propagate_inbounds function Base.setindex!(a::NamedDimsArray, value, inds...)
     return setindex!(parent(a), value, inds...)
+end
+
+@propagate_inbounds function Base.setindex!(a::NamedDimsArray, value, inds::Union{AbstractDict,NamedTuple})
+    return setindex!(a, value; inds...)
 end
