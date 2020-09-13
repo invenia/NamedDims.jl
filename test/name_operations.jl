@@ -53,4 +53,21 @@ end
 
     @test dimnames(new_nda) === (:w, :x, :y, :z)
     @test parent(new_nda) === parent(nda)
+
+    pair = :a => :w
+    @test dimnames(rename(nda, pair)) === (:w, :b, :c, :d)
+    @test parent(rename(nda, pair)) === parent(nda)
+
+    pairs = (:a => :w, :b => :x, :c => :y, :d => :z)
+    @test dimnames(rename(nda, pairs...)) === (:w, :x, :y, :z)
+    @test parent(rename(nda, pairs...)) === parent(nda)
+
+    # parallel (rather than consecutive) computation of pairs, as in Base.replace
+    ppairs = (:a => :b, :b => :x)
+    @test dimnames(rename(nda, ppairs...)) === (:b, :x, :c, :d) # rather than (:x, :x, :c, :d)
+    @test parent(rename(nda, ppairs...)) === parent(nda)
+end
+
+@testset "rename allocations" begin
+    @test 0 == @ballocated (()->NamedDims._rename((:a, :b), :a => :x, :b => :y))()
 end
