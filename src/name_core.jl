@@ -128,6 +128,26 @@ function permute_dimnames(dimnames::NTuple{N, Symbol}, perm) where N
 end
 
 """
+    _rename(names::Tuple{Vararg{Symbol}}, old_new::Vararg{Pair{Symbol, Symbol}})
+    _rename(name::Symbol, old_new::Vararg{Pair{Symbol, Symbol}})
+
+For each pair `old=>new`, replace all occurences of `old` in tuple `namea` with `new`.
+If `name` is a Symbol, replace it with `new` of the pair with matching `old`, or
+return `name` if no pairs match.
+"""
+function _rename(names::Tuple{Vararg{Symbol}}, old_new::Vararg{Pair{Symbol, Symbol}})
+    return ntuple(i -> _rename(names[i], old_new...), length(names))
+end
+
+function _rename(name::Symbol, old_new::Vararg{Pair{Symbol, Symbol}})
+    # Avoid looping over pairs explicitly because that allocates.
+    nt = ntuple(i -> name === first(old_new[i]) ? i : 0, length(old_new))
+    which = sum(nt)
+    which > length(old_new) && throw(ArgumentError("`old_new` needs unique `old` items"))
+    return which == 0 ? name : last(old_new[which])
+end
+
+"""
     tuple_issubset
 A version of `is_subset` sepecifically for `Tuple`s of `Symbol`s, that is `@pure`.
 This helps it get optimised out of existance. It is less of an abuse of `@pure` than
