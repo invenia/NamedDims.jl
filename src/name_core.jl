@@ -143,7 +143,7 @@ function _rename(dimname::Symbol, old_new::Vararg{Pair})
     # Avoid looping over pairs explicitly because that allocates.
     nt = ntuple(i -> dimname === first(old_new[i]) ? i : 0, length(old_new))
     which = sum(nt)
-    which > length(old_new) && throw(ArgumentError("`old_new` needs unique `old` items"))
+    which > length(old_new) && throw(ArgumentError("Duplicate old names not permitted in `rename`"))
     return which == 0 ? dimname : last(old_new[which])
 end
 
