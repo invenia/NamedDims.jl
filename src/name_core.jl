@@ -127,6 +127,11 @@ function permute_dimnames(dimnames::NTuple{N, Symbol}, perm) where N
     return compile_time_return_hack(new_dimnames)
 end
 
+function permute_dimnames(dimnames::NTuple{N, Symbol}, perm::NTuple{N, Symbol}) where N
+    :
+
+end
+
 """
     tuple_issubset
 A version of `is_subset` sepecifically for `Tuple`s of `Symbol`s, that is `@pure`.
