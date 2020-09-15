@@ -11,8 +11,6 @@ matrix:
   allow_failures:
     - julia: nightly
   fast_finish: true
-notifications:
-  email: false
 after_success:
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
 jobs:
@@ -25,3 +23,10 @@ jobs:
           Pkg.instantiate();
           include("docs/make.jl");'
       after_success: skip
+notifications:
+  email:
+    recipients:
+      - nightly-rse@invenia.ca
+    on_success: never
+    on_failure: always
+    if: type = cron
