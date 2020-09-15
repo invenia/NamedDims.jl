@@ -69,5 +69,5 @@ end
 end
 
 @testset "rename allocations" begin
-    @test 0 == @ballocated (()->NamedDims._rename((:a, :b), :a => :x, :b => :y))()
+    @test_modern 0 == @ballocated (()->NamedDims._rename((:a, :b), :a => :x, :b => :y))()
 end
