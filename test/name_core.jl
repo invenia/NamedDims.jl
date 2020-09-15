@@ -15,7 +15,6 @@ using NamedDims:
     remaining_dimnames_after_dropping
 using Test
 
-
 @testset "dim" begin
     @testset "small case" begin
         @test dim((:x, :y), :x) == 1
@@ -32,11 +31,7 @@ end
 @testset "allocations: dim" begin
     @test 0 == @ballocated (()->dim((:a, :b), :b))()
     @test 0 == @ballocated (()->dim_noerror((:a, :b, :c), :c))()
-    if VERSION >= v"1.1"
-        @test 0 == @ballocated (()->dim((:a,:b), (:a,:b)))()
-    else
-        @test_broken 0 == @ballocated (()->dim((:a,:b), (:a,:b)))()
-    end
+    @test_modern 0 == @ballocated (()->dim((:a,:b), (:a,:b)))()
 end
 
 
@@ -79,27 +74,14 @@ end
 end
 @testset "allocations: unify_names_*" begin
     for unify in (unify_names, unify_names_longest, unify_names_shortest)
-        if VERSION >= v"1.1"
-            @test 0 == @ballocated (()->$unify((:a, :b), (:a, :_)))()
-        else
-            @test_broken 0 == @ballocated (()->$unify((:a, :b), (:a, :_)))()
-        end
+        @test_modern 0 == @ballocated (()->$unify((:a, :b), (:a, :_)))()
     end
-    if VERSION >= v"1.1"
-        @test 0 == @ballocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
-        @test 0 == @ballocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
-        @test 0 == @ballocated (()->unify_names_longest((:a,), (:a, :b), (:a, :_, :c)))()
-        @test 0 == @ballocated (()->unify_names_shortest((:a,), (:a, :b), (:a, :_, :c)))()
-        @test 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :_)))()
-        @test 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :c)))()
-    else
-        @test_broken 0 == @ballocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
-        @test_broken 0 == @ballocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
-        @test_broken 0 == @ballocated (()->unify_names_longest((:a,), (:a, :b), (:a, :_, :c)))()
-        @test_broken 0 == @ballocated (()->unify_names_shortest((:a,), (:a, :b), (:a, :_, :c)))()
-        @test_broken 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :_)))()
-        @test_broken 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :c)))()
-    end
+    @test_modern 0 == @ballocated (()->unify_names_longest((:a, :b), (:a, :_, :c)))()
+    @test_modern 0 == @ballocated (()->unify_names_shortest((:a, :b), (:a, :_, :c)))()
+    @test_modern 0 == @ballocated (()->unify_names_longest((:a,), (:a, :b), (:a, :_, :c)))()
+    @test_modern 0 == @ballocated (()->unify_names_shortest((:a,), (:a, :b), (:a, :_, :c)))()
+    @test_modern 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :_)))()
+    @test_modern 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :c)))()
     @test 0 == @ballocated (()->names_are_unifiable((:a, :b), (:a, :b)))()
 end
 
@@ -131,13 +113,13 @@ end
     @testset "names" begin
         @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), :x))()
         @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), :z))()
-        @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), (:x, :z)))()
+        @test_modern 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), (:x, :z)))()
     end
 
     @testset "numbers et al" begin
         @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), 1))()
         @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), 5))()
-        @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), (1, 5)))()
+        @test_modern 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), (1, 5)))()
         @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), :))()
         @test 0 == @ballocated (()->NamedDims.expand_dimnames((:x, :y), ()))()
     end
@@ -203,9 +185,7 @@ end
     @test_throws BoundsError permute_dimnames((:a, :b), (1, 0))
 end
 @testset "allocations: permute_dimnames" begin
-    if VERSION >= v"1.1"
-        @test 0 == @ballocated permute_dimnames((:a,:b,:c), (1,3,2))
-    end
+    @test_modern 0 == @ballocated permute_dimnames((:a,:b,:c), (1,3,2))
 end
 
 

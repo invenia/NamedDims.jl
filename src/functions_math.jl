@@ -44,7 +44,7 @@ function Base.:*(a::NamedDimsArray{L,T,2,<:CoVector}, b::AbstractVector) where {
 end
 
 # Using `CoVector` results in Method ambiguities; have to define more specific methods.
-for A in (Adjoint{<:Any, <:AbstractVector}, Transpose{<:Real, <:AbstractVector{<:Real}})
+for A in (Adjoint{<:Number, <:AbstractVector}, Transpose{<:Real, <:AbstractVector{<:Real}})
     @eval function Base.:*(a::$A, b::NamedDimsArray{L,T,1,<:AbstractVector{T}}) where {L,T}
         return *(a, parent(b))
     end

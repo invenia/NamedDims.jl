@@ -3,6 +3,8 @@ using BenchmarkTools
 using SparseArrays
 using Test
 
+include("test_helpers.jl")
+
 const testfiles = (
     "name_core.jl",
     "wrapper_array.jl",
