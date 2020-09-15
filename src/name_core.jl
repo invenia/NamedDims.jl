@@ -84,7 +84,7 @@ function expand_dimnames(dimnames::Tuple, name::Symbol)
     if dim_noerror(dimnames, name) > 0  # name in dimnames, but optimised
         return dimnames
     else
-        return (dimnames..., name)
+        return compile_time_return_hack((dimnames..., name))
     end
 end
 
@@ -98,14 +98,16 @@ function expand_dimnames(dimnames::Tuple, name::Integer)
     else
         extra_length = name - length(dimnames)
         new_dimnames = ntuple(i->:_, extra_length)
-        return (dimnames..., new_dimnames...)
+        return compile_time_return_hack((dimnames..., new_dimnames...))
     end
 end
 
 function expand_dimnames(dimnames::Tuple, names)
-    expand_dimnames(expand_dimnames(dimnames, names[1]), names[2:end])
+    return expand_dimnames(
+        expand_dimnames(dimnames, first(names)),
+        Base.tail(names),
+    )
 end
-
 
 """
     permute_dimnames(dimnames, perm)
