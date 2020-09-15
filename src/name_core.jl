@@ -80,32 +80,34 @@ This expands the `dimnames` if `name` is not in `dimnames`.
 e.g. `expand_dimnames((:a, :b), :c) == (:a, :b, :c)`
 If `name` is already in `dimnames` then `dimnames` is returned.
 """
-function expand_dimnames(dimnames::Tuple, name::Symbol)
+@inline function expand_dimnames(dimnames::Tuple, name::Symbol)
     if dim_noerror(dimnames, name) > 0  # name in dimnames, but optimised
         return dimnames
     else
-        return (dimnames..., name)
+        return compile_time_return_hack((dimnames..., name))
     end
 end
 
-function expand_dimnames(dimnames::Tuple, name::Union{Colon, Tuple{}})
+@inline function expand_dimnames(dimnames::Tuple, name::Union{Colon, Tuple{}})
     return dimnames
 end
 
-function expand_dimnames(dimnames::Tuple, name::Integer)
+@inline function expand_dimnames(dimnames::Tuple, name::Integer)
     if name <= length(dimnames)
         return dimnames
     else
         extra_length = name - length(dimnames)
         new_dimnames = ntuple(i->:_, extra_length)
-        return (dimnames..., new_dimnames...)
+        return compile_time_return_hack((dimnames..., new_dimnames...))
     end
 end
 
-function expand_dimnames(dimnames::Tuple, names)
-    expand_dimnames(expand_dimnames(dimnames, names[1]), names[2:end])
+@inline function expand_dimnames(dimnames::Tuple, names)
+    return expand_dimnames(
+        expand_dimnames(dimnames, first(names)),
+        Base.tail(names),
+    )
 end
-
 
 """
     permute_dimnames(dimnames, perm)
