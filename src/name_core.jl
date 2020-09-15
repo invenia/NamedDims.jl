@@ -128,8 +128,14 @@ function permute_dimnames(dimnames::NTuple{N, Symbol}, perm) where N
 end
 
 function permute_dimnames(dimnames::NTuple{N, Symbol}, perm::NTuple{N, Symbol}) where N
-    :
-
+    # check dimnames and perm are compatible
+    fixed_pos = Tuple(s for s in perm if s != :_)
+    println("fixed_pos", fixed_pos)
+    orig_rest = [s for s in dimnames if !in(s, fixed_pos)]
+    println("orig rest ", orig_rest)
+    new_names = ntuple(i -> perm[i] == :_ ? popfirst!(orig_rest) : perm[i], length(perm))
+    println(new_names)
+    return new_names
 end
 
 """

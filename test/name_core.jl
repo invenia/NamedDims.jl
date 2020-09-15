@@ -202,19 +202,23 @@ end
     @test_throws BoundsError permute_dimnames((:a, :b, :c), (30, 30, 30))
     @test_throws BoundsError permute_dimnames((:a, :b), (1, 0))
 
-    @test permute_dimnames((:a,), (:_)) == (:a,)
+    @test permute_dimnames((:a,), (:_,)) == (:a,)
     @test permute_dimnames((:_,), (:a,)) == (:a,)
+
     @test permute_dimnames((:a, :b), (:_,:b)) == (:a, :b)
     @test permute_dimnames((:a, :b), (:a, :_)) == (:a, :b)
     @test permute_dimnames((:a, :b), (:_, :_)) == (:a, :b)
     @test permute_dimnames((:_, :b), (:_, :b)) == (:_, :b)
     @test permute_dimnames((:_, :b), (:a, :b)) == (:a, :b)
     @test permute_dimnames((:_, :b), (:a, :_)) == (:a, :b)
+
     @test permute_dimnames((:_, :_, :c), (:_, :_, :c)) == (:_, :_, :c)
     @test permute_dimnames((:_, :_, :c), (:_, :c, :_)) == (:_, :c, :_)
     @test permute_dimnames((:_, :_, :c), (:c, :_, :_)) == (:c, :_, :_)
     @test permute_dimnames((:a, :b, :c), (:c, :_, :a)) == (:c, :b, :a)
     @test permute_dimnames((:_, :_, :c), (:c, :a, :b)) == (:c, :a, :b)
+    @test permute_dimnames((:a, :b, :c), (:c, :_, :_)) == (:c, :a, :b)
+    @test permute_dimnames((:a, :_, :c), (:c, :_, :_)) == (:c, :a, :_)
 end
 @testset "allocations: permute_dimnames" begin
     if VERSION >= v"1.1"
