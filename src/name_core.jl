@@ -80,7 +80,7 @@ This expands the `dimnames` if `name` is not in `dimnames`.
 e.g. `expand_dimnames((:a, :b), :c) == (:a, :b, :c)`
 If `name` is already in `dimnames` then `dimnames` is returned.
 """
-@inline function expand_dimnames(dimnames::Tuple, name::Symbol)
+function expand_dimnames(dimnames::Tuple, name::Symbol)
     if dim_noerror(dimnames, name) > 0  # name in dimnames, but optimised
         return dimnames
     else
@@ -88,11 +88,11 @@ If `name` is already in `dimnames` then `dimnames` is returned.
     end
 end
 
-@inline function expand_dimnames(dimnames::Tuple, name::Union{Colon, Tuple{}})
+function expand_dimnames(dimnames::Tuple, name::Union{Colon, Tuple{}})
     return dimnames
 end
 
-@inline function expand_dimnames(dimnames::Tuple, name::Integer)
+function expand_dimnames(dimnames::Tuple, name::Integer)
     if name <= length(dimnames)
         return dimnames
     else
@@ -102,7 +102,7 @@ end
     end
 end
 
-@inline function expand_dimnames(dimnames::Tuple, names)
+function expand_dimnames(dimnames::Tuple, names)
     return expand_dimnames(
         expand_dimnames(dimnames, first(names)),
         Base.tail(names),
