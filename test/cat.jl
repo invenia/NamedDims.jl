@@ -94,6 +94,16 @@ for (f, d) in zip((vcat, hcat), (1, 2))
             @test dimnames(f(a, nda)) == dimnames(cat(a, nda; dims=d))
         end
     end
+    @testset "more than 2 dimensions" begin
+        ndt = NamedDimsArray(rand(Int8,2,2,2), (:x, :y, :z))
+
+        @test dimnames(hcat(ndt, ndt, parent(ndt))) == (:x, :y, :z)
+        @test dimnames(cat(ndt, ndt, parent(ndt), dims=:y)) == (:x, :y, :z)
+
+        @test_throws Exception hcat(ndt, parent(ndt), permutedims(ndt, (3,2,1)))
+        @test_throws Exception cat(ndt, parent(ndt), permutedims(ndt, (3,2,1)), dims=2)
+
+    end
 end
 
 @testset "tricky cases" begin
