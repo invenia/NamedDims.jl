@@ -60,6 +60,7 @@ Base.parent(x::NamedDimsArray) = getfield(x, :data)
 
 dim(a::NamedDimsArray{L}, name) where L = dim(L, name)
 
+NamedDimsVecOrMat{L,T} = Union{NamedDimsArray{L,T,1}, NamedDimsArray{L,T,2}}
 
 #############################
 # AbstractArray Interface
