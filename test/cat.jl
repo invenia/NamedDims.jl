@@ -104,29 +104,26 @@ for (f, d) in zip((vcat, hcat), (1, 2))
         @test_throws Exception cat(ndt, parent(ndt), permutedims(ndt, (3,2,1)), dims=2)
 
     end
-end
+    @testset "tricky cases" begin
+        r23 = rand(Int8, 2,3)
+        nda = NamedDimsArray(rand(2,3), (:x, :y))
+        ndv = NamedDimsArray(rand(2), (:x,))
 
-@testset "tricky cases" begin
+        @test dimnames(hcat(nda, ndv)) == (:x, :y)
+        @test dimnames(cat(nda, ndv, dims=2)) == (:x, :y)
 
-    r23 = rand(Int8, 2,3)
-    nda = NamedDimsArray(rand(2,3), (:x, :y))
-    ndv = NamedDimsArray(rand(2), (:x,))
+        @test dimnames(hcat(r23', nda', nda')) == (:y, :x)
+        @test dimnames(cat(r23', nda', nda', dims=2)) == (:y, :x)
 
-    @test dimnames(hcat(nda, ndv)) == (:x, :y)
-    @test dimnames(cat(nda, ndv, dims=2)) == (:x, :y)
+        @test_throws Exception hcat(nda, r23')
+        @test_throws Exception cat(nda, r23', dims=2)
 
-    @test dimnames(hcat(r23', nda', nda')) == (:y, :x)
-    @test dimnames(cat(r23', nda', nda', dims=2)) == (:y, :x)
+        @test size(cat(nda', r23', nda', dims=(:x, :y))) == (9,6)
+        @test dimnames(cat(nda', r23', nda', dims=(1,2))) == (:y, :x)
 
-    @test_throws Exception hcat(nda, r23')
-    @test_throws Exception cat(nda, r23', dims=2)
+        @test dimnames(cat(1:2, ndv, [5 6]', dims=:z)) == (:x, :_, :z)
 
-    @test size(cat(nda', r23', nda', dims=(:x, :y))) == (9,6)
-    @test dimnames(cat(nda', r23', nda', dims=(1,2))) == (:y, :x)
-
-    @test dimnames(cat(1:2, ndv, [5 6]', dims=:z)) == (:x, :_, :z)
-
-    vcat(pi, ndv) # does not at present have names
-    vcat(ndv, pi)
-
+        vcat(pi, ndv) # does not at present have names
+        vcat(ndv, pi)
+    end
 end
