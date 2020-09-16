@@ -1,15 +1,23 @@
-# This file is for functions that are new functions sepecifically for workin with
+# This file is for functions that are new functions specifically for working with
 # NamedDimsArrays, rather than overloads of existing functions
 
 """
     rename(nda::NamedDimsArray, names)
+    rename(nda::NamedDimsArray, pairs)
 
-Returns a new `NameDimsArray` with the given dimension `names`.
+Returns a new `NamedDimsArray` with the given dimension `names` or `pairs`
+of `old=>new` names.
 `rename` outright replaces the names; while still wrapping the same backing array.
 Unlike the constructor, it does not require that new names are compatible
 with the old names (though you do still need to match the number of dimensions).
 """
 rename(nda::NamedDimsArray, names) = NamedDimsArray(parent(nda), names)
+
+function rename(nda::NamedDimsArray, pairs::Vararg{Pair{Symbol, Symbol}})
+    names = dimnames(nda)
+    new_names = ntuple(i -> _rename(names[i], pairs...), length(names))
+    return NamedDimsArray(parent(nda), new_names)
+end
 
 """
     refine_names(x, names)
