@@ -2,9 +2,7 @@ function Base.cat(a::NamedDimsArray{L}; dims) where L
     newL = expand_dimnames(L, dims)
     numerical_dims = dim(newL, dims)
     data = Base.cat(parent(a); dims=numerical_dims) # Base.cat is type unstable
-    T = eltype(a)  # therefore the element type has to be inferred manually
-    N = length(newL)  # as must the size of the array
-    return NamedDimsArray{newL, eltype(data), ndims(data), typeof(data)}(data)
+    return NamedDimsArray{newL}(data)
 end
 
 # While the following two functions are covered by the general case below where splatted c
@@ -37,14 +35,14 @@ for (T, S) in [
         newL = expand_dimnames(combL, dims)
         numerical_dims = dim(newL, dims)
         data = Base.cat(unname(a), unname(b), unname.(cs)...; dims=numerical_dims)
-        return NamedDimsArray{newL, eltype(data), ndims(data), typeof(data)}(data)
+        return NamedDimsArray{newL}(data)
     end
 end
 
 function Base.hcat(a::NamedDimsArray{L}) where L
     newL = expand_dimnames(L, 2)
     data = Base.hcat(parent(a))
-    return NamedDimsArray{newL, eltype(a), ndims(data), typeof(data)}(data)
+    return NamedDimsArray{newL}(data)
 end
 
 Base.vcat(a::NamedDimsArray{L}) where L = a
@@ -60,7 +58,7 @@ for (T, S) in [
             combL = unify_names_longest(dimnames(a), dimnames(b), dimnames.(cs)...)
             newL = expand_dimnames(combL, $d)
             data = Base.$fun(unname(a), unname(b), unname.(cs)...)
-            return NamedDimsArray{newL, eltype(data), ndims(data), typeof(data)}(data)
+            return NamedDimsArray{newL}(data)
         end
     end
 end
