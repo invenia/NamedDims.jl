@@ -94,6 +94,9 @@ for (f, d) in zip((vcat, hcat), (1, 2))
             @test dimnames(f(a, nda)) == dimnames(cat(a, nda; dims=d))
         end
     end
+end
+
+@testset "more cats" begin
     @testset "more than 2 dimensions" begin
         ndt = NamedDimsArray(rand(Int8,2,2,2), (:x, :y, :z))
 
