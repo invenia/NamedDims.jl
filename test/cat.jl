@@ -93,6 +93,21 @@ for (f, d) in zip((vcat, hcat), (1, 2))
             @test dimnames(f(nda, a)) == dimnames(cat(nda, a; dims=d))
             @test dimnames(f(a, nda)) == dimnames(cat(a, nda; dims=d))
         end
+
+        @testset "reduce forms" begin
+            @test reduce(f, [nda, nda]) == f(nda, nda)
+            @test reduce(f, [ndv, ndv]) == f(ndv, ndv)
+
+            v1 = NamedDimsArray([a, a], dimnames(nda, d))
+            v2 = NamedDimsArray([a, nda, a, nda], dimnames(nda, d))
+            @test dimnames(reduce(f, v1), d) == dimnames(nda, d)
+            @test dimnames(reduce(f, v2)) == dimnames(nda)
+
+            v3 = NamedDimsArray([a, nda', a], dimnames(nda, d)) # inner mismatch outer
+            @test_throws Exception reduce(f, v3)
+
+            @test_throws Exception reduce(f, [nda, nda']) # inconsistent inner names
+        end
     end
 end
 
@@ -114,6 +129,7 @@ end
 
         @test dimnames(hcat(nda, ndv)) == (:x, :y)
         @test dimnames(cat(nda, ndv, dims=2)) == (:x, :y)
+        @test dimnames(reduce(hcat, [nda, ndv])) == (:x, :y)
 
         @test dimnames(hcat(r23', nda', nda')) == (:y, :x)
         @test dimnames(cat(r23', nda', nda', dims=2)) == (:y, :x)

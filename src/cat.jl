@@ -44,3 +44,25 @@ for (T, S) in [
         end
     end
 end
+
+for (f, nf, tf, tup) in [
+    (:vcat, :_named_vcat, :_typed_vcat, ()),
+    (:hcat, :_named_hcat, :_typed_hcat, (:_,)),
+    ]
+    @eval begin
+        Base.reduce(::typeof($f), A::AbstractVector{<:NamedDimsVecOrMat}) =
+            $nf(mapreduce(dimnames, unify_names_longest, A), A)
+        Base.reduce(::typeof($f), A::NamedDimsVector{<:Any,<:AbstractVecOrMat}) =
+            $nf(mapreduce(dimnames, unify_names_longest, A), A)
+        Base.reduce(::typeof($f), A::NamedDimsVector{<:Any,<:NamedDimsVecOrMat}) =
+            $nf(mapreduce(dimnames, unify_names_longest, A), A)
+
+        function $nf(Linner, A)
+            Louter = ($tup..., dimnames(A)...)
+            Lnew = unify_names_longest(Linner, Louter)
+            data = Base.$tf(mapreduce(eltype, promote_type, A), A) # same as Base
+            return NamedDimsArray{Lnew}(data)
+        end
+    end
+end
+
