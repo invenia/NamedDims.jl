@@ -63,6 +63,8 @@ function dim(dimnames::Tuple, d::Union{Integer, Colon})
     return d
 end
 
+dim(dimnames::Tuple, ::Val{d}) where {d} = dim(dimnames, d)
+
 Base.@pure function dim_noerror(dimnames::Tuple{Vararg{Symbol, N}}, name::Symbol) where N
     # 0-Allocations see: @btime  (()->dim_noerror((:a, :b, :c), :c))()
     for ii in 1:N
@@ -108,6 +110,9 @@ function expand_dimnames(dimnames::Tuple, names)
         Base.tail(names),
     )
 end
+
+expand_dimnames(dimnames::Tuple, ::Val{d}) where {d} = expand_dimnames(dimnames, d)
+
 
 """
     permute_dimnames(dimnames, perm)
