@@ -56,10 +56,10 @@ Gives wildcards `:_` if this is not a `NamedDimsArray`.
 Like `size(A, d)`, it allows `d > ndims(A)`, in this case all the trailing dimension are given the wildcard name (`:_`).
 """
 dimnames(::Type{<:NamedDimsArray{L}}) where {L} = L
-dimnames(::Type{<:AbstractArray{T, N}}) where {T, N} = ntuple(_->:_, N)
-dimnames(x::T) where T<:AbstractArray = dimnames(T)
+dimnames(::Type{<:AbstractArray{T, N}}) where {T, N} = ntuple(_ -> :_, N)
+dimnames(x::T) where {T <: AbstractArray} = dimnames(T)
 
-function dimnames(AT::Type{<:AbstractArray{T,N}}, d::Integer) where {T,N}
+function dimnames(AT::Type{<:AbstractArray{T, N}}, d::Integer) where {T, N}
     if 1 <= d <= N
         return dimnames(AT)[d]
     elseif d > N
@@ -68,4 +68,4 @@ function dimnames(AT::Type{<:AbstractArray{T,N}}, d::Integer) where {T,N}
         throw(DimensionMismatch("dimnames: dimension out of range"))
     end
 end
-dimnames(x::T, d::Integer) where T<:AbstractArray = dimnames(T, d)
+dimnames(x::T, d::Integer) where {T <: AbstractArray} = dimnames(T, d)
