@@ -184,24 +184,14 @@ function Base.collect(
     return NamedDimsArray(data, L)
 end
 
-function Base.collect(
-    x::Base.Generator{<:Iterators.ProductIterator{<:Tuple{<:NamedDimsArray,Vararg{Any}}}},
+for Tup in (
+    Tuple{<:NamedDimsArray,Vararg{Any}},
+    Tuple{<:Any,<:NamedDimsArray,Vararg{Any}},
+    Tuple{<:NamedDimsArray,<:NamedDimsArray,Vararg{Any}},
 )
-    return collect_product(x)
-end
-function Base.collect(
-    x::Base.Generator{<:Iterators.ProductIterator{<:Tuple{
-        <:Any,<:NamedDimsArray,Vararg{Any},
-    }}},
-)
-    return collect_product(x)
-end
-function Base.collect(
-    x::Base.Generator{<:Iterators.ProductIterator{<:Tuple{
-        <:NamedDimsArray,<:NamedDimsArray,Vararg{Any},
-    }}},
-)
-    return collect_product(x)
+    @eval function Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:Tup}})
+        return collect_product(x)
+    end
 end
 
 function collect_product(x)
