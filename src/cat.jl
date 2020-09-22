@@ -1,4 +1,4 @@
-function Base.cat(a::NamedDimsArray{L}; dims) where L
+function Base.cat(a::NamedDimsArray{L}; dims) where {L}
     newL = expand_dimnames(L, dims)
     numerical_dims = dim(newL, dims)
     data = Base.cat(parent(a); dims=numerical_dims) # Base.cat is type unstable
@@ -9,9 +9,8 @@ end
 for (T, S) in [
     (:NamedDimsArray, :AbstractArray),
     (:AbstractArray, :NamedDimsArray),
-    (:NamedDimsArray, :NamedDimsArray)
-    ]
-
+    (:NamedDimsArray, :NamedDimsArray),
+]
     @eval function Base.cat(a::$T, b::$S, cs::AbstractArray...; dims)
         combL = unify_names_longest(dimnames(a), dimnames(b), dimnames.(cs)...)
         newL = expand_dimnames(combL, dims)
@@ -21,21 +20,20 @@ for (T, S) in [
     end
 end
 
-function Base.hcat(a::NamedDimsArray{L}) where L
+function Base.hcat(a::NamedDimsArray{L}) where {L}
     newL = expand_dimnames(L, 2)
     data = Base.hcat(parent(a))
     return NamedDimsArray{newL}(data)
 end
 
-Base.vcat(a::NamedDimsArray{L}) where L = a
+Base.vcat(a::NamedDimsArray{L}) where {L} = a
 
 for (T, S) in [
     (:NamedDimsVecOrMat, :NamedDimsVecOrMat),
     (:NamedDimsVecOrMat, :AbstractVecOrMat),
     (:AbstractVecOrMat, :NamedDimsVecOrMat),
-    ]
+]
     for (fun, d) in zip((:vcat, :hcat), (1, 2))
-
         @eval function Base.$fun(a::$T, b::$S, cs::AbstractVecOrMat...)
             combL = unify_names_longest(dimnames(a), dimnames(b), dimnames.(cs)...)
             newL = expand_dimnames(combL, $d)
@@ -45,17 +43,18 @@ for (T, S) in [
     end
 end
 
-for (f, nf, tf, tup) in [
-    (:vcat, :_named_vcat, :_typed_vcat, ()),
-    (:hcat, :_named_hcat, :_typed_hcat, (:_,)),
-    ]
+for (f, nf, tf, tup) in
+    [(:vcat, :_named_vcat, :_typed_vcat, ()), (:hcat, :_named_hcat, :_typed_hcat, (:_,))]
     @eval begin
-        Base.reduce(::typeof($f), A::AbstractVector{<:NamedDimsVecOrMat}) =
-            $nf(mapreduce(dimnames, unify_names_longest, A), A)
-        Base.reduce(::typeof($f), A::NamedDimsVector{<:Any,<:AbstractVecOrMat}) =
-            $nf(mapreduce(dimnames, unify_names_longest, A), A)
-        Base.reduce(::typeof($f), A::NamedDimsVector{<:Any,<:NamedDimsVecOrMat}) =
-            $nf(mapreduce(dimnames, unify_names_longest, A), A)
+        function Base.reduce(::typeof($f), A::AbstractVector{<:NamedDimsVecOrMat})
+            return $nf(mapreduce(dimnames, unify_names_longest, A), A)
+        end
+        function Base.reduce(::typeof($f), A::NamedDimsVector{<:Any,<:AbstractVecOrMat})
+            return $nf(mapreduce(dimnames, unify_names_longest, A), A)
+        end
+        function Base.reduce(::typeof($f), A::NamedDimsVector{<:Any,<:NamedDimsVecOrMat})
+            return $nf(mapreduce(dimnames, unify_names_longest, A), A)
+        end
 
         function $nf(Linner, A)
             Louter = ($tup..., dimnames(A)...)
@@ -65,4 +64,3 @@ for (f, nf, tf, tup) in [
         end
     end
 end
-

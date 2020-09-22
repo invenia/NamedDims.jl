@@ -30,9 +30,7 @@ for (mod, funs) in (
 end
 
 # 1 Arg - no default for `dims` keyword
-for (mod, funs) in (
-    (:Base, (:cumsum, :cumprod, :sort, :sort!, :sortslices)),
-)
+for (mod, funs) in ((:Base, (:cumsum, :cumprod, :sort, :sort!, :sortslices)),)
     for fun in funs
         @eval function $mod.$fun(a::NamedDimsArray; dims, kwargs...)
             numerical_dims = dim(a, dims)
@@ -41,7 +39,7 @@ for (mod, funs) in (
         end
 
         # Vector case
-        @eval function $mod.$fun(a::NamedDimsArray{L, T, 1}; kwargs...) where {L, T}
+        @eval function $mod.$fun(a::NamedDimsArray{L,T,1}; kwargs...) where {L,T}
             data = $mod.$fun(parent(a); kwargs...)
             return NamedDimsArray{dimnames(a)}(data)
         end
@@ -49,7 +47,7 @@ for (mod, funs) in (
 end
 
 if VERSION > v"1.1-"
-    function Base.eachslice(a::NamedDimsArray{L}; dims, kwargs...) where L
+    function Base.eachslice(a::NamedDimsArray{L}; dims, kwargs...) where {L}
         numerical_dims = dim(a, dims)
         slices = eachslice(parent(a); dims=numerical_dims, kwargs...)
         return Base.Generator(slices) do slice
@@ -62,9 +60,7 @@ if VERSION > v"1.1-"
 end
 
 # 1 arg before - no default for `dims` keyword
-for (mod, funs) in (
-    (:Base, (:mapslices,)),
-)
+for (mod, funs) in ((:Base, (:mapslices,)),)
     for fun in funs
         @eval function $mod.$fun(f, a::NamedDimsArray; dims, kwargs...)
             numerical_dims = dim(a, dims)
@@ -75,9 +71,7 @@ for (mod, funs) in (
 end
 
 # 2 arg before
-for (mod, funs) in (
-    (:Base, (:mapreduce,)),
-)
+for (mod, funs) in ((:Base, (:mapreduce,)),)
     for fun in funs
         @eval function $mod.$fun(f1, f2, a::NamedDimsArray; dims=:, kwargs...)
             numerical_dims = dim(a, dims)
@@ -91,18 +85,18 @@ end
 # Non-dim Overloads
 
 for fun in (:(==), :isequal, :isapprox)
-    @eval function Base.$fun(a::NamedDimsArray{La}, b::NamedDimsArray{Lb}; kw...) where {La, Lb}
+    @eval function Base.$fun(
+        a::NamedDimsArray{La}, b::NamedDimsArray{Lb}; kw...,
+    ) where {La,Lb}
         names_are_unifiable(La, Lb) || return false
         return $fun(parent(a), parent(b); kw...)
     end
 end
 
 # Array then perhaps other args
-for (mod, funs) in (
-    (:Base, (:zero, :one, :copy, :empty!, :push!, :pushfirst!)),
-)
+for (mod, funs) in ((:Base, (:zero, :one, :copy, :empty!, :push!, :pushfirst!)),)
     for fun in funs
-        @eval function $mod.$fun(a::NamedDimsArray{L}, x...) where L
+        @eval function $mod.$fun(a::NamedDimsArray{L}, x...) where {L}
             data = $mod.$fun(parent(a), x...)
             return NamedDimsArray{L}(data)
         end
@@ -110,24 +104,22 @@ for (mod, funs) in (
 end
 
 # Two arrays
-for (mod, funs) in (
-    (:Base, (:sum!, :prod!, :maximum!, :minimum!)),
-)
+for (mod, funs) in ((:Base, (:sum!, :prod!, :maximum!, :minimum!)),)
     for fun in funs
         @eval begin
 
-            function $mod.$fun(a::NamedDimsArray{L}, b::AbstractArray) where L
+            function $mod.$fun(a::NamedDimsArray{L}, b::AbstractArray) where {L}
                 data = $mod.$fun(parent(a), b)
                 return NamedDimsArray{L}(data)
             end
 
-            function $mod.$fun(a::AbstractArray, b::NamedDimsArray{L}) where L
+            function $mod.$fun(a::AbstractArray, b::NamedDimsArray{L}) where {L}
                 data = $mod.$fun(a, parent(b))
                 newL = unify_names_shortest(L, ntuple(_ -> :_, ndims(a)))
                 return NamedDimsArray{newL}(data)
             end
 
-            function $mod.$fun(a::NamedDimsArray{La}, b::NamedDimsArray{Lb}) where {La, Lb}
+            function $mod.$fun(a::NamedDimsArray{La}, b::NamedDimsArray{Lb}) where {La,Lb}
                 newL = unify_names_shortest(La, Lb)
                 data = $mod.$fun(parent(a), parent(b))
                 return NamedDimsArray{newL}(data)
@@ -155,7 +147,7 @@ for (T, S) in [
     (:NamedDimsArray, :AbstractArray),
     (:AbstractArray, :NamedDimsArray),
     (:NamedDimsArray, :NamedDimsArray),
-    ]
+]
     for fun in [:map, :map!]
 
         # Here f::F where {F} is needed to avoid ambiguities in Julia 1.0
@@ -174,9 +166,10 @@ for (T, S) in [
     end
 end
 
-Base.filter(f, A::NamedDimsArray{L,T,1}) where {L,T} = NamedDimsArray(filter(f, parent(A)), L)
+function Base.filter(f, A::NamedDimsArray{L,T,1}) where {L,T}
+    return NamedDimsArray(filter(f, parent(A)), L)
+end
 Base.filter(f, A::NamedDimsArray{L,T,N}) where {L,T,N} = filter(f, parent(A))
-
 
 # We overload collect on various kinds of `Generators` so that that can keep names.
 function Base.collect(x::Base.Generator{<:NamedDimsArray{L}}) where {L}
@@ -184,14 +177,22 @@ function Base.collect(x::Base.Generator{<:NamedDimsArray{L}}) where {L}
     return NamedDimsArray(data, L)
 end
 
-function Base.collect(x::Base.Generator{<:Iterators.Enumerate{<:NamedDimsArray{L}}}) where {L}
+function Base.collect(
+    x::Base.Generator{<:Iterators.Enumerate{<:NamedDimsArray{L}}},
+) where {L}
     data = collect(Base.Generator(x.f, enumerate(parent(x.iter.itr))))
     return NamedDimsArray(data, L)
 end
 
-Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:Tuple{<:NamedDimsArray,Vararg{Any}}}}) = collect_product(x)
-Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:Tuple{<:Any,<:NamedDimsArray,Vararg{Any}}}}) = collect_product(x)
-Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:Tuple{<:NamedDimsArray,<:NamedDimsArray,Vararg{Any}}}}) = collect_product(x)
+for Tup in (
+    Tuple{<:NamedDimsArray,Vararg{Any}},
+    Tuple{<:Any,<:NamedDimsArray,Vararg{Any}},
+    Tuple{<:NamedDimsArray,<:NamedDimsArray,Vararg{Any}},
+)
+    @eval function Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:$Tup}})
+        return collect_product(x)
+    end
+end
 
 function collect_product(x)
     data = collect(Base.Generator(x.f, Iterators.product(unname.(x.iter.iterators)...)))
