@@ -15,7 +15,7 @@ function __init__()
 end
 
 # We use CoVector to workout if we are taking the tranpose of a tranpose etc
-const CoVector = Union{Adjoint{<:Any, <:AbstractVector}, Transpose{<:Any, <:AbstractVector}}
+const CoVector = Union{Adjoint{<:Any,<:AbstractVector},Transpose{<:Any,<:AbstractVector}}
 
 include("name_core.jl")
 include("wrapper_array.jl")

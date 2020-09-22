@@ -18,13 +18,8 @@ function Base.selectdim(nda::NamedDimsArray, s::Symbol, i)
     return selectdim(nda, dim(nda, s), i)
 end
 
-for f in (
-    :(Base.transpose),
-    :(Base.adjoint),
-    :(Base.permutedims),
-    :(LinearAlgebra.pinv)
-)
-    @eval function $f(nda::NamedDimsArray{L}) where (L)
+for f in (:(Base.transpose), :(Base.adjoint), :(Base.permutedims), :(LinearAlgebra.pinv))
+    @eval function $f(nda::NamedDimsArray{L}) where {(L)}
         data = $f(parent(nda))
         new_names = if ndims(nda) == 1 # vector input
             (:_, first(L))
@@ -39,4 +34,4 @@ end
 
 # reshape
 # For now we only implement the version that drops dimension names
-Base.reshape(x::NamedDimsArray, d::Vararg{Union{Colon, Int}}) = reshape(parent(x), d)
+Base.reshape(x::NamedDimsArray, d::Vararg{Union{Colon,Int}}) = reshape(parent(x), d)
