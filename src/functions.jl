@@ -189,7 +189,7 @@ for Tup in (
     Tuple{<:Any,<:NamedDimsArray,Vararg{Any}},
     Tuple{<:NamedDimsArray,<:NamedDimsArray,Vararg{Any}},
 )
-    @eval function Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:Tup}})
+    @eval function Base.collect(x::Base.Generator{<:Iterators.ProductIterator{<:$Tup}})
         return collect_product(x)
     end
 end
