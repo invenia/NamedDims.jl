@@ -308,8 +308,11 @@ function unify_names_shortest(names_a, names_b)
     # 0 Allocations: @btime (()-> unify_names_shortest((:a,:b), (:a,)))()
 
     length(names_a) === length(names_b) && return unify_names(names_a, names_b)
-    long, short =
-        length(names_a) > length(names_b) ? (names_a, names_b) : (names_b, names_a)
+    long, short = if length(names_a) > length(names_b)
+        (names_a, names_b)
+    else
+        (names_b, names_a)
+    end
     ret = ntuple(length(short)) do ii
         a = getfield(long, ii)
         b = getfield(short, ii)
