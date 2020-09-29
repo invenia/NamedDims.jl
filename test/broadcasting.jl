@@ -130,3 +130,13 @@ end
         @test typeof(parent(nda .- ta)) <: TrackedArray
     end
 end
+
+@testset "Broadcasting against Tuples" begin
+    # https://github.com/invenia/NamedDims.jl/issues/140
+    nda = NamedDimsArray(zeros(4), :foo)
+    @test (nda .+ (1,2,3,4)) isa NamedDimsArray{(:foo,)}
+    @test (nda .+ (1,2,3,4)) == [1, 2, 3, 4]
+
+    @test ((1,2,3,4) .+ nda) isa NamedDimsArray{(:foo,)}
+    @test ((1,2,3,4) .+ nda) == [1, 2, 3, 4]
+end

@@ -18,22 +18,28 @@ function NamedDimsStyle(a::BroadcastStyle, b::BroadcastStyle)
         return NamedDimsStyle(inner_style)
     end
 end
+
 function Base.BroadcastStyle(::Type{<:NamedDimsArray{L,T,N,A}}) where {L,T,N,A}
     inner_style = typeof(BroadcastStyle(A))
     return NamedDimsStyle{inner_style}()
 end
-
 function Base.BroadcastStyle(::NamedDimsStyle{A}, ::NamedDimsStyle{B}) where {A,B}
     return NamedDimsStyle(A(), B())
 end
-Base.BroadcastStyle(::NamedDimsStyle{A}, b::B) where {A,B} = NamedDimsStyle(A(), b)
-Base.BroadcastStyle(a::A, ::NamedDimsStyle{B}) where {A,B} = NamedDimsStyle(a, B())
-function Base.BroadcastStyle(::NamedDimsStyle{A}, b::DefaultArrayStyle) where {A}
-    return NamedDimsStyle(A(), b)
+
+# Resolve ambiguities
+# for all these cases, we define that we win to be the outer style regardless of order
+for B in (
+    :BroadcastStyle, :DefaultArrayStyle, :AbstractArrayStyle, :(Broadcast.Style{Tuple}),
+)
+    @eval function Base.BroadcastStyle(::NamedDimsStyle{A}, b::$B) where A
+        return NamedDimsStyle(A(), b)
+    end
+    @eval function Base.BroadcastStyle(b::$B, ::NamedDimsStyle{A}) where A
+        return NamedDimsStyle(b, A())
+    end
 end
-function Base.BroadcastStyle(a::AbstractArrayStyle{M}, ::NamedDimsStyle{B}) where {B,M}
-    return NamedDimsStyle(a, B())
-end
+
 
 """
     unwrap_broadcasted
