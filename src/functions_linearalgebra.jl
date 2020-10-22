@@ -16,6 +16,24 @@ end
 # Need parent to explicitly call `getfield` to avoid infinitely calling `getproperty`
 Base.parent(named::NamedFactorization) = getfield(named, :fact)
 Base.size(named::NamedFactorization) = size(parent(named))
+Base.propertynames(named::NamedFactorization; kwargs...) = propertynames(parent(named))
+
+# Factorization type specific initial iterate calls
+Base.iterate(named::NamedFactorization{L, T, <:LU}) where {L, T} = (named.L, Val(:U))
+Base.iterate(named::NamedFactorization{L, T, <:LQ}) where {L, T} = (named.L, Val(:Q))
+Base.iterate(named::NamedFactorization{L, T, <:SVD}) where {L, T} = (named.U, Val(:S))
+function Base.iterate(
+    named::NamedFactorization{L, T, <:Union{QR, LinearAlgebra.QRCompactWY, QRPivoted}}
+) where {L, T}
+    return (named.Q, Val(:R))
+end
+
+# Generic iterate follow up calls
+function Base.iterate(named::NamedFactorization, st::Val{D}) where D
+    r = iterate(parent(named), st)
+    r === nothing && return nothing
+    return (getproperty(named, D), last(r))
+end
 
 # Convenience constructors
 for func in (:lu, :lu!, :lq, :lq!, :svd, :svd!, :qr, :qr!)
