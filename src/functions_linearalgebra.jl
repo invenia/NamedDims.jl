@@ -65,12 +65,14 @@ end
 function Base.getproperty(fact::NamedFactorization{L, T, <:SVD}, d::Symbol) where {L, T}
     inner = getproperty(parent(fact), d)
     n1, n2 = L
+    # Naming based off the SVD visualization on wikipedia
+    # # https://en.wikipedia.org/wiki/File:Singular_value_decomposition_visualisation.svg
     if d === :U
-        return NamedDimsArray{(n1,:_)}(inner)
+        return NamedDimsArray{(n1, :_)}(inner)
     elseif d === :V
-        return NamedDimsArray{(:_, n2)}(inner)
+        return NamedDimsArray{(n2, :_)}(inner)
     elseif d === :Vt
-        return NamedDimsArray{(n2,:_)}(inner)
+        return NamedDimsArray{(:_, n2)}(inner)
     else # :S
         return inner
     end
@@ -88,9 +90,9 @@ function Base.getproperty(
     elseif d === :R
         return NamedDimsArray{(:_, n2)}(inner)
     elseif F <: QRPivoted && d === :P
-        return NamedDimsArray{(n1, n1)}(inner)
+        return NamedDimsArray{(n2, n2)}(inner)
     elseif F <: QRPivoted && d === :p
-        return NamedDimsArray{(n1,)}(inner)
+        return NamedDimsArray{(n2,)}(inner)
     else
         return inner
     end
