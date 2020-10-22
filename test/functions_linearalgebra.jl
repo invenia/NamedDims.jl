@@ -41,7 +41,7 @@ end
 end
 
 @testset "qr" begin
-    for pivot in (true,false)
+    for pivot in (true, false)
         for data in ([1.0 2; 3 4], [big"1.0" 2; 3 4])
             nda = NamedDimsArray{(:foo, :bar)}(data)
             x = qr(nda, Val(pivot));
@@ -52,7 +52,7 @@ end
             @test dimnames(x.Q * x.R) == (:foo, :bar)
 
             pivot && @testset "pivoted" begin
-                @test x isa QRPivoted
+                @test parent(x) isa QRPivoted
                 @test dimnames(x.p) == (:foo,)
                 @test dimnames(x.P) == (:foo, :foo)
 
