@@ -1,5 +1,4 @@
 using NamedDims
-using NamedDims: names
 using SparseArrays
 using Test
 
@@ -7,12 +6,19 @@ using Test
 @testset "get the parent array that was wrapped" begin
     for orig in ([1 2; 3 4], spzeros(2, 2))
         @test parent(NamedDimsArray(orig, (:x, :y))) === orig
-
         @test unname(NamedDimsArray(orig, (:x, :y))) === orig
         @test unname(orig) === orig
     end
 end
 
+@testset "function dim(array, dim)" begin
+    nda = NamedDimsArray([10 20; 30 40], (:x, :y))
+    @test dim(nda, :x) == 1
+    @test dim(nda, [:y, :x]) == [2, 1]
+    @test dim(nda, 2) == 2
+    @test dim(parent(nda), 2) == 2
+    @test_throws ArgumentError dim(nda, :nope)
+end
 
 @testset "get the named array that was wrapped" begin
     @test dimnames(NamedDimsArray([10 20; 30 40], (:x, :y))) === (:x, :y)

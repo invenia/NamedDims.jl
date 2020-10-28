@@ -57,6 +57,7 @@ parent_type(::Type{<:NamedDimsArray{L,T,N,A}}) where {L,T,N,A} = A
 Base.parent(x::NamedDimsArray) = getfield(x, :data)
 
 dim(a::NamedDimsArray{L}, name) where {L} = dim(L, name)
+dim(a::AbstractArray, d) = d
 
 NamedDimsVecOrMat{L,T} = Union{NamedDimsArray{L,T,1},NamedDimsArray{L,T,2}}
 NamedDimsVector{L,T} = NamedDimsArray{L,T,1}
