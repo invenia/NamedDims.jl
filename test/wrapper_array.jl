@@ -137,6 +137,12 @@ end
         @test nda[findall(iseven, nda)] isa Vector
         @test dimnames(ndv[findall(iseven, ndv)]) == (:x,)
     end
+
+    @testset "repeated names" begin
+        ndt = NamedDimsArray(rand(2,3,2), (:x, :y, :x))
+        @test ndt[y=1] == ndt[:, 1, :]
+        @test_throws ArgumentError ndt[x=1]
+    end
 end
 
 

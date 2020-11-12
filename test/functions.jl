@@ -28,6 +28,13 @@ using Statistics
         end
     end
 
+    @testset "repeated names" begin
+        ndt = NamedDimsArray(reshape(1:12, 2,3,2), (:x, :y, :x))
+        @test sum(ndt, dims=:y) == sum(ndt, dims=2)
+        @test sum(ndt, dims=:x) == sum(ndt, dims=1) # chooses the first
+        @test dropdims(sum(ndt, dims=:x), dims=:x) == dropdims(sum(ndt, dims=1), dims=:x)
+    end
+
     @testset "sort!" begin
         a = [1 9; 7 3]
         nda = NamedDimsArray(a, (:x, :y))
