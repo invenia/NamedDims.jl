@@ -170,63 +170,25 @@ for fun in (:fft, :ifft, :bfft)
         end
 
         """
-            F = $($fun)(A, :time => :freq)
+            F = $($fun)(A, :time)
             A∿ = F * A
-            A ≈ F \\ A∿ == inv(F) * A∿
+            A ≈ F \\ A∿ ≈ inv(F) * A∿
 
-        FFT plans for `NamedDimsArray`s, identical to `A∿ = $($fun)(A, :time => :freq)`.
+        FFT plans for `NamedDimsArray`s, identical to `A∿ = $($fun)(A, :time)`.
+        Note you cannot specify the final name, it always transforms `:time => :time∿`.
+        And that the plan `F` stores which dimension number to act on, not which name.
         """
-        function AbstractFFTs.$plan_fun(A::NamedDimsArray, dims = ntuple(d->d, ndims(A)); kw...)
+        function AbstractFFTs.$plan_fun(A::NamedDimsArray, dims = ntuple(identity, ndims(A)); kw...)
             numerical_dims = Tuple(dim(A, dims))
-            plan = AbstractFFTs.$plan_fun(parent(A), numerical_dims; kw...)
-            L1 = map(d -> dimnames(A)[d], numerical_dims)
-            L2 = wave_name(dimnames(A))
-            NamedPlan{L1,L2,numerical_dims,eltype(A),typeof(plan)}(plan)
+            AbstractFFTs.$plan_fun(parent(A), numerical_dims; kw...)
         end
-
-        function AbstractFFTs.$plan_fun(A::NamedDimsArray, p::Pair{Symbol,Symbol}, ps::Pair{Symbol,Symbol}...)
-            numerical_dims = Tuple(dim(A, (first(p), first.(ps)...)))
-            plan = AbstractFFTs.$plan_fun(parent(A), numerical_dims)
-            L1 = (first(p), first.(ps)...)
-            L2 = (last(p), last.(ps)...)
-            NamedPlan{L1,L2,numerical_dims,eltype(A),typeof(plan)}(plan)
-        end
-
     end
 
-end
-
-struct NamedPlan{L1,L2,D,T,PT} <: AbstractFFTs.Plan{T}
-    plan::PT
-end
-Base.parent(p::NamedPlan) = p.plan
-
-function Base.:*(F::NamedPlan{L1,L2,D}, A::NamedDimsArray{L,T,N}) where {L1,L2,D, L,T,N}
-    data = F.plan * parent(A)
-    i=0
-    new_names = ntuple(d -> d in D ? L2[i+=1] : L[d], N)
-    for (n,d) in zip(L1,D)
-        n === L[d] || throw(ArgumentError("FFT plan expected name $n in dimension $d, but got $(L[d])"))
-    end
-    return NamedDimsArray(data, new_names)
-end
-
-function Base.:*(F::NamedPlan{L1,L2,D}, A::AbstractArray{T,N}) where {L1,L2,D, T,N}
-    data = F.plan * A
-    i = 0
-    new_names = ntuple(d -> d in D ? L2[i+=1] : :_, N)
-    return NamedDimsArray(data, new_names)
-end
-
-function Base.inv(F::NamedPlan{L1,L2,D,T}) where {L1,L2,D,T}
-    plan = inv(F.plan)
-    NamedPlan{L2,L1,D,T,typeof(plan)}(plan)
 end
 
 # Fallback for plans without NamedPlan wrapper.
 # The dimensions on which they act are not part of the type
 for plan_type in (:Plan, :ScaledPlan)
-
     @eval function Base.:*(plan::AbstractFFTs.$plan_type, A::NamedDimsArray{L,T,N}) where {L,T,N}
         data = plan * parent(A)
         if Base.sym_in(:region, propertynames(plan)) # true for plan_fft from FFTW
@@ -240,7 +202,6 @@ for plan_type in (:Plan, :ScaledPlan)
         # newL = wave_name(L, Tuple(dims)) # this, using compile_time_return_hack, is much slower
         return NamedDimsArray(data, newL)
     end
-
 end
 
 #=
