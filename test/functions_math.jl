@@ -242,7 +242,6 @@ end
     end
 end
 
-
 @testset "FFT" begin
     ndv = NamedDimsArray(zeros(ComplexF64, 16), :μ)
     ndv[μ=2] = sqrt(2)
@@ -265,14 +264,13 @@ end
     end
 
     @testset "vector plan" begin
-        pv1 = plan_fft(ndv, :μ => :κ) # custom name
-        @test pv1 isa NamedDims.NamedPlan
-        pv2 = plan_fft(randn(ComplexF64, 16)) # no names, not wrapped
+        pv1 = plan_fft(ndv, :μ)
+        pv2 = plan_fft(randn(ComplexF64, 16))
         @test pv2 isa FFTW.FFTWPlan
 
-        @test dimnames(pv1 * ndv) == (:κ,)
+        @test dimnames(pv1 * ndv) == (:μ∿,)
         @test dimnames(pv2 * ndv) == (:μ∿,)
-        @test dimnames(pv1 * randn(16)) == (:κ,)
+        @test dimnames(pv1 * randn(16)) == (:_,)
 
         pv3 = plan_ifft(pv2 * ndv)
         @test dimnames(pv3 * (pv2 * ndv)) == (:μ,)
@@ -280,7 +278,6 @@ end
         @test dimnames(inv(pv1) * (pv1 * ndv)) == (:μ,)
 
         @test dimnames(pv3 \ ndv) == (:μ∿,)
-        @test_throws ArgumentError pv3 * ndv
     end
 
     nda = NamedDimsArray(zeros(Float32, 4,4,4), (:a, :b′, :c))
@@ -300,18 +297,17 @@ end
     @testset "three plan" begin
         p1 = plan_fft(nda, :a)
         p2 = plan_fft(zeros(Float32, 4,4,4), 2:2)
-        p3 = plan_fft(nda, :c => :C)
+        @test_throws ArgumentError plan_fft(nda, :c => :C)
+        p3 = plan_fft(nda, :c)
 
         @test dimnames(p1 * nda) == (:a∿, :b′, :c)
         @test dimnames(p2 * nda) == (:a, :b′∿, :c)
-        @test dimnames(p3 * nda) == (:a, :b′, :C)
+        @test dimnames(p3 * nda) == (:a, :b′, :c∿)
         @test dimnames(p2 * randn(4,4,4)) == (:_, :_, :_)
-        @test dimnames(p3 * randn(4,4,4)) == (:_, :_, :C)
 
-        @test dimnames(p3 * (p1 * nda)) == (:a∿, :b′, :C)
+        @test dimnames(p3 * (p1 * nda)) == (:a∿, :b′, :c∿)
 
         @test_throws ArgumentError plan_fft(nda, :z => :Z)
-        @test_throws ArgumentError inv(p1) * nda
     end
 
     @testset "wave_name" begin
@@ -321,12 +317,40 @@ end
         @test wave_name((:k1, :k2, :k3), 1:2) == (:k1∿, :k2∿, :k3)
         @test wave_name((:k1, :k2, :k3), (1,3)) == (:k1∿, :k2, :k3∿)
     end
+
+    @testset "other functions" begin
+        nda = NamedDimsArray(rand(16, 16), (:x, :y))
+        ndv = NamedDimsArray(randn(32), :z)
+
+        for f in [fft, ifft, bfft, rfft]
+            @test dimnames(f(nda)) == (:x∿, :y∿)
+            @test dimnames(f(nda, :x)) == (:x∿, :y)
+            @test dimnames(f(nda, :x => :k)) == (:k, :y)
+
+            @test dimnames(f(ndv, 1)) == (:z∿,)
+        end
+
+        ndc = rfft(nda, 1) # size 9x16
+        @test dimnames(irfft(ndc, 16, 1)) == (:x, :y)
+        @test dimnames(brfft(ndc, 16, 1)) == (:x, :y)
+
+        for f in [plan_fft, plan_ifft, plan_bfft]
+            plan = f(nda, :x)
+            @test plan isa AbstractFFTs.Plan
+            @test dimnames(plan * nda) == (:x∿, :y)
+        end
+
+        @test dimnames(fftshift(nda)) == (:x, :y)
+        @test fftshift(nda)[1,1] == nda[9,9]
+        @test fftshift(nda, :x)[1,1] == nda[9,1]
+    end
 end
+
 @testset "allocations: FFT" begin
-    @test 0 == @allocated wave_name(:k)
-    @test 0 == @allocated wave_name((:k1, :k2∿))
+    @test 0 == @ballocated wave_name(:k)
+    @test 0 == @ballocated wave_name((:k1, :k2∿))
     if VERSION >= v"1.1"
-        @test 0 == @allocated wave_name((:k1, :k2, :k3), 2)
-        @test 0 == @allocated wave_name((:k1, :k2, :k3), (1,3))
+        @test 0 == @ballocated wave_name((:k1, :k2, :k3), 2)
+        @test 0 == @ballocated wave_name((:k1, :k2, :k3), (1,3))
     end
 end
