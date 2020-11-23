@@ -142,6 +142,8 @@ end
 
         @test dimnames(cat(1:2, ndv, [5 6]', dims=:z)) == (:x, :_, :z)
 
+        @test dimnames(vcat(1:3, NamedDimsArray(4:6, :x))) == (:x,)
+
         vcat(pi, ndv) # does not at present have names
         vcat(ndv, pi)
     end
