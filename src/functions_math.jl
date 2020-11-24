@@ -174,7 +174,7 @@ for fun in (:fft, :ifft, :bfft, :rfft, :irfft, :brfft)
         function AbstractFFTs.$fun(A::NamedDimsArray{L,T,N}, $(extra...), p::Pair{Symbol,Symbol}, ps::Pair{Symbol,Symbol}...) where {L,T,N}
             numerical_dims = dim(A, (first(p), first.(ps)...))
             data = AbstractFFTs.$fun(parent(A), $(extra...), numerical_dims)
-            newL = replace_names(L, p, ps...)
+            newL = _rename(L, p, ps...)
             return NamedDimsArray(data, newL)
         end
 

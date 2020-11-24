@@ -9,7 +9,6 @@ using NamedDims:
     tuple_issubset,
     tuple_cat,
     names_are_unifiable,
-    replace_names,
     order_named_inds,
     permute_dimnames,
     remaining_dimnames_from_indexing,
@@ -206,18 +205,4 @@ end
 end
 @testset "allocations: tuple_cat" begin
     @test 0 == @ballocated tuple_cat((1, 2), (3, 4, 5), (6,))
-end
-
-
-@testset "replace_names" begin
-    @test replace_names((:a, :b), :b => :c) == (:a, :c)
-    @test replace_names((:a, :b), :b => :c, :a => :z) == (:z, :c)
-    @test replace_names((:a, :b, :c, :d), :a => :c, :c => :z) == (:z, :b, :z, :d)
-end
-@testset "allocations: replace_names" begin
-    if VERSION >= v"1.1"
-        @test 0 == @allocated replace_names((:a, :b), :b => :c)
-        @test 0 == @allocated replace_names((:a, :b), :b => :c, :a => :z)
-        @test 0 == @allocated replace_names((:a, :b, :c, :d), :a => :c, :c => :z)
-    end
 end
