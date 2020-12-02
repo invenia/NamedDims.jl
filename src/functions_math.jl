@@ -139,7 +139,7 @@ end
 for fun in (:fft, :ifft, :bfft, :rfft, :irfft, :brfft)
     plan_fun = Symbol(:plan_, fun)
 
-    if fun in (:irfft, :brfft) # These take one more argument, a size
+    if fun in (:irfft, :brfft)  # These take one more argument, a size
         extra = (:(d::Integer),)
     else
         extra = ()
@@ -279,5 +279,4 @@ end
 wave_name(tup::Tuple, dims::Tuple) = wave_name(wave_name(tup, first(dims)), Base.tail(dims))
 wave_name(tup::Tuple, dims::Tuple{}) = tup
 # @btime NamedDims.wave_name((:k1, :k2, :k3), (1,3))
-
 
