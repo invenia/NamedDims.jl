@@ -6,57 +6,57 @@ for fun in (:fft, :ifft, :bfft, :rfft, :irfft, :brfft)
     plan_fun = Symbol(:plan_, fun)
 
     if fun in (:irfft, :brfft)  # These take one more argument, a size
-        extra = (:(d::Integer),)
+        arg, str = (:(d::Integer),), "d, "
     else
-        extra = ()
+        arg, str = (), ""
     end
 
     @eval begin
 
         """
-            $($fun)(A, :time => :freq, :x => :kx)
+            $($fun)(A, $($str):time => :freq, :x => :kx)
 
         Acting on a `NamedDimsArray`, this specifies to take the transform along the dimensions
         named `:time, :x`, and return an array with names `:freq` and `:kx` in their places.
 
-            $($fun)(A, :x) # => :x∿
+            $($fun)(A, $($str):x) # => :x∿
 
         If new names are not given, then the default is `:x => :x∿` and `:x∿ => :x`,
-        applied to all dimensions, or to those specified as usual, e.g. `$($fun)(A, (1,2))`
-        or `$($fun)(A, :time)`. The symbol "∿" can be typed by `\\sinewave<tab>`.
+        applied to all dimensions, or to those specified as usual, e.g. `$($fun)(A, $($str)(1,2))`
+        or `$($fun)(A, $($str):time)`. The symbol "∿" can be typed by `\\sinewave<tab>`.
         """
-        function AbstractFFTs.$fun(A::NamedDimsArray{L}, $(extra...)) where {L}
-            data = AbstractFFTs.$fun(parent(A), $(extra...))
+        function AbstractFFTs.$fun(A::NamedDimsArray{L}, $(arg...)) where {L}
+            data = AbstractFFTs.$fun(parent(A), $(arg...))
             return NamedDimsArray(data, wave_name(L))
         end
 
-        function AbstractFFTs.$fun(A::NamedDimsArray{L,T,N}, $(extra...), dims) where {L,T,N}
+        function AbstractFFTs.$fun(A::NamedDimsArray{L,T,N}, $(arg...), dims) where {L,T,N}
             numerical_dims = dim(A, dims)
-            data = AbstractFFTs.$fun(parent(A), $(extra...), numerical_dims)
+            data = AbstractFFTs.$fun(parent(A), $(arg...), numerical_dims)
             newL = wave_name(L, numerical_dims)
             return NamedDimsArray(data, newL)
         end
 
-        function AbstractFFTs.$fun(A::NamedDimsArray{L,T,N}, $(extra...), p::Pair{Symbol,Symbol}, ps::Pair{Symbol,Symbol}...) where {L,T,N}
+        function AbstractFFTs.$fun(A::NamedDimsArray{L,T,N}, $(arg...), p::Pair{Symbol,Symbol}, ps::Pair{Symbol,Symbol}...) where {L,T,N}
             numerical_dims = dim(A, (first(p), first.(ps)...))
-            data = AbstractFFTs.$fun(parent(A), $(extra...), numerical_dims)
+            data = AbstractFFTs.$fun(parent(A), $(arg...), numerical_dims)
             newL = _rename(L, p, ps...)
             return NamedDimsArray(data, newL)
         end
 
         """
-            F = $($plan_fun)(A, :time)
+            F = $($plan_fun)(A, $($str):time)
             A∿ = F * A
             A ≈ F \\ A∿ ≈ inv(F) * A∿
 
-        FFT plans for `NamedDimsArray`s, identical to `A∿ = $($fun)(A, :time)`.
+        FFT plans for `NamedDimsArray`s, identical to `A∿ = $($fun)(A, $($str):time)`.
         Note you cannot specify the final name, it always transforms `:time => :time∿`.
         And that the plan `F` stores which dimension number to act on, not which name.
         """
-        function AbstractFFTs.$plan_fun(A::NamedDimsArray, $(extra...), dims = ntuple(identity, ndims(A)); kw...)
+        function AbstractFFTs.$plan_fun(A::NamedDimsArray, $(arg...), dims = ntuple(identity, ndims(A)); kw...)
             dims isa Pair && throw(ArgumentError("$($plan_fun) does not store final names, got Pair $dims"))
             numerical_dims = Tuple(dim(A, dims))
-            AbstractFFTs.$plan_fun(parent(A), $(extra...), numerical_dims; kw...)
+            AbstractFFTs.$plan_fun(parent(A), $(arg...), numerical_dims; kw...)
         end
     end
 
