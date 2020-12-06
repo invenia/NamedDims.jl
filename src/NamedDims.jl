@@ -28,6 +28,7 @@ include("functions.jl")
 include("functions_dims.jl")
 include("functions_math.jl")
 include("cat.jl")
+include("fft.jl")
 
 @deprecate names dimnames false
 @deprecate refine_names NamedDimsArray true
