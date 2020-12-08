@@ -75,7 +75,7 @@ jobs:
           status: FAILED
           color: danger
         env:
-          SLACK_BOT_TOKEN: ${{ secrets.DEV_SLACK_BOT_TOKEN }}
+          SLACK_BOT_TOKEN: ${{ secrets.RSE_SLACK_BOT_TOKEN }}
 
   docs:
     name: Documentation
