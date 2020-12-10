@@ -70,5 +70,10 @@ end
 end
 
 @testset "rename allocations" begin
-    @test_modern 0 == @ballocated (()->NamedDims._rename((:a, :b), :a => :x, :b => :y))()
+    allocs = @ballocated (()->NamedDims._rename((:a, :b), :a => :x, :b => :y))()
+    if v"1.3-" <= VERSION < v"1.4-"
+        @test_broken allocs == 0
+    else
+        @test_modern allocs == 0
+    end
 end
