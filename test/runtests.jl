@@ -14,6 +14,7 @@ const testfiles = (
     "functions_math.jl",
     "cat.jl",
     "broadcasting.jl",
+    "fft.jl",
     "tracker_compat.jl",
 )
 

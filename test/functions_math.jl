@@ -1,6 +1,7 @@
 using LinearAlgebra
+using FFTW
 using NamedDims
-using NamedDims: matrix_prod_names, names, symmetric_names
+using NamedDims: matrix_prod_names, dimnames, symmetric_names, wave_name
 using Test
 using Statistics
 
