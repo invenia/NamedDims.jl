@@ -65,7 +65,7 @@ within the function.
 This operation corresponds to [PyTorch's `refine_names`](https://pytorch.org/docs/stable/named_tensor.html#torch.Tensor.refine_names).
 As in the following example:
 
-```
+```julia
 function total_variance(data::AbstractMatrix)
     n_data = NamedDimsArray(data, (:times, :locations))
     location_variance = var(n_data; dims=:times)  # calculate variance at each location
@@ -94,7 +94,7 @@ These are:
 Often they are done together.
 
 They are illustrated by the following example:
-```
+```julia
 function foo(nda::NamedDimsArray, args...; dims=:)
     numerical_dims = dim(nda, dims)  # convert any form of dims into numerical dims
     raw_result = foo(parent(nda), args...; dims=numerical_dims)  # call it on the backed data
