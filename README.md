@@ -4,11 +4,11 @@
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://invenia.github.io/NamedDims.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://invenia.github.io/NamedDims.jl/dev)
 -->
-[![Build Status](https://travis-ci.com/invenia/NamedDims.jl.svg?branch=master)](https://travis-ci.com/invenia/NamedDims.jl)
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/invenia/NamedDims.jl?svg=true)](https://ci.appveyor.com/project/invenia/NamedDims-jl)
+[![CI](https://github.com/Invenia/Intervals.jl/workflows/CI/badge.svg)](https://github.com/Invenia/Intervals.jl/actions?query=workflow%3ACI)
 [![Codecov](https://codecov.io/gh/invenia/NamedDims.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/invenia/NamedDims.jl)
 [![PkgEval](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/N/NamedDims.svg)](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/report.html)
 [![code style blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
+[![ColPrac: Contributor's Guide on Collaborative Practices for Community Packages](https://img.shields.io/badge/ColPrac-Contributor's%20Guide-blueviolet)](https://github.com/SciML/ColPrac)
 
 `NamedDimsArray` is a zero-cost abstraction to add names to the dimensions of an array.
 
@@ -18,6 +18,7 @@ For `nda = NamedDimsArray{(:x, :y, :z)}(rand(10, 20, 30))`.
 
  - Indexing: `nda[y=2]` is the same as `nda[x=:, y=2, z=:]` which is the same as `nda[:, 2, :]`.
  - Functions taking a `dims` keyword: `sum(nda; dims=:y)` is the same as `sum(nda; dims=2)`.
+ - Accessing Names: `dimnames(nda)` returns `(:x, :y, :z)`, a tuple with the dimension names.
  - Identifying a dimension by name: `dim(nda, :y)` returns `2`, the numerical dimension named `:y`. Similarly `dim(nda, (:y, :z))` returns `(2, 3)`.
  - Unwrapping: `parent(nda)` returns the underlying `AbstractArray` that is wrapped by the `NamedDimsArray`.
  - Unnaming: `unname(a)` ensures an `AbstractArray` is _not_ a `NamedDimsArray`;
@@ -65,7 +66,7 @@ within the function.
 This operation corresponds to [PyTorch's `refine_names`](https://pytorch.org/docs/stable/named_tensor.html#torch.Tensor.refine_names).
 As in the following example:
 
-```
+```julia
 function total_variance(data::AbstractMatrix)
     n_data = NamedDimsArray(data, (:times, :locations))
     location_variance = var(n_data; dims=:times)  # calculate variance at each location
@@ -94,7 +95,7 @@ These are:
 Often they are done together.
 
 They are illustrated by the following example:
-```
+```julia
 function foo(nda::NamedDimsArray, args...; dims=:)
     numerical_dims = dim(nda, dims)  # convert any form of dims into numerical dims
     raw_result = foo(parent(nda), args...; dims=numerical_dims)  # call it on the backed data

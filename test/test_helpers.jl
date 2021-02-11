@@ -7,9 +7,9 @@ For more complicated cases, or where it shouldn't be defined at all on julia ver
 you can use `if VERSION` directly.
 """
 macro test_modern(expr...)
-    if VERSION >= v"1.1"
+    if VERSION >= v"1.4"
         return :(@test $(expr...))
     else
-        return :(@test_broken $(expr...))
+        return nothing
     end
 end

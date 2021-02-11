@@ -1,6 +1,8 @@
 # This supports nonbroadcasting math on NamedDimArrays
 
+################################################
 # Matrix product
+
 valid_matmul_dims(a::Tuple{Symbol}, b::Tuple{Vararg{Symbol}}) = true
 function valid_matmul_dims(a::Tuple{Symbol,Symbol}, b::Tuple{Vararg{Symbol}})
     a_dim = a[end]
@@ -100,6 +102,9 @@ end
 )
 @declare_matmul(Diagonal,)
 
+################################################
+# Others
+
 function Base.inv(nda::NamedDimsArray{L,T,2}) where {L,T}
     data = inv(parent(nda))
     names = reverse(L)
@@ -127,3 +132,4 @@ function symmetric_names(L::Tuple{Symbol,Symbol}, dims::Integer)
     end
     return compile_time_return_hack(names)
 end
+

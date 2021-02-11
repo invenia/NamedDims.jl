@@ -43,6 +43,18 @@ for (T, S) in [
     end
 end
 
+for (T, S) in [
+    (:NamedDimsVector, :NamedDimsVector),
+    (:NamedDimsVector, :AbstractVector),
+    (:AbstractVector, :NamedDimsVector),
+]
+    @eval function Base.vcat(a::$T, b::$S, cs::AbstractVector...)
+        newL = unify_names(dimnames(a), dimnames(b), dimnames.(cs)...)
+        data = vcat(unname(a), unname(b), unname.(cs)...)
+        return NamedDimsArray{newL}(data)
+    end
+end
+
 for (f, nf, tf, tup) in
     [(:vcat, :_named_vcat, :_typed_vcat, ()), (:hcat, :_named_hcat, :_typed_hcat, (:_,))]
     @eval begin

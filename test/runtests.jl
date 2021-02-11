@@ -15,6 +15,7 @@ const testfiles = (
     "cat.jl",
     "functions_linearalgebra.jl",
     "broadcasting.jl",
+    "fft.jl",
     "tracker_compat.jl",
 )
 
