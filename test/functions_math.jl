@@ -213,6 +213,7 @@ end
 
         @test_throws MethodError symmetric_names((:a, :b, :c), 2)
     end
+
     @testset "$f" for f in (cov, cor)
         @testset "matrix input, matrix result" begin
             A = rand(3, 5)

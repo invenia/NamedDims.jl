@@ -33,4 +33,7 @@ include("fft.jl")
 @deprecate names dimnames false
 @deprecate refine_names NamedDimsArray true
 
+include("functions_linearalgebra.jl")
+
+
 end # module
