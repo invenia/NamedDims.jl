@@ -157,10 +157,6 @@ end
     @test remaining_dimnames_from_indexing((:a, :b), (cart_vec,)) === ()
     int_vec = 1:6
     @test remaining_dimnames_from_indexing((:a, :b), (int_vec,)) === ()
-
-    # Or take them from the vector of indices
-    named_int = NamedDimsArray(1:6, :c)
-    @test remaining_dimnames_from_indexing((:a, :b), (named_int,)) === (:c,)
 end
 @testset "allocations: remaining_dimnames_from_indexing" begin
     @test 0 == @ballocated (()->remaining_dimnames_from_indexing((:a, :b, :c), (:,390,:)))()
