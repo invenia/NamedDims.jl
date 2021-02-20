@@ -136,6 +136,10 @@ end
         # Vector{CartesianIndex{N}}: for N>1 this makes a new dim, like nda[nda .> 3]
         @test nda[findall(iseven, nda)] isa Vector
         @test dimnames(ndv[findall(iseven, ndv)]) == (:x,)
+
+        # ... as does a vector of integers:
+        @test nda[1:end] isa Vector
+        @test dimnames(ndv[1:end]) == (:x,)
     end
 end
 

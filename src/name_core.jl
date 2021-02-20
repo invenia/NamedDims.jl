@@ -381,8 +381,13 @@ remaining_dimnames_from_indexing(dn::Tuple, inds::Tuple{Vararg{<:Integer}}) = ()
 remaining_dimnames_from_indexing(dn::Tuple, ci::Tuple{CartesianIndex}) = ()
 
 function remaining_dimnames_from_indexing(
-    dimnames::Tuple{<:Any,<:Any,Vararg}, inds::Tuple{T},
-) where {T<:Union{Base.LogicalIndex,AbstractVector{<:CartesianIndex}}}
+    dimnames::Tuple{<:Any,<:Any,Vararg},  # only for ndims(A) >= 2
+    inds::Tuple{T},
+) where {T<:Union{
+    Base.LogicalIndex,  # e.g. A[A .> 0]
+    AbstractVector{<:CartesianIndex},
+    AbstractVector{<:Integer},  # e.g. A[1:end]
+}}
     return ()
 end
 
