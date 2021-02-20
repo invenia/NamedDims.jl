@@ -181,3 +181,43 @@ end
 @propagate_inbounds function Base.setindex!(a::NamedDimsArray, value, inds...)
     return setindex!(parent(a), value, inds...)
 end
+
+############################################
+# show
+
+# 2-arg show, mainly for repr():
+function Base.show(io::IO, A::NamedDimsArray{L,T,N}) where {L,T,N}
+    print(io, "NamedDimsArray(")
+    show(io, parent(A))
+    print(io, ", ", N == 1 ? QuoteNode(L[1]) : L, ")")
+end
+
+# called by summary(), for main REPL printing:
+function Base.showarg(io::IO, A::NamedDimsArray{L,T,N}, outer) where {L,T,N}
+    print(io, "NamedDimsArray(")
+    Base.showarg(io, parent(A), false)
+    print(io, ", ", N == 1 ? QuoteNode(L[1]) : L, ")")
+end
+
+function Base.print_matrix(io::IO, A::NamedDimsArray)
+    s1 = string("↓ :", dimnames(A,1)) * "  "
+    if ndims(A)==2
+        s2 = string(" "^length(s1), "→ :", dimnames(A,2), "\n")
+        print(io, s2)
+    end
+    ioc = IOContext(io, :displaysize => displaysize(io) .- (1, 0))
+    Base.print_matrix(ioc, parent(A), s1)
+end
+
+if VERSION > v"1.6.0-DEV.1561" # 809f27c53df7a54388a687a847e9494e0d29bd4f
+
+    function Base._show_nd_label(io::IO, A::NamedDimsArray, idxs)
+        print(io, "[:, :, ")
+        for i in 1:length(idxs)
+            sy = dimnames(A, i+2)
+            sy == :_ ? print(io, idxs[i]) : print(io, sy, " = ", idxs[i])
+            i == length(idxs) ? println(io, "] =") : print(io, ", ")
+        end
+    end
+
+end
