@@ -285,13 +285,13 @@ end
 
 @testset "show" begin
     nda = NamedDimsArray([1 2; 3 4], (:x, :y))
-    @test contains(string(nda), "(:x, :y)")
+    @test occursin("(:x, :y)", string(nda))
     ndv = NamedDimsArray([1,2,3], :x)
-    @test contains(string(ndv), "], :x)")
+    @test occursin("], :x)", string(ndv))
 
     str = repr(MIME"text/plain"(), nda)
-    @test contains(str, "NamedDimsArray(::")
-    @test contains(str, "→ :y")
+    @test occursin("NamedDimsArray(::", str)
+    @test occursin("→ :y", str)
 end
 
 const cnda = NamedDimsArray([10 20; 30 40], (:x, :y))
