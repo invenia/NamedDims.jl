@@ -288,9 +288,10 @@ end
     @test occursin("(:x, :y)", string(nda))
     ndv = NamedDimsArray([1,2,3], :x)
     @test occursin("], :x)", string(ndv))
+    @test eval(Meta.parse(string(ndv))) isa NamedDimsArray{(:x,)}
 
-    str = repr(MIME"text/plain"(), nda)
-    @test occursin("NamedDimsArray(::", str)
+    str = repr(MIME"text/plain"(), nda) # mime => 3-arg show
+    @test occursin("2×2 NamedDimsArray(::", str)
     @test occursin("→ :y", str)
 end
 
