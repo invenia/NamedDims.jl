@@ -216,10 +216,10 @@ end
 if VERSION > v"1.6.0-DEV.1561" # 809f27c53df7a54388a687a847e9494e0d29bd4f
 
     function Base._show_nd_label(io::IO, A::NamedDimsArray, idxs)
-        print(io, "□[")
+        print(io, "[:, :, ")
         for i in 1:length(idxs)
             print(io, dimnames(A, i+2), "=", idxs[i])
-            i == length(idxs) ? println(io, "]") : print(io, ", ")
+            i == length(idxs) ? println(io, "] =") : print(io, ", ")
         end
     end
 
