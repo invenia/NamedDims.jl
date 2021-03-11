@@ -139,7 +139,12 @@ end
 
         # ... as does a vector of integers:
         @test nda[1:end] isa Vector
+        @test nda[collect(2:end)] isa Vector
         @test dimnames(ndv[1:end]) == (:x,)
+
+        # ... or equivalent colon:
+        @test nda[:] isa Vector
+        @test dimnames(ndv[:]) == (:x,)
     end
 end
 
