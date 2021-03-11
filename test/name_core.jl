@@ -155,6 +155,8 @@ end
     @test remaining_dimnames_from_indexing((:a, :b), logical) === ()
     cart_vec = findall(x -> x>0.5, rand(2,3))
     @test remaining_dimnames_from_indexing((:a, :b), (cart_vec,)) === ()
+    int_vec = 1:6
+    @test remaining_dimnames_from_indexing((:a, :b), (int_vec,)) === ()
 end
 @testset "allocations: remaining_dimnames_from_indexing" begin
     @test 0 == @ballocated (()->remaining_dimnames_from_indexing((:a, :b, :c), (:,390,:)))()
