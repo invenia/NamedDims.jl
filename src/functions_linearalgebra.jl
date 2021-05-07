@@ -13,6 +13,10 @@ struct NamedFactorization{L, T, F<:Factorization{T}} <: Factorization{T}
     fact::F
 end
 
+function NamedFactorization{L}(fact::F) where {L, T, F <: Factorization{T}}
+    return NamedFactorization{L,T,F}(fact)
+end
+
 # Need parent to explicitly call `getfield` to avoid infinitely calling `getproperty`
 Base.parent(named::NamedFactorization) = getfield(named, :fact)
 Base.size(named::NamedFactorization) = size(parent(named))
@@ -39,8 +43,7 @@ end
 for func in (:lu, :lu!, :lq, :lq!, :svd, :svd!, :qr, :qr!)
     @eval begin
         function LinearAlgebra.$func(nda::NamedDimsArray{L, T}, args...; kwargs...) where {L, T}
-            fact = $func(parent(nda), args...; kwargs...)
-            return NamedFactorization{L, T, typeof(fact)}(fact)
+            return NamedFactorization{L}($func(parent(nda), args...; kwargs...))
         end
     end
 end

@@ -135,3 +135,9 @@ end
         end
     end
 end
+
+@testset "#164 factorization eltype not same as input eltype" begin
+    # https://github.com/invenia/NamedDims.jl/issues/164
+    nda = NamedDimsArray{(:foo, :bar)}([1 2 3; 4 5 6; 7 8 9])  # Int eltype
+    @test qr(nda) isa NamedDims.NamedFactorization{(:foo, :bar), Float64}
+end
