@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - "1.3"  # Would test on 1.0, but that causes trouble at test time as test can't downgrade main deps in 1.0
+          - "1.3"  # Would test on 1.0 (LTS), but that causes trouble at test time as test can't downgrade main deps in 1.0
           - "1"    # Latest Release
         os:
           - ubuntu-latest
