@@ -180,8 +180,11 @@ order_named_inds(val::Val{L}; kw...) where {L} = order_named_inds(val, kw.data)
 
 @generated function order_named_inds(val::Val{L}, ni::NamedTuple{K}) where {L,K}
     tuple_issubset(K, L) || throw(DimensionMismatch("Expected subset of $L, got $K"))
+    seen = []
     exs = map(L) do n
         if Base.sym_in(n, K)
+            n in seen && throw(ArgumentError("Can't index with :$n as this is repeated in $L"))
+            push!(seen, n)
             qn = QuoteNode(n)
             :(getfield(ni, $qn))
         else
