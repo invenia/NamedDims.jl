@@ -80,7 +80,8 @@ Base.axes(a::NamedDimsArray, d) = axes(parent(a), dim(a, d))
 
 function named_size(a::AbstractArray{T,N}) where {T,N}
     L = dimnames(a)
-    return NamedTuple{L,NTuple{N,Int}}(size(a))
+    axes_a = axes(a)
+    return NamedTuple{L,typeof(axes_a)}(axes_a)
 end
 function Base.similar(
     a::NamedDimsArray{L,T}, eltype::Type=T, dims::NamedTuple{new_names}=named_size(a),
