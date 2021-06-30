@@ -1,4 +1,5 @@
 using NamedDims
+using OffsetArrays
 using SparseArrays
 using Test
 
@@ -254,6 +255,24 @@ end
         @test eltype(ndb) == Float64
         @test size(ndb) == (11, 22)
         @test dimnames(ndb) == (:w, :x)
+    end
+    @testset "parent type" begin
+        oa = OffsetArray(ones(10,20,30,40), -5:4, -10:9, -15:14, -20:19)
+        ndb = NamedDimsArray(oa, (:a, :b, :c, :d))
+        ndc = similar(ndb)
+        ndd = similar(ndb, Int)
+        @test parent(ndb) !== parent(ndc)
+        @test eltype(ndc) == Float64
+        @test size(ndc) == (10, 20, 30, 40)
+        @test dimnames(ndc) == (:a, :b, :c, :d)
+        @test parent(ndc) isa typeof(oa)
+        @test parent(ndd) isa OffsetArray
+        @test eltype(parent(ndd)) == Int
+    end
+    @testset "repeated names" begin
+        ndr = NamedDimsArray([1 2; 3 4], (:same, :same))
+        @test dimnames(similar(ndr)) == (:same, :same)
+        @test dimnames(similar(ndr, Float64)) == (:same, :same)
     end
 end
 
