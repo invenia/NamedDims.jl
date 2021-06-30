@@ -260,14 +260,14 @@ end
         oa = OffsetArray(ones(10,20,30,40), -5:4, -10:9, -15:14, -20:19)
         ndb = NamedDimsArray(oa, (:a, :b, :c, :d))
         ndc = similar(ndb)
-        ndd = similar(ndb, Float64)
+        ndd = similar(ndb, Int)
         @test parent(ndb) !== parent(ndc)
         @test eltype(ndc) == Float64
         @test size(ndc) == (10, 20, 30, 40)
         @test dimnames(ndc) == (:a, :b, :c, :d)
         @test parent(ndc) isa typeof(oa)
         @test parent(ndd) isa OffsetArray
-        @test eltype(parent(ndd)) == Float64
+        @test eltype(parent(ndd)) == Int
     end
     @testset "repeated names" begin
         ndr = NamedDimsArray([1 2; 3 4], (:same, :same))
