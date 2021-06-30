@@ -82,25 +82,25 @@ function named_size(a::AbstractArray{T,N}) where {T,N}
     L = dimnames(a)
     return NamedTuple{L,NTuple{N,Int}}(size(a))
 end
-function Base.similar(a::NamedDimsArray{L,T}, eltype::Type=T) where {L,T}
+function Base.similar(a::NamedDimsArray{L,T}, ::Type{eltype}=T) where {L,T,eltype}
     dnames = dimnames(a)
     return NamedDimsArray(similar(parent(a), eltype), dnames)
 end
-function Base.similar(a::NamedDimsArray, eltype::Type, dims::NamedTuple)
+function Base.similar(a::NamedDimsArray, ::Type{eltype}, dims::NamedTuple) where eltype
     new_sizes = values(dims)
     new_names = keys(dims)
     return NamedDimsArray{new_names}(similar(parent(a), eltype, new_sizes))
 end
 function Base.similar(
-    a::NamedDimsArray{L,T,N}, eltype::Type, new_names::NTuple{N,Symbol},
-) where {T,N,L}
+    a::NamedDimsArray{L,T,N}, ::Type{eltype}, new_names::NTuple{N,Symbol},
+) where {L,T,N,eltype}
     dims = NamedTuple{new_names,NTuple{N,Int}}(size(a))
     return similar(a, eltype, dims)
 end
 
 function Base.similar(
-    a::NamedDimsArray{L,T,N}, eltype::Type, new_sizes::NTuple{N,Int},
-) where {L,T,N}
+    a::NamedDimsArray{L,T,N}, ::Type{eltype}, new_sizes::NTuple{N,Int},
+) where {L,T,N,eltype}
 
     dims = NamedTuple{L,NTuple{N,Int}}(new_sizes)
     return similar(a, eltype, dims)
