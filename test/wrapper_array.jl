@@ -256,15 +256,18 @@ end
         @test size(ndb) == (11, 22)
         @test dimnames(ndb) == (:w, :x)
     end
-    @testset "offset array" begin
+    @testset "parent type" begin
         oa = OffsetArray(ones(10,20,30,40), -5:4, -10:9, -15:14, -20:19)
         ndb = NamedDimsArray(oa, (:a, :b, :c, :d))
         ndc = similar(ndb)
+        ndd = similar(ndb, Float64)
         @test parent(ndb) !== parent(ndc)
         @test eltype(ndc) == Float64
         @test size(ndc) == (10, 20, 30, 40)
         @test dimnames(ndc) == (:a, :b, :c, :d)
         @test parent(ndc) isa typeof(oa)
+        @test parent(ndd) isa OffsetArray
+        @test eltype(parent(ndd)) == Float64
     end
 end
 
