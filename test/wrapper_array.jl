@@ -269,6 +269,11 @@ end
         @test parent(ndd) isa OffsetArray
         @test eltype(parent(ndd)) == Float64
     end
+    @testset "repeated names" begin
+        ndr = NamedDimsArray([1 2; 3 4], (:same, :same))
+        @test dimnames(similar(ndr)) == (:same, :same)
+        @test dimnames(similar(ndr, Float64)) == (:same, :same)
+    end
 end
 
 @testset "Strided Array Interface" begin
