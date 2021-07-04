@@ -176,7 +176,7 @@ Returns the tuple of index values for an array with `names`, when indexed by key
 Any dimensions not fixed are given as `:`, to make a slice.
 An error is thrown if any keywords are used which do not occur in `nda`'s names.
 """
-order_named_inds(val::Val{L}; kw...) where {L} = order_named_inds(val, kw.data)
+order_named_inds(val::Val{L}; kw...) where {L} = order_named_inds(val, values(kw))
 
 @generated function order_named_inds(val::Val{L}, ni::NamedTuple{K}) where {L,K}
     tuple_issubset(K, L) || throw(DimensionMismatch("Expected subset of $L, got $K"))
