@@ -240,7 +240,7 @@ end
         A = rand(2, 4)
         nda = NamedDimsArray{(:a, :b)}(A)
         @test cov(nda; corrected=bool) == cov(A; corrected=bool)
-        @test cov(nda; corrected=bool, dims=:b)  == cov(A; corrected=bool, dims=2)
+        @test cov(nda; corrected=bool, dims=:b) == cov(A; corrected=bool, dims=2)
     end
 end
 
@@ -257,5 +257,4 @@ end
     @testset "$(typeof(e))" for e in estimators
         @test cov(e, nda) == cov(e, A)
     end
-
 end
