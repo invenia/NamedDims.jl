@@ -1,9 +1,10 @@
+using CovarianceEstimation
 using LinearAlgebra
 using FFTW
 using NamedDims
 using NamedDims: matrix_prod_names, dimnames, symmetric_names, wave_name
-using Test
 using Statistics
+using Test
 
 @testset "+" begin
     nda = NamedDimsArray{(:a,)}(ones(3))
@@ -239,6 +240,21 @@ end
         A = rand(2, 4)
         nda = NamedDimsArray{(:a, :b)}(A)
         @test cov(nda; corrected=bool) == cov(A; corrected=bool)
-        @test cov(nda; corrected=bool, dims=:b)  == cov(A; corrected=bool, dims=2)
+        @test cov(nda; corrected=bool, dims=:b) == cov(A; corrected=bool, dims=2)
+    end
+end
+
+@testset "CovarianceEstimation" begin
+    estimators = (
+        LinearShrinkage(DiagonalCommonVariance()),
+        SimpleCovariance(),
+        AnalyticalNonlinearShrinkage(),
+    )
+
+    A = rand(20, 20)  # AnalyticalNonlinearShrinkage requires at least 12 samples
+    nda = NamedDimsArray{(:a, :b)}(A)
+
+    @testset "$(typeof(e))" for e in estimators
+        @test cov(e, nda) == cov(e, A)
     end
 end
