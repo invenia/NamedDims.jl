@@ -120,7 +120,6 @@ using Tracker
         nda2 = NamedDimsArray([1.0 2.0;], (:a, :b))
         @test (nda1 .= nda2) == (parent(nda1) .= parent(nda2))
     end
-
 end
 
 @testset "Competing Wrappers" begin
