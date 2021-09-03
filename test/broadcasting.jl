@@ -114,6 +114,11 @@ using Tracker
 
         @test dimnames(z .= ab .+ a_) == (:a, :b)
         @test dimnames(a_ .= ba' .+ ab) == (:a, :b)
+
+        # https://github.com/invenia/NamedDims.jl/issues/175
+        nda1 = NamedDimsArray(zeros(2, 2), (:a, :b))
+        nda2 = NamedDimsArray([1.0 2.0;], (:a, :b))
+        @test (nda1 .= nda2) == (parent(nda1) .= parent(nda2))
     end
 
 end
