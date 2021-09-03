@@ -50,7 +50,7 @@ and `NamedDimsStyle` with the wrapped `BroadcastStyle`.
 """
 function unwrap_broadcasted(bc::Broadcasted{NamedDimsStyle{S}}) where {S}
     inner_args = map(unwrap_broadcasted, bc.args)
-    return Broadcasted{S}(bc.f, inner_args)
+    return Broadcasted{S}(bc.f, inner_args, axes(bc))
 end
 unwrap_broadcasted(x) = x
 unwrap_broadcasted(nda::NamedDimsArray) = parent(nda)
