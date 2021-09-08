@@ -2,6 +2,7 @@ module NamedDims
 using Base: @propagate_inbounds
 using Base.Broadcast:
     Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
+using ChainRulesCore
 using CovarianceEstimation
 using LinearAlgebra
 using AbstractFFTs
@@ -24,6 +25,7 @@ include("wrapper_array.jl")
 include("name_operations.jl")
 
 include("broadcasting.jl")
+include("chainrules.jl")
 
 include("functions.jl")
 include("functions_dims.jl")
