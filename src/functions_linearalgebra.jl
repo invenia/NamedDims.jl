@@ -124,7 +124,7 @@ function LinearAlgebra.:\(
     nda::NamedDimsArray{W},
 ) where {L, T, F<:Factorization{T}, W}
     n1, n2 = L
-    n1 != only(W) && throw(ArgumentError("Dimension mismatch with dimensions $L and $W"))
+    n1 != W[1] && throw(ArgumentError("Dimension mismatch with dimensions $L and $W"))
     return NamedDimsArray{(n2,)}(LinearAlgebra.:\(parent(fact), parent(nda)))
 end
 
