@@ -1,3 +1,4 @@
+using Test: approx_full
 using LinearAlgebra
 using NamedDims
 using NamedDims: dimnames
@@ -141,3 +142,27 @@ end
     nda = NamedDimsArray{(:foo, :bar)}([1 2 3; 4 5 6; 7 8 9])  # Int eltype
     @test qr(nda) isa NamedDims.NamedFactorization{(:foo, :bar), Float64}
 end
+
+@testset "LinearAlgebra.:ldiv " begin
+
+    b = rand(5,)
+    b_nda = NamedDimsArray{(:blah,)}(b)
+
+    for A = (rand(5,5), rand(5,3))
+        (m, n) = size(A)
+        issquare = m == n
+        fn = issquare ? (identity, triu, tril, Diagonal) : (identity,)
+        for f in fn
+            for B in (b_nda, b)
+                nda = NamedDimsArray{(:foo, :bar)}(f(A))
+                x = nda \ B
+                @test parent(x) ≈ f(A) \ parent(B)
+                f != Diagonal && @test dimnames(x) == (:bar,)
+                # Do we want to test the results? 
+                issquare && @test parent(f(A) * x) ≈ parent(B)
+            end
+        end
+    end
+
+end
+    

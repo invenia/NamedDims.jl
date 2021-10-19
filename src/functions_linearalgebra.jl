@@ -118,3 +118,37 @@ function Base.getproperty(
         return inner
     end
 end
+
+function LinearAlgebra.:\(
+    fact::NamedFactorization{L, T, F},
+    nda::NamedDimsArray,
+) where {L, T, F<:Factorization{T}}
+    n1, n2 = L
+    return NamedDimsArray{(n2,)}(LinearAlgebra.:\(parent(fact), parent(nda)))
+end
+
+function LinearAlgebra.:\(
+    fact::NamedFactorization{L, T, F},
+    nda::AbstractVector,
+) where {L, T, F<:Factorization{T}}
+    n1, n2 = L
+    return NamedDimsArray{(n2,)}(LinearAlgebra.:\(parent(fact), nda))
+end
+
+# Specialised routines for \ often do in-place ops that result in the nameddim populated from B
+# Leading to an incorrect named-dim
+for S in (UpperTriangular, LowerTriangular)
+    @eval begin
+        function LinearAlgebra.:\(A::$S{T, <:NamedDimsArray{L}}, B::NamedDimsArray) where {L, T}
+            n1, n2 = L
+            NamedDimsArray{(n2,)}(LinearAlgebra.:\($S(parent(parent(A))), parent(B)))
+        end
+        function LinearAlgebra.:\(A::$S{T, <:NamedDimsArray{L}}, B::AbstractVector) where {L, T}
+            n1, n2 = L
+            NamedDimsArray{(n2,)}(LinearAlgebra.:\($S(parent(parent(A))), parent(B)))
+        end
+    end
+end
+
+# Diagonal on a nameddim loses its nameddimsness
+LinearAlgebra.:\(A::Diagonal, B::NamedDimsArray) = LinearAlgebra.:\(A, parent(B))
