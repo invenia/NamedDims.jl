@@ -58,6 +58,9 @@ for A in (
     @eval function Base.:*(a::$A, b::NamedDimsArray{L,T,1,<:AbstractVector{T}}) where {L,T}
         return *(a, parent(b))
     end
+    @eval function Base.:*(a::NamedDimsArray{L,T,1,<:AbstractVector{T}}, b::$A) where {L,T}
+        return *(parent(a), b)
+    end
 end
 
 """
