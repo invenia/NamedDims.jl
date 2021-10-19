@@ -121,9 +121,10 @@ end
 
 function LinearAlgebra.:\(
     fact::NamedFactorization{L, T, F},
-    nda::NamedDimsArray,
-) where {L, T, F<:Factorization{T}}
+    nda::NamedDimsArray{W},
+) where {L, T, F<:Factorization{T}, W}
     n1, n2 = L
+    n1 != only(W) && throw(ArgumentError("Dimension mismatch with dimensions $L and $W"))
     return NamedDimsArray{(n2,)}(LinearAlgebra.:\(parent(fact), parent(nda)))
 end
 
@@ -145,10 +146,10 @@ for S in (UpperTriangular, LowerTriangular)
         end
         function LinearAlgebra.:\(A::$S{T, <:NamedDimsArray{L}}, B::AbstractVector) where {L, T}
             n1, n2 = L
-            NamedDimsArray{(n2,)}(LinearAlgebra.:\($S(parent(parent(A))), parent(B)))
+            NamedDimsArray{(n2,)}(LinearAlgebra.:\($S(parent(parent(A))), B))
         end
     end
 end
 
-# Diagonal on a nameddim loses its nameddimsness
+# Diagonal on a nameddim presently loses its nameddimsness. So just pass through for now.
 LinearAlgebra.:\(A::Diagonal, B::NamedDimsArray) = LinearAlgebra.:\(A, parent(B))

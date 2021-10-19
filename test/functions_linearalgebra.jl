@@ -145,10 +145,10 @@ end
 
 @testset "LinearAlgebra.:ldiv " begin
 
-    b = rand(5,)
-    b_nda = NamedDimsArray{(:blah,)}(b)
-
-    for A = (rand(5,5), rand(5,3))
+    r1, r2, b = rand(5,5), rand(5,3), rand(5,)
+    b_nda = NamedDimsArray{(:foo,)}(b)
+    
+    for A = (r1, r2)
         (m, n) = size(A)
         issquare = m == n
         fn = issquare ? (identity, triu, tril, Diagonal) : (identity,)
@@ -157,12 +157,15 @@ end
                 nda = NamedDimsArray{(:foo, :bar)}(f(A))
                 x = nda \ B
                 @test parent(x) ≈ f(A) \ parent(B)
+                # TODO: Remove Diagonal specialcase once Diagonal(NamedDim) maintains NamedDimsness.
                 f != Diagonal && @test dimnames(x) == (:bar,)
                 # Do we want to test the results? 
                 issquare && @test parent(f(A) * x) ≈ parent(B)
             end
         end
     end
+
+    @test_throws ArgumentError NamedDimsArray{(:A, :B)}(r1) \ NamedDimsArray{(:NotA,)}(r2)
 
 end
     
