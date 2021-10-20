@@ -13,7 +13,6 @@ using LinearAlgebra: LowerTriangular, UpperTriangular
     end
 end
 
-
 @testset "dimnames" begin
     nda = NamedDimsArray([10 20; 30 40], (:x, :y))
 
