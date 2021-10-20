@@ -140,11 +140,13 @@ end
 @testset "#164 factorization eltype not same as input eltype" begin
     # https://github.com/invenia/NamedDims.jl/issues/164
     nda = NamedDimsArray{(:foo, :bar)}([1 2 3; 4 5 6; 7 8 9])  # Int eltype
-    @test qr(nda) isa NamedDims.NamedFactorization{(:foo, :bar), Float64}
+    @test qr(nda) isa NamedDims.NamedFactorization{(:foo, :bar),Float64}
 end
 
 @testset "LinearAlgebra.:ldiv " begin
-    r1, r2, b = rand(5, 5), rand(5, 3), rand(5)
+    r1 = [2 3 5; 7 11 13; 17 19 23]
+    r2 = r1[:, 1:2]
+    b = [29, 31, 37]
     b_nda = NamedDimsArray{(:foo,)}(b)
 
     for A in (r1, r2)
@@ -156,13 +158,14 @@ end
                 nda = NamedDimsArray{(:foo, :bar)}(f(A))
                 x = nda \ B
                 @test parent(x) ≈ f(A) \ parent(B)
-                # TODO: Remove Diagonal specialcase once Diagonal(NamedDim) maintains NamedDimsness.
+                # NOTE: Diagonal loses NamedDimness so specialcase
                 f != Diagonal && @test dimnames(x) == (:bar,)
                 # Do we want to test the results? 
                 issquare && @test parent(f(A) * x) ≈ parent(B)
+                !issquare && @test pinv(f(A)) * parent(b) ≈ parent(x)
             end
         end
     end
 
-    @test_throws ArgumentError NamedDimsArray{(:A, :B)}(r1) \ NamedDimsArray{(:NotA,)}(r2)
+    @test_throws DimensionMismatch NamedDimsArray{(:A, :B)}(r1) \ NamedDimsArray{(:NotA,)}(b)
 end
