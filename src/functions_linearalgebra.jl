@@ -123,7 +123,7 @@ function LinearAlgebra.:\(
     fact::NamedFactorization{L,T,F}, nda::NamedDimsArray{W}
 ) where {L,T,F<:Factorization{T},W}
     n1, n2 = L
-    n1 != W[1] && throw(ArgumentError("Dimension mismatch with dimensions $L and $W"))
+    n1 != W[1] && throw(DimensionMismatch("Mismatched dimensions with fact: $L and nda: $W"))
     return NamedDimsArray{(n2,)}(LinearAlgebra.:\(parent(fact), parent(nda)))
 end
 
@@ -136,19 +136,20 @@ end
 
 # Specialised routines for \ often do in-place ops that result in the nameddim populated from B
 # Leading to an incorrect named-dim
+# We use unname here because that handles wrapper types
 for S in (UpperTriangular, LowerTriangular)
     @eval begin
         function LinearAlgebra.:\(
             A::$S{T,<:NamedDimsArray{L}}, B::NamedDimsArray
         ) where {L,T}
             n1, n2 = L
-            return NamedDimsArray{(n2,)}(LinearAlgebra.:\($S(parent(parent(A))), parent(B)))
+            return NamedDimsArray{(n2,)}(LinearAlgebra.:\($S(unname(A)), parent(B)))
         end
         function LinearAlgebra.:\(
             A::$S{T,<:NamedDimsArray{L}}, B::AbstractVector
         ) where {L,T}
             n1, n2 = L
-            return NamedDimsArray{(n2,)}(LinearAlgebra.:\($S(parent(parent(A))), B))
+            return NamedDimsArray{(n2,)}(LinearAlgebra.:\($S(unname(A)), B))
         end
     end
 end
