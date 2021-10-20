@@ -144,11 +144,10 @@ end
 end
 
 @testset "LinearAlgebra.:ldiv " begin
-
-    r1, r2, b = rand(5,5), rand(5,3), rand(5,)
+    r1, r2, b = rand(5, 5), rand(5, 3), rand(5)
     b_nda = NamedDimsArray{(:foo,)}(b)
-    
-    for A = (r1, r2)
+
+    for A in (r1, r2)
         (m, n) = size(A)
         issquare = m == n
         fn = issquare ? (identity, triu, tril, Diagonal) : (identity,)
@@ -166,6 +165,4 @@ end
     end
 
     @test_throws ArgumentError NamedDimsArray{(:A, :B)}(r1) \ NamedDimsArray{(:NotA,)}(r2)
-
 end
-    

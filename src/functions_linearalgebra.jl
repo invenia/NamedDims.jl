@@ -120,18 +120,16 @@ function Base.getproperty(
 end
 
 function LinearAlgebra.:\(
-    fact::NamedFactorization{L, T, F},
-    nda::NamedDimsArray{W},
-) where {L, T, F<:Factorization{T}, W}
+    fact::NamedFactorization{L,T,F}, nda::NamedDimsArray{W}
+) where {L,T,F<:Factorization{T},W}
     n1, n2 = L
     n1 != W[1] && throw(ArgumentError("Dimension mismatch with dimensions $L and $W"))
     return NamedDimsArray{(n2,)}(LinearAlgebra.:\(parent(fact), parent(nda)))
 end
 
 function LinearAlgebra.:\(
-    fact::NamedFactorization{L, T, F},
-    nda::AbstractVector,
-) where {L, T, F<:Factorization{T}}
+    fact::NamedFactorization{L,T,F}, nda::AbstractVector
+) where {L,T,F<:Factorization{T}}
     n1, n2 = L
     return NamedDimsArray{(n2,)}(LinearAlgebra.:\(parent(fact), nda))
 end
@@ -140,13 +138,17 @@ end
 # Leading to an incorrect named-dim
 for S in (UpperTriangular, LowerTriangular)
     @eval begin
-        function LinearAlgebra.:\(A::$S{T, <:NamedDimsArray{L}}, B::NamedDimsArray) where {L, T}
+        function LinearAlgebra.:\(
+            A::$S{T,<:NamedDimsArray{L}}, B::NamedDimsArray
+        ) where {L,T}
             n1, n2 = L
-            NamedDimsArray{(n2,)}(LinearAlgebra.:\($S(parent(parent(A))), parent(B)))
+            return NamedDimsArray{(n2,)}(LinearAlgebra.:\($S(parent(parent(A))), parent(B)))
         end
-        function LinearAlgebra.:\(A::$S{T, <:NamedDimsArray{L}}, B::AbstractVector) where {L, T}
+        function LinearAlgebra.:\(
+            A::$S{T,<:NamedDimsArray{L}}, B::AbstractVector
+        ) where {L,T}
             n1, n2 = L
-            NamedDimsArray{(n2,)}(LinearAlgebra.:\($S(parent(parent(A))), B))
+            return NamedDimsArray{(n2,)}(LinearAlgebra.:\($S(parent(parent(A))), B))
         end
     end
 end
