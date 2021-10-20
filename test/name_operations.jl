@@ -5,9 +5,9 @@ using LinearAlgebra: LowerTriangular, UpperTriangular
         @test unname(NamedDimsArray(orig, (:x, :y))) === orig
         @test unname(orig) === orig
     end
-    @test unname((1,2,3)) === (1,2,3)
+    @test unname((1, 2, 3)) === (1, 2, 3)
 
-    for wrapper in (LowerTriangular, UpperTriangular,)
+    for wrapper in (LowerTriangular, UpperTriangular)
         orig = [1 2; 3 4]
         @test unname(wrapper(NamedDimsArray(orig, (:x, :y)))) === orig
     end

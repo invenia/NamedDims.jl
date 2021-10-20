@@ -49,8 +49,8 @@ Supports some LinearAlgebra wrappers LowerTriangular, UpperTriangular such that
 unname(x::NamedDimsArray) = parent(x)
 unname(x) = x
 # Unwrap LinearAlgebra wrappers 
-for W in (LowerTriangular, UpperTriangular,) 
-    @eval unname(x::$W{T, <:NamedDimsArray}) where {T} = unname(parent(x))
+for W in (LowerTriangular, UpperTriangular)
+    @eval unname(x::$W{T,<:NamedDimsArray}) where {T} = unname(parent(x))
 end
 
 """
