@@ -1,9 +1,16 @@
+using LinearAlgebra: LowerTriangular, UpperTriangular
+
 @testset "unname" begin
     for orig in ([1 2; 3 4], spzeros(2, 2))
         @test unname(NamedDimsArray(orig, (:x, :y))) === orig
         @test unname(orig) === orig
     end
     @test unname((1,2,3)) === (1,2,3)
+
+    for wrapper in (LowerTriangular, UpperTriangular,)
+        orig = [1 2; 3 4]
+        @test unname(wrapper(NamedDimsArray(orig, (:x, :y)))) === orig
+    end
 end
 
 
