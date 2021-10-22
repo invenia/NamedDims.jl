@@ -148,6 +148,7 @@ end
         @test ndv' * ndv == 14
         @test ndv' * ndv == adjoint(ndv) * v == transpose(ndv) * v
         @test ndv' * ndv == adjoint(v) * ndv == transpose(v) * ndv
+        @test ndv * v' == ndv * adjoint(v) == ndv * transpose(v)
         @test ndv * ndv' == [1 2 3; 2 4 6; 3 6 9]
 
         ndv2 = NamedDimsArray{(:b,)}([3, 2, 1])
