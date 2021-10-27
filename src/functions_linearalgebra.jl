@@ -140,17 +140,9 @@ end
 # We use unname here because that handles wrapper types
 for S in (UpperTriangular, LowerTriangular)
     @eval begin
-        function LinearAlgebra.:\(
-            A::$S{T,<:NamedDimsArray{L}}, B::NamedDimsArray
-        ) where {L,T}
+        function LinearAlgebra.:\(A::$S{T,<:NamedDimsArray{L}}, B::AbstractVector) where {L,T}
             n1, n2 = L
             return NamedDimsArray{(n2,)}(LinearAlgebra.:\($S(unname(A)), parent(B)))
-        end
-        function LinearAlgebra.:\(
-            A::$S{T,<:NamedDimsArray{L}}, B::AbstractVector
-        ) where {L,T}
-            n1, n2 = L
-            return NamedDimsArray{(n2,)}(LinearAlgebra.:\($S(unname(A)), B))
         end
     end
 end
