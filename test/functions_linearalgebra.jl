@@ -160,14 +160,11 @@ end
                 @test parent(x) ≈ f(A) \ parent(B)
                 # NOTE: Diagonal loses NamedDimness so specialcase
                 f != Diagonal && @test dimnames(x) == (:bar,)
-                # Do we want to test the results? 
-                issquare && @test parent(f(A) * x) ≈ parent(B)
-                !issquare && @test pinv(f(A)) * parent(b) ≈ parent(x)
             end
         end
     end
 
-    @test_throws DimensionMismatch \(
+    @test_throws DimensionMismatch (\)(
         NamedDimsArray{(:A, :B)}(r1),
         NamedDimsArray{(:NotA,)}(b)
     )
