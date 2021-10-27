@@ -1,3 +1,4 @@
+using Test: approx_full
 using LinearAlgebra
 using NamedDims
 using NamedDims: dimnames
@@ -139,5 +140,31 @@ end
 @testset "#164 factorization eltype not same as input eltype" begin
     # https://github.com/invenia/NamedDims.jl/issues/164
     nda = NamedDimsArray{(:foo, :bar)}([1 2 3; 4 5 6; 7 8 9])  # Int eltype
-    @test qr(nda) isa NamedDims.NamedFactorization{(:foo, :bar), Float64}
+    @test qr(nda) isa NamedDims.NamedFactorization{(:foo, :bar),Float64}
+end
+
+@testset "LinearAlgebra.:ldiv " begin
+    r1 = [2 3 5; 7 11 13; 17 19 23]
+    r2 = r1[:, 1:2]
+    b = [29, 31, 37]
+    b_nda = NamedDimsArray{(:foo,)}(b)
+
+    for A in (r1, r2)
+        (m, n) = size(A)
+        issquare = m == n
+        fn = issquare ? (identity, triu, tril, Diagonal) : (identity,)
+        for f in fn
+            for B in (b_nda, b)
+                nda = NamedDimsArray{(:foo, :bar)}(f(A))
+                x = nda \ B
+                @test parent(x) ≈ f(A) \ parent(B)
+                # NOTE: Diagonal loses NamedDimness so specialcase
+                f != Diagonal && @test dimnames(x) == (:bar,)
+            end
+        end
+    end
+
+    @test_throws DimensionMismatch (\)(
+        NamedDimsArray{(:A, :B)}(r1), NamedDimsArray{(:NotA,)}(b)
+    )
 end

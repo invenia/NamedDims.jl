@@ -118,3 +118,39 @@ function Base.getproperty(
         return inner
     end
 end
+
+function LinearAlgebra.:\(
+    fact::NamedFactorization{L,T,F}, nda::NamedDimsArray{W}
+) where {L,T,F<:Factorization{T},W}
+    n1, n2 = L
+    n1 != W[1] && throw(
+        DimensionMismatch(
+            "Mismatched dimensions with factorization: $L and NamedDimsArray: $W"
+        ),
+    )
+    return NamedDimsArray{(n2,)}(LinearAlgebra.:\(parent(fact), parent(nda)))
+end
+
+function LinearAlgebra.:\(
+    fact::NamedFactorization{L,T,F}, nda::AbstractVector
+) where {L,T,F<:Factorization{T}}
+    n1, n2 = L
+    return NamedDimsArray{(n2,)}(LinearAlgebra.:\(parent(fact), nda))
+end
+
+# Specialised routines for \ often do in-place ops that result in the nameddim populated from B
+# Leading to an incorrect named-dim
+# We also unname here because that handles wrapper types
+for S in (UpperTriangular, LowerTriangular)
+    @eval begin
+        function LinearAlgebra.:\(
+            A::$S{T,<:NamedDimsArray{L}}, B::AbstractVector
+        ) where {L,T}
+            n1, n2 = L
+            return NamedDimsArray{(n2,)}(LinearAlgebra.:\($S(unname(A)), parent(B)))
+        end
+    end
+end
+
+# Diagonal on a nameddim presently loses its nameddimsness. So just pass through for now.
+LinearAlgebra.:\(A::Diagonal, B::NamedDimsArray) = LinearAlgebra.:\(A, parent(B))
