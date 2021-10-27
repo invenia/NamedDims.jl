@@ -123,10 +123,11 @@ function LinearAlgebra.:\(
     fact::NamedFactorization{L,T,F}, nda::NamedDimsArray{W}
 ) where {L,T,F<:Factorization{T},W}
     n1, n2 = L
-    n1 != W[1] &&
-        throw(DimensionMismatch(
-            "Mismatched dimensions with factorization: $L and NamedDimsArray: $W")
-        )
+    n1 != W[1] && throw(
+        DimensionMismatch(
+            "Mismatched dimensions with factorization: $L and NamedDimsArray: $W"
+        ),
+    )
     return NamedDimsArray{(n2,)}(LinearAlgebra.:\(parent(fact), parent(nda)))
 end
 
