@@ -139,7 +139,7 @@ end
 
 # Specialised routines for \ often do in-place ops that result in the nameddim populated from B
 # Leading to an incorrect named-dim
-# We use unname here because that handles wrapper types
+# We also unname here because that handles wrapper types
 for S in (UpperTriangular, LowerTriangular)
     @eval begin
         function LinearAlgebra.:\(A::$S{T,<:NamedDimsArray{L}}, B::AbstractVector) where {L,T}
