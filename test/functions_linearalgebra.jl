@@ -167,6 +167,8 @@ end
         end
     end
 
-    @test_throws DimensionMismatch NamedDimsArray{(:A, :B)}(r1) \
+    @test_throws DimensionMismatch \(
+        NamedDimsArray{(:A, :B)}(r1),
         NamedDimsArray{(:NotA,)}(b)
+    )
 end
