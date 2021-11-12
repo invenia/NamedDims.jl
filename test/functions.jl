@@ -7,7 +7,7 @@ using Statistics
     a = [10 20; 31 40]
     nda = NamedDimsArray(a, (:x, :y))
 
-    @testset "$f" for f in (sum, prod, maximum, minimum, extrema)
+    @testset "$f" for f in (sum, prod, maximum, minimum, extrema, argmax, argmin, findmax, findmin)
         @test f(nda) == f(a)
         @test f(nda; dims=:x) == f(nda; dims=1) == f(a; dims=1)
 

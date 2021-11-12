@@ -17,7 +17,7 @@ end
 
 # 1 Arg
 for (mod, funs) in (
-    (:Base, (:sum, :prod, :maximum, :minimum, :extrema)),
+    (:Base, (:sum, :prod, :maximum, :minimum, :extrema, :argmax, :argmin, :findmax, :findmin)),
     (:Statistics, (:mean, :std, :var, :median)),
 )
     for fun in funs
