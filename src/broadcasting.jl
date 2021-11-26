@@ -78,7 +78,7 @@ function broadcasted_names(a, b)
     b_name = broadcasted_names(b)
     return unify_names_longest(a_name, b_name)
 end
-# Including two explicit arguments like this before starting recursion seems to help
+# Including two explicit arguments like this before starting recursion helps
 # const-propagation
 function broadcasted_names(a, b, cs...)
     a_name = broadcasted_names(a)
