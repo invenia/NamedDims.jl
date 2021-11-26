@@ -144,3 +144,16 @@ end
     @test ((1,2,3,4) .+ nda) isa NamedDimsArray{(:foo,)}
     @test ((1,2,3,4) .+ nda) == [1, 2, 3, 4]
 end
+
+function foo(a, b, c, d)
+    @. a -= 0.5 * d * b * c
+    return a
+end
+@testset "Regression test against #187 (allocations)" begin
+    # # https://github.com/invenia/NamedDims.jl/issues/187
+    a = NamedDimsArray{(:z,)}(rand(5))
+    b = NamedDimsArray{(:z,)}(rand(5))
+    c = rand()
+    d = rand()
+    @test 0 == @ballocated foo($a, $b, $c, $d)
+end

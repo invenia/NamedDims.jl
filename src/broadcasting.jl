@@ -73,10 +73,18 @@ function Base.copyto!(dest::AbstractArray, bc::Broadcasted{NamedDimsStyle{S}}) w
 end
 
 broadcasted_names(bc::Broadcasted) = broadcasted_names(bc.args...)
-function broadcasted_names(a, bs...)
+function broadcasted_names(a, b)
     a_name = broadcasted_names(a)
-    b_name = broadcasted_names(bs...)
+    b_name = broadcasted_names(b)
     return unify_names_longest(a_name, b_name)
+end
+# Including two explicit arguments like this before starting recursion seems to help
+# const-propagation
+function broadcasted_names(a, b, cs...)
+    a_name = broadcasted_names(a)
+    b_name = broadcasted_names(b)
+    c_name = broadcasted_names(cs...)
+    return unify_names_longest(a_name, b_name, c_name)
 end
 broadcasted_names(a::AbstractArray) = dimnames(a)
 broadcasted_names(a) = tuple()
