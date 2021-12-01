@@ -115,7 +115,7 @@ end
     for pivot in (ColumnNorm(), NoPivot())
         for data in ([1.0 2 3; 4 5 6], [big"1.0" 2; 3 4])
             nda = NamedDimsArray{(:foo, :bar)}(data)
-            x = qr(nda, pivot);
+            x = qr(nda, pivot)
             @test size(x) == size(parent(x))
             @test dimnames(x.Q) == (:foo, :_)
             @test dimnames(x.R) == (:_, :bar)
