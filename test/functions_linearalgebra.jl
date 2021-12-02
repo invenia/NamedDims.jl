@@ -4,6 +4,12 @@ using NamedDims
 using NamedDims: dimnames
 using Test
 
+if !isdefined(@__MODULE__, :ColumnNorm)
+    # Make work on old julia versions
+    ColumnNorm() = Val(true)
+    NoPivot() = Val(false)
+end
+
 function baseline_tests(fact, identity)
     # A set of generic tests to ensure that our components don't accidentally reverse the
     # `:foo` and `:bar` labels for any components
@@ -109,13 +115,13 @@ end
 
 @testset "qr" begin
     baseline_tests(qr, F -> F.Q * F.R)
-    baseline_tests(A -> qr(A, Val(true)), F -> F.Q * F.R * F.P')
+    baseline_tests(A -> qr(A, ColumnNorm()), F -> F.Q * F.R * F.P')
 
     # Explicit `dimnames` tests for readability
-    for pivot in (true, false)
+    for pivot in (ColumnNorm(), NoPivot())
         for data in ([1.0 2 3; 4 5 6], [big"1.0" 2; 3 4])
             nda = NamedDimsArray{(:foo, :bar)}(data)
-            x = qr(nda, Val(pivot));
+            x = qr(nda, pivot)
             @test size(x) == size(parent(x))
             @test dimnames(x.Q) == (:foo, :_)
             @test dimnames(x.R) == (:_, :bar)
@@ -123,7 +129,7 @@ end
             # Identity operation should give back original dimnames
             @test dimnames(x.Q * x.R) == (:foo, :bar)
 
-            pivot && @testset "pivoted" begin
+            pivot === ColumnNorm() && @testset "pivoted" begin
                 @test parent(x) isa QRPivoted
                 @test dimnames(x.p) == (:bar,)
                 @test dimnames(x.P) == (:bar, :bar)
