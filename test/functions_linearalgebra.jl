@@ -4,6 +4,12 @@ using NamedDims
 using NamedDims: dimnames
 using Test
 
+if !isdefined(@__MODULE__, :ColumnNorm)
+    # Make work on old julia versions
+    ColumnNorm() = Val(true)
+    NoPivot() = Val(false)
+end
+
 function baseline_tests(fact, identity)
     # A set of generic tests to ensure that our components don't accidentally reverse the
     # `:foo` and `:bar` labels for any components
