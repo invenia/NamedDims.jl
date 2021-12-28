@@ -22,6 +22,7 @@ const CoVector = Union{Adjoint{<:Any,<:AbstractVector},Transpose{<:Any,<:Abstrac
 
 include("name_core.jl")
 include("wrapper_array.jl")
+include("show.jl")
 include("name_operations.jl")
 
 include("broadcasting.jl")
@@ -37,6 +38,5 @@ include("fft.jl")
 @deprecate refine_names NamedDimsArray true
 
 include("functions_linearalgebra.jl")
-
 
 end # module
