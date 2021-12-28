@@ -196,29 +196,40 @@ function Base.show(io::IO, A::NamedDimsArray{L,T,N}) where {L,T,N}
     end
 end
 
-# called by summary(), for main REPL printing:
+# This is called by summary(), for main REPL printing:
 function Base.showarg(io::IO, A::NamedDimsArray{L,T,N}, outer) where {L,T,N}
     print(io, "NamedDimsArray(")
     Base.showarg(io, parent(A), false)
-    print(io, ", ", N == 1 ? QuoteNode(L[1]) : L, ")")
+    print(io, ", ", ColourString(N == 1 ? QuoteNode(L[1]) : L), ")")
 end
 
 function Base.print_matrix(io::IO, A::NamedDimsArray)
-    s1 = string("↓ :", dimnames(A,1)) * "  "
+    s1 = ColourString("↓ ", dimnames(A,1), "  ")
     if ndims(A)==2
-        s2 = string(" "^Base.Unicode.textwidth(s1), "→ :", dimnames(A,2), "\n")
-        print(io, s2)
+        println(io, " "^Base.Unicode.textwidth(s1), ColourString("→ ", dimnames(A,2)))
     end
     ioc = IOContext(io, :displaysize => displaysize(io) .- (1, 0))
     Base.print_matrix(ioc, parent(A), s1)
 end
+
+struct ColourString <: AbstractString
+    string
+    ColourString(xs...) = new(string(xs...))
+end
+Base.alignment(io::IO, x::ColourString) =  alignment(io, x.string)
+Base.length(x::ColourString) = length(x.string)
+Base.ncodeunits(x::ColourString) = ncodeunits(x.string)
+Base.textwidth(x::ColourString) = textwidth(x.string)
+Base.print(io::IO, x::ColourString) = printstyled(io, x.string; color=SHOWCOLOR[])
+
+const SHOWCOLOR = Ref(:magenta)
 
 if VERSION > v"1.6.0-DEV.1561" # 809f27c53df7a54388a687a847e9494e0d29bd4f
 
     function Base._show_nd_label(io::IO, A::NamedDimsArray, idxs)
         print(io, "[:, :, ")
         for i in 1:length(idxs)
-            print(io, dimnames(A, i+2), "=", idxs[i])
+            print(io, ColourString(dimnames(A, i+2), "=", idxs[i]))
             i == length(idxs) ? println(io, "] =") : print(io, ", ")
         end
     end

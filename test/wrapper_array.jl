@@ -292,7 +292,7 @@ end
 
     str = repr(MIME"text/plain"(), nda) # mime => 3-arg show
     @test occursin("2×2 NamedDimsArray(::", str)
-    @test occursin("→ :y", str)
+    @test occursin("→ y", str)
 end
 
 const cnda = NamedDimsArray([10 20; 30 40], (:x, :y))
