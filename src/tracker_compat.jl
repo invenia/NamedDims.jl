@@ -9,17 +9,21 @@ Tracker.TrackedArray(::Tracker.Call, ::NamedDimsArray, ::AbstractArray) = error(
 Tracker.TrackedArray(::Tracker.Call, ::AbstractArray, ::NamedDimsArray) = error("Should not make Tracked NamedDimsArray")
 ==#
 
-Base.BroadcastStyle(::NamedDimsStyle{A}, b::Tracker.TrackedStyle) where {A} = NamedDimsStyle(A(), b)
-Base.BroadcastStyle(a::Tracker.TrackedStyle, ::NamedDimsStyle{B}) where {B} = NamedDimsStyle(a, B())
+function Base.BroadcastStyle(::NamedDimsStyle{A}, b::Tracker.TrackedStyle) where {A}
+    return NamedDimsStyle(A(), b)
+end
+function Base.BroadcastStyle(a::Tracker.TrackedStyle, ::NamedDimsStyle{B}) where {B}
+    return NamedDimsStyle(a, B())
+end
 
 @declare_matmul(Tracker.TrackedMatrix, Tracker.TrackedVector)
 
-function Tracker.data(nda::NamedDimsArray{L}) where L
+function Tracker.data(nda::NamedDimsArray{L}) where {L}
     content = Tracker.data(parent(nda))
     return NamedDimsArray{L}(content)
 end
 
-function Tracker.track(c::Tracker.Call, nda::NamedDimsArray{L}) where L
+function Tracker.track(c::Tracker.Call, nda::NamedDimsArray{L}) where {L}
     content = Tracker.track(c, parent(nda))
     return NamedDimsArray{L}(content)
 end

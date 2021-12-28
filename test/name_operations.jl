@@ -1,12 +1,19 @@
+using LinearAlgebra: LowerTriangular, UpperTriangular
+
 @testset "unname" begin
     for orig in ([1 2; 3 4], spzeros(2, 2))
         @test unname(NamedDimsArray(orig, (:x, :y))) === orig
         @test unname(orig) === orig
     end
+    @test unname((1, 2, 3)) === (1, 2, 3)
+
+    for wrapper in (LowerTriangular, UpperTriangular)
+        orig = [1 2; 3 4]
+        @test unname(wrapper(NamedDimsArray(orig, (:x, :y)))) === orig
+    end
 end
 
-
-@testset "dimnames" begin   
+@testset "dimnames" begin
     nda = NamedDimsArray([10 20; 30 40], (:x, :y))
 
     @test dimnames(nda) === (:x, :y)
@@ -16,7 +23,7 @@ end
     @test dimnames([10 20; 30 40]) === (:_, :_)
     @test dimnames([10 20; 30 40], 2) === :_
     @test dimnames([10 20; 30 40], 3) === :_
-    
+
     v = NamedDimsArray(1:2, :a)
     @test dimnames(v, 2) == dimnames(permutedims(v), 1) # That's why :_ for d > ndims
 
@@ -53,4 +60,21 @@ end
 
     @test dimnames(new_nda) === (:w, :x, :y, :z)
     @test parent(new_nda) === parent(nda)
+
+    pair = :a => :w
+    @test dimnames(rename(nda, pair)) === (:w, :b, :c, :d)
+    @test parent(rename(nda, pair)) === parent(nda)
+
+    pairs = (:a => :w, :b => :x, :c => :y, :d => :z)
+    @test dimnames(rename(nda, pairs...)) === (:w, :x, :y, :z)
+    @test parent(rename(nda, pairs...)) === parent(nda)
+
+    # parallel (rather than consecutive) computation of pairs, as in Base.replace
+    ppairs = (:a => :b, :b => :x)
+    @test dimnames(rename(nda, ppairs...)) === (:b, :x, :c, :d) # rather than (:x, :x, :c, :d)
+    @test parent(rename(nda, ppairs...)) === parent(nda)
+end
+
+@testset "rename allocations" begin
+    @test_modern 0 == @ballocated (()->NamedDims._rename((:a, :b), :a => :x, :b => :y))()
 end

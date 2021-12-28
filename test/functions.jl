@@ -39,7 +39,7 @@ using Statistics
 
         # Higher-dim case: `dims` keyword in `sort!` requires Julia v1.1+
         if VERSION > v"1.1-"
-            sort!(nda, dims=:y)
+            sort!(nda; dims=:y)
             @test issorted(a[2, :])
             @test_throws UndefKeywordError sort!(nda)
 
@@ -52,11 +52,11 @@ using Statistics
         a = [10 20; 31 40]
         nda = NamedDimsArray(a, (:x, :y)) # size (2,2)
 
-        nda1 = sum(nda, dims=1)           # size (1,2)
-        nda2 = sum(nda, dims=2)           # size (2,1)
+        nda1 = sum(nda; dims=1)           # size (1,2)
+        nda2 = sum(nda; dims=2)           # size (2,1)
         @testset "ndims==2" begin
-            @test f!(nda1, nda) == f!(nda1, a) == f(a, dims=1)
-            @test f!(nda2, nda) == f!(nda2, a) == f(a, dims=2)
+            @test f!(nda1, nda) == f!(nda1, a) == f(a; dims=1)
+            @test f!(nda2, nda) == f!(nda2, a) == f(a; dims=2)
 
             @test dimnames(f!(nda1, nda)) == (:x, :y) == dimnames(f!(nda1, a))
             @test dimnames(f!(nda2, nda)) == (:x, :y) == dimnames(f!(nda2, a))
@@ -68,10 +68,10 @@ using Statistics
             ndy = NamedDimsArray([5,6], :y)
             nd_ = NamedDimsArray([7,8], :_)
 
-            @test f!(ndx, nda) == f!([0,0], nda) == dropdims(f(a, dims=2), dims=2)
+            @test f!(ndx, nda) == f!([0,0], nda) == dropdims(f(a; dims=2); dims=2)
             @test f!(nd_, nda) == f!(ndx, a)
 
-            @test f!(ndy', nda) == f!([0 0], nda) == f(a, dims=1)
+            @test f!(ndy', nda) == f!([0 0], nda) == f(a; dims=1)
 
             @test_throws DimensionMismatch f!(ndy, nda) # name y on wrong dimension
         end
@@ -167,8 +167,15 @@ using Statistics
         nda = NamedDimsArray(a, (:x, :y))
 
         @test count(nda) == count(a) == 3
-        @test_throws Exception count(nda; dims=:x)
-        @test_throws Exception count(a; dims=1)
+
+        if VERSION >= v"1.5"
+            @test parent(count(nda, dims=:x)) == count(a, dims=1) == [2 1]
+            @test dimnames(count(nda, dims=:x)) ==
+                  dimnames(count(nda, dims=:y)) == (:x, :y)
+        else
+            @test_throws Exception count(nda; dims=:x)
+            @test_throws Exception count(a; dims=1)
+        end
     end
 
     @testset "push!, pop!, etc" begin

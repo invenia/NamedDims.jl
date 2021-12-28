@@ -4,10 +4,10 @@ This is a `BroadcastStyle` for NamedDimsArray's
 It preserves the dimension names.
 `S` should be the `BroadcastStyle` of the wrapped type.
 """
-struct NamedDimsStyle{S <: BroadcastStyle} <: AbstractArrayStyle{Any} end
+struct NamedDimsStyle{S<:BroadcastStyle} <: AbstractArrayStyle{Any} end
 NamedDimsStyle(::S) where {S} = NamedDimsStyle{S}()
 NamedDimsStyle(::S, ::Val{N}) where {S,N} = NamedDimsStyle(S(Val(N)))
-NamedDimsStyle(::Val{N}) where N = NamedDimsStyle{DefaultArrayStyle{N}}()
+NamedDimsStyle(::Val{N}) where {N} = NamedDimsStyle{DefaultArrayStyle{N}}()
 function NamedDimsStyle(a::BroadcastStyle, b::BroadcastStyle)
     inner_style = BroadcastStyle(a, b)
 
@@ -18,17 +18,27 @@ function NamedDimsStyle(a::BroadcastStyle, b::BroadcastStyle)
         return NamedDimsStyle(inner_style)
     end
 end
-function Base.BroadcastStyle(::Type{<:NamedDimsArray{L, T, N, A}}) where {L, T, N, A}
+
+function Base.BroadcastStyle(::Type{<:NamedDimsArray{L,T,N,A}}) where {L,T,N,A}
     inner_style = typeof(BroadcastStyle(A))
     return NamedDimsStyle{inner_style}()
 end
+function Base.BroadcastStyle(::NamedDimsStyle{A}, ::NamedDimsStyle{B}) where {A,B}
+    return NamedDimsStyle(A(), B())
+end
 
-
-Base.BroadcastStyle(::NamedDimsStyle{A}, ::NamedDimsStyle{B}) where {A, B} = NamedDimsStyle(A(), B())
-Base.BroadcastStyle(::NamedDimsStyle{A}, b::B) where {A, B} = NamedDimsStyle(A(), b)
-Base.BroadcastStyle(a::A, ::NamedDimsStyle{B}) where {A, B} = NamedDimsStyle(a, B())
-Base.BroadcastStyle(::NamedDimsStyle{A}, b::DefaultArrayStyle) where {A} = NamedDimsStyle(A(), b)
-Base.BroadcastStyle(a::AbstractArrayStyle{M}, ::NamedDimsStyle{B}) where {B,M} = NamedDimsStyle(a, B())
+# Resolve ambiguities
+# for all these cases, we define that we win to be the outer style regardless of order
+for B in (
+    :BroadcastStyle, :DefaultArrayStyle, :AbstractArrayStyle, :(Broadcast.Style{Tuple}),
+)
+    @eval function Base.BroadcastStyle(::NamedDimsStyle{A}, b::$B) where A
+        return NamedDimsStyle(A(), b)
+    end
+    @eval function Base.BroadcastStyle(b::$B, ::NamedDimsStyle{A}) where A
+        return NamedDimsStyle(b, A())
+    end
+end
 
 
 """
@@ -38,17 +48,16 @@ Recursively unwraps `NamedDimsArray`s and `NamedDimsStyle`s.
 replacing the `NamedDimsArray`s with the wrapped array,
 and `NamedDimsStyle` with the wrapped `BroadcastStyle`.
 """
-function unwrap_broadcasted(bc::Broadcasted{NamedDimsStyle{S}}) where S
+function unwrap_broadcasted(bc::Broadcasted{NamedDimsStyle{S}}) where {S}
     inner_args = map(unwrap_broadcasted, bc.args)
-    return Broadcasted{S}(bc.f, inner_args)
+    return Broadcasted{S}(bc.f, inner_args, axes(bc))
 end
 unwrap_broadcasted(x) = x
 unwrap_broadcasted(nda::NamedDimsArray) = parent(nda)
 
-
 # We need to implement copy because if the wrapper array type does not support setindex
 # then the `similar` based default method will not work
-function Broadcast.copy(bc::Broadcasted{NamedDimsStyle{S}}) where S
+function Broadcast.copy(bc::Broadcasted{NamedDimsStyle{S}}) where {S}
     inner_bc = unwrap_broadcasted(bc)
     data = copy(inner_bc)
 
@@ -56,7 +65,7 @@ function Broadcast.copy(bc::Broadcasted{NamedDimsStyle{S}}) where S
     return NamedDimsArray{L}(data)
 end
 
-function Base.copyto!(dest::AbstractArray, bc::Broadcasted{NamedDimsStyle{S}}) where S
+function Base.copyto!(dest::AbstractArray, bc::Broadcasted{NamedDimsStyle{S}}) where {S}
     inner_bc = unwrap_broadcasted(bc)
     copyto!(dest, inner_bc)
     L = unify_names(dimnames(dest), broadcasted_names(bc))
@@ -64,10 +73,18 @@ function Base.copyto!(dest::AbstractArray, bc::Broadcasted{NamedDimsStyle{S}}) w
 end
 
 broadcasted_names(bc::Broadcasted) = broadcasted_names(bc.args...)
-function broadcasted_names(a, bs...)
+function broadcasted_names(a, b)
     a_name = broadcasted_names(a)
-    b_name = broadcasted_names(bs...)
-    unify_names_longest(a_name, b_name)
+    b_name = broadcasted_names(b)
+    return unify_names_longest(a_name, b_name)
+end
+# Including two explicit arguments like this before starting recursion helps
+# const-propagation
+function broadcasted_names(a, b, cs...)
+    a_name = broadcasted_names(a)
+    b_name = broadcasted_names(b)
+    c_name = broadcasted_names(cs...)
+    return unify_names_longest(a_name, b_name, c_name)
 end
 broadcasted_names(a::AbstractArray) = dimnames(a)
 broadcasted_names(a) = tuple()

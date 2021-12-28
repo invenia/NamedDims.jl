@@ -27,8 +27,7 @@ then try wrapping its returned value in `compile_time_return_hack`.
 and then look at the `@code_lowered` again.
 """
 compile_time_return_hack(x::Tuple{Vararg{Symbol}}) = _compile_time_return_hack(Val{x}())
-_compile_time_return_hack(::Val{X}) where X = X
-
+_compile_time_return_hack(::Val{X}) where {X} = X
 
 """
     dim(dimnames, name)
@@ -43,19 +42,17 @@ function dim(dimnames::Tuple, name::Symbol)::Int
     # 0-Allocations see: `@btime  (()->dim((:a, :b), :b))()`
     dimnum = dim_noerror(dimnames, name)
     if dimnum === 0
-        throw(ArgumentError(
-            "Specified name ($(repr(name))) does not match any dimension name ($dimnames)"
-        ))
+        throw(ArgumentError("Specified name ($(repr(name))) does not match any dimension name ($dimnames)"))
     end
     return dimnum
 end
 
 function dim(dimnames::Tuple, names)
     # 0-Allocations see: `@btime (()->dim((:a,:b), (:a,:b)))()`
-    return map(name->dim(dimnames, name), names)
+    return map(name -> dim(dimnames, name), names)
 end
 
-function dim(dimnames::Tuple, d::Union{Integer, Colon})
+function dim(dimnames::Tuple, d::Union{Integer,Colon})
     # This is the fallback that allows `NamedDimsArray`'s to be have dimensions
     # referred to by number. This is required to allow functions on `AbstractArray`s
     # and that use function like `sum(xs; dims=2)` to continue to work without changes
@@ -63,7 +60,9 @@ function dim(dimnames::Tuple, d::Union{Integer, Colon})
     return d
 end
 
-Base.@pure function dim_noerror(dimnames::Tuple{Vararg{Symbol, N}}, name::Symbol) where N
+dim(dimnames::Tuple, ::Val{d}) where {d} = dim(dimnames, d)
+
+Base.@pure function dim_noerror(dimnames::Tuple{Vararg{Symbol,N}}, name::Symbol) where {N}
     # 0-Allocations see: @btime  (()->dim_noerror((:a, :b, :c), :c))()
     for ii in 1:N
         getfield(dimnames, ii) === name && return ii
@@ -71,7 +70,42 @@ Base.@pure function dim_noerror(dimnames::Tuple{Vararg{Symbol, N}}, name::Symbol
     return 0
 end
 
+"""
+    expand_dimnames(dimnames, name)
 
+For `dimnames` being a tuple of names (symbols) for the dimensions.
+and `name` being a name.
+This expands the `dimnames` if `name` is not in `dimnames`.
+e.g. `expand_dimnames((:a, :b), :c) == (:a, :b, :c)`
+If `name` is already in `dimnames` then `dimnames` is returned.
+"""
+function expand_dimnames(dimnames::Tuple, name::Symbol)
+    if dim_noerror(dimnames, name) > 0  # name in dimnames, but optimised
+        return dimnames
+    else
+        return compile_time_return_hack((dimnames..., name))
+    end
+end
+
+function expand_dimnames(dimnames::Tuple, name::Union{Colon,Tuple{}})
+    return dimnames
+end
+
+function expand_dimnames(dimnames::Tuple, name::Integer)
+    if name <= length(dimnames)
+        return dimnames
+    else
+        extra_length = name - length(dimnames)
+        new_dimnames = ntuple(i -> :_, extra_length)
+        return compile_time_return_hack((dimnames..., new_dimnames...))
+    end
+end
+
+function expand_dimnames(dimnames::Tuple, names)
+    return expand_dimnames(expand_dimnames(dimnames, first(names)), Base.tail(names))
+end
+
+expand_dimnames(dimnames::Tuple, ::Val{d}) where {d} = expand_dimnames(dimnames, d)
 
 """
     permute_dimnames(dimnames, perm)
@@ -81,7 +115,7 @@ Reorder `dimnames` according `perm`.
 Note: this does not throw errors if you give it a permutation that skips some positions
 and duplicates others.
 """
-function permute_dimnames(dimnames::NTuple{N, Symbol}, perm) where N
+function permute_dimnames(dimnames::NTuple{N,Symbol}, perm) where {N}
     # 0-Allocations, but does not seem to fully calculate at compile time
     # even with the `compile_time_return_hack`, though that is still required to
     # prevent allocations. `@code_typed permute_dimnames((:a,:b,:c), (1,3,2))`
@@ -94,12 +128,35 @@ function permute_dimnames(dimnames::NTuple{N, Symbol}, perm) where N
 end
 
 """
+    _rename(dimnames::Tuple, old_new::Vararg{Pair})
+    _rename(dimname::Symbol, old_new::Vararg{Pair})
+
+For each pair `old=>new`, replace all occurences of `old` in tuple `namea` with `new`.
+If `dimname` is a Symbol, replace it with `new` of the pair with matching `old`, or
+return `dimname` if no pairs match.
+"""
+function _rename(dimnames::Tuple, old_new::Vararg{Pair})
+    return ntuple(i -> _rename(dimnames[i], old_new...), length(dimnames))
+end
+
+function _rename(dimname::Symbol, old_new::Vararg{Pair})
+    # Avoid looping over pairs explicitly because that allocates.
+    nt = ntuple(i -> dimname === first(old_new[i]) ? i : 0, length(old_new))
+    which = sum(nt)
+    which > length(old_new) &&
+        throw(ArgumentError("Duplicate old names not permitted in `rename`"))
+    return which == 0 ? dimname : last(old_new[which])
+end
+
+"""
     tuple_issubset
 A version of `is_subset` sepecifically for `Tuple`s of `Symbol`s, that is `@pure`.
 This helps it get optimised out of existance. It is less of an abuse of `@pure` than
 most of the stuff for making `NamedTuples` work.
 """
-Base.@pure function tuple_issubset(lhs::Tuple{Vararg{Symbol,N}}, rhs::Tuple{Vararg{Symbol,M}}) where {N,M}
+Base.@pure function tuple_issubset(
+    lhs::Tuple{Vararg{Symbol,N}}, rhs::Tuple{Vararg{Symbol,M}},
+) where {N,M}
     N <= M || return false
     for a in lhs
         found = false
@@ -111,7 +168,6 @@ Base.@pure function tuple_issubset(lhs::Tuple{Vararg{Symbol,N}}, rhs::Tuple{Vara
     return true
 end
 
-
 """
     order_named_inds(Val(names); kw...)
     order_named_inds(Val(names), namedtuple)
@@ -120,7 +176,7 @@ Returns the tuple of index values for an array with `names`, when indexed by key
 Any dimensions not fixed are given as `:`, to make a slice.
 An error is thrown if any keywords are used which do not occur in `nda`'s names.
 """
-order_named_inds(val::Val{L}; kw...) where {L} = order_named_inds(val, kw.data)
+order_named_inds(val::Val{L}; kw...) where {L} = order_named_inds(val, values(kw))
 
 @generated function order_named_inds(val::Val{L}, ni::NamedTuple{K}) where {L,K}
     tuple_issubset(K, L) || throw(DimensionMismatch("Expected subset of $L, got $K"))
@@ -135,14 +191,12 @@ order_named_inds(val::Val{L}; kw...) where {L} = order_named_inds(val, kw.data)
     return Expr(:tuple, exs...)
 end
 
-
-
 """
     incompatible_dimension_error(names_a, names_b)
 Throws a `DimensionMismatch` explaining that these dimension names are not compatible.
 """
 function incompatible_dimension_error(names_a, names_b)
-    throw(DimensionMismatch("Incompatible dimension names: $names_a ≠ $names_b"))
+    return throw(DimensionMismatch("Incompatible dimension names: $names_a ≠ $names_b"))
 end
 
 """
@@ -227,7 +281,8 @@ function unify_names_longest(names_a, names_b)
     # 0 Allocations: @btime (()-> unify_names_longest((:a,:b), (:a,)))()
 
     length(names_a) === length(names_b) && return unify_names(names_a, names_b)
-    long, short = length(names_a) > length(names_b) ? (names_a, names_b) : (names_b, names_a)
+    long, short =
+        length(names_a) > length(names_b) ? (names_a, names_b) : (names_b, names_a)
     ret = ntuple(length(long)) do ii
         a = getfield(long, ii)
         b = ii <= length(short) ? short[ii] : :_
@@ -240,6 +295,12 @@ function unify_names_longest(names_a, names_b)
     return compile_time_return_hack(ret)
 end
 
+function unify_names_longest(
+    names_a, names_b, names_c::Vararg{<:NTuple{Nd,Symbol} where {Nd},N},
+) where {N}
+    return unify_names_longest(names_a, unify_names_longest(names_b, names_c...))
+end
+
 unify_names_shortest(names, ::Tuple{}) = ()
 unify_names_shortest(::Tuple{}, names) = ()
 unify_names_shortest(::Tuple{}, ::Tuple{}) = ()
@@ -247,7 +308,11 @@ function unify_names_shortest(names_a, names_b)
     # 0 Allocations: @btime (()-> unify_names_shortest((:a,:b), (:a,)))()
 
     length(names_a) === length(names_b) && return unify_names(names_a, names_b)
-    long, short = length(names_a) > length(names_b) ? (names_a, names_b) : (names_b, names_a)
+    long, short = if length(names_a) > length(names_b)
+        (names_a, names_b)
+    else
+        (names_b, names_a)
+    end
     ret = ntuple(length(short)) do ii
         a = getfield(long, ii)
         b = getfield(short, ii)
@@ -260,6 +325,12 @@ function unify_names_shortest(names_a, names_b)
     return compile_time_return_hack(ret)
 end
 
+function unify_names_shortest(
+    names_a, names_b, names_c::Vararg{<:NTuple{Nd,Symbol} where {Nd},N},
+) where {N}
+    return unify_names_shortest(names_a, unify_names_shortest(names_b, names_c...))
+end
+
 # The following are helpers for remaining_dimnames_from_indexing
 # as a generated function it can get unhappy if asked to use anon functions
 # and it can only call function declared before it. So we declare them explictly here.
@@ -268,12 +339,20 @@ is_noninteger_type(::Any) = true
 
 """
     remaining_dimnames_from_indexing(dimnames::Tuple, inds)
-Given a tuple of dimension names
-and a set of index expressesion e.g `1, :, 1:3, [true, false]`,
-determine which are not dropped.
-Dimensions indexed with scalars are dropped
+
+Given a tuple of dimension names,
+and a tuple of indices e.g `(1, :, 1:3, [true, false])`,
+this drops those indexed with scalars or `CartesianIndex`,
+inserts `:_` for `newaxis = [CartesianIndex{0}()]`,
+and returns another tuple of names.
+
+It will return an empty tuple to indicate that all names should be dropped.
+This happend for scalar indexing by integers, or one `CartesianIndex`.
+It also happens e.g. when indexing a matrix by a `BitArray{2}` such as `mat[mat .> 0.5]`:
+this returns a vector, the same as vec(mat)[vec(mat .> 0.5)], whose dimension isn't any
+of the original dimensions, hence has no name.
 """
-@generated function remaining_dimnames_from_indexing(dimnames::Tuple, inds)
+@generated function remaining_dimnames_from_indexing(dimnames::Tuple, inds::Tuple)
     # 0-Allocation see:
     # `@btime (()->remaining_dimnames_from_indexing((:a, :b, :c), (:,390,:)))()``
     keep_names = []
@@ -283,14 +362,33 @@ Dimensions indexed with scalars are dropped
             dim_num += 1
         elseif type <: CartesianIndex
             dim_num += type.parameters[1]
-        elseif type == Array{CartesianIndex{0},1}
+        elseif type <: AbstractVector{CartesianIndex{0}}
             push!(keep_names, QuoteNode(:_))
+        elseif type <: AbstractArray{<:Integer} && ndims(type) > 1
+            dim_num += 1
+            for _ in 1:ndims(type)
+                push!(keep_names, QuoteNode(:_))
+            end
         else
             dim_num += 1
-            push!(keep_names, :(getfield(dimnames, $dim_num)) )
+            push!(keep_names, :(getfield(dimnames, $dim_num)))
         end
     end
     return Expr(:call, :compile_time_return_hack, Expr(:tuple, keep_names...))
+end
+
+remaining_dimnames_from_indexing(dn::Tuple, inds::Tuple{Vararg{<:Integer}}) = ()
+remaining_dimnames_from_indexing(dn::Tuple, ci::Tuple{CartesianIndex}) = ()
+
+function remaining_dimnames_from_indexing(
+    dimnames::Tuple{<:Any,<:Any,Vararg},  # only for ndims(A) >= 2
+    inds::Tuple{T},
+) where {T<:Union{
+    Base.LogicalIndex,  # e.g. A[A .> 0]
+    AbstractVector{<:CartesianIndex},
+    AbstractVector{<:Integer},  # e.g. A[1:end]
+}}
+    return ()
 end
 
 """
@@ -304,14 +402,18 @@ function remaining_dimnames_after_dropping(dimnames::Tuple, dropped_dim::Int)
     return _remaining_dimnames_after_dropping(dimnames, Tuple{dropped_dim})
 end
 
-function remaining_dimnames_after_dropping(dimnames::NTuple{N, Symbol}, dropped_dims::Tuple{Vararg{Int}}) where N
+function remaining_dimnames_after_dropping(
+    dimnames::NTuple{N,Symbol}, dropped_dims::Tuple{Vararg{Int}},
+) where {N}
     # 0-Allocations see:
     # `@code_typed (()->remaining_dimnames_after_dropping((:a,:b,:c,:d,:e), (1,3)))()`
     return _remaining_dimnames_after_dropping(dimnames, Tuple{dropped_dims...})
 end
 
 # dropped_dims must be a Tuple type where the values are Int literal for the dimensions being dropped
-@generated function _remaining_dimnames_after_dropping(dimnames::NTuple{N,Symbol}, dropped_dims::Type) where N
+@generated function _remaining_dimnames_after_dropping(
+    dimnames::NTuple{N,Symbol}, dropped_dims::Type,
+) where {N}
     dropped_dims_vals = dropped_dims.parameters[1].parameters
     keep_names = [:(getfield(dimnames, $ii)) for ii in 1:N if ii ∉ dropped_dims_vals]
     return Expr(:call, :compile_time_return_hack, Expr(:tuple, keep_names...))

@@ -1,8 +1,10 @@
+using CovarianceEstimation
 using LinearAlgebra
+using FFTW
 using NamedDims
-using NamedDims: matrix_prod_names, names, symmetric_names
+using NamedDims: matrix_prod_names, dimnames, symmetric_names, wave_name
+using Statistics
 using Test
-
 
 @testset "+" begin
     nda = NamedDimsArray{(:a,)}(ones(3))
@@ -146,10 +148,18 @@ end
         @test ndv' * ndv == 14
         @test ndv' * ndv == adjoint(ndv) * v == transpose(ndv) * v
         @test ndv' * ndv == adjoint(v) * ndv == transpose(v) * ndv
+        @test ndv * v' == ndv * adjoint(v) == ndv * transpose(v)
         @test ndv * ndv' == [1 2 3; 2 4 6; 3 6 9]
 
         ndv2 = NamedDimsArray{(:b,)}([3, 2, 1])
         @test_throws DimensionMismatch ndv' * ndv2
+    end
+
+    @testset "NDAs from CoVectors" begin
+        v = [1, 2, 3]
+        ndv = NamedDimsArray{(:vec,)}(v)
+        @test NamedDimsArray{dimnames(v')}(v') * ndv == 14
+        @test NamedDimsArray{dimnames(v')}(transpose(v)) * ndv == 14
     end
 end
 @testset "allocations: matmul names" begin
@@ -159,12 +169,33 @@ end
 
 
 @testset "Mutmul with special types" begin
-    nda = NamedDimsArray{(:a, :b)}(ones(5,5))
-    @testset "$T" for T in (Diagonal, Symmetric, Tridiagonal, SymTridiagonal, BitArray,)
-        x = T(ones(5,5))
-        @test dimnames(x * nda) == (:_, :b)
-        @test dimnames(nda * x) == (:a, :_)
+
+    special_types = (Adjoint, Diagonal, Symmetric, Tridiagonal, SymTridiagonal, BitArray,)
+
+    @testset "matrix" begin
+        ndm = NamedDimsArray{(:a, :b)}(ones(5,5))
+        @testset "$T" for T in special_types
+            x = T(ones(5,5))
+            @test dimnames(x * ndm) == (:_, :b)
+            @test dimnames(ndm * x) == (:a, :_)
+
+            @test typeof(x * ndm) <: NamedDimsArray
+            @test typeof(ndm * x) <: NamedDimsArray
+        end
     end
+
+    @testset "vector" begin
+        ndv = NamedDimsArray{(:vec,)}(ones(5))
+        @testset "$T" for T in special_types
+            x = T(ones(5,5))
+            @test dimnames(x * ndv) == (:_,)
+            @test dimnames(ndv' * x) == (:_, :_)
+
+            @test typeof(x * ndv) <: NamedDimsArray
+            @test typeof(ndv' * x) <: NamedDimsArray
+        end
+    end
+
 end
 
 
@@ -184,6 +215,7 @@ end
 
         @test_throws MethodError symmetric_names((:a, :b, :c), 2)
     end
+
     @testset "$f" for f in (cov, cor)
         @testset "matrix input, matrix result" begin
             A = rand(3, 5)
@@ -209,6 +241,21 @@ end
         A = rand(2, 4)
         nda = NamedDimsArray{(:a, :b)}(A)
         @test cov(nda; corrected=bool) == cov(A; corrected=bool)
-        @test cov(nda; corrected=bool, dims=:b)  == cov(A; corrected=bool, dims=2)
+        @test cov(nda; corrected=bool, dims=:b) == cov(A; corrected=bool, dims=2)
+    end
+end
+
+@testset "CovarianceEstimation" begin
+    estimators = (
+        LinearShrinkage(DiagonalCommonVariance()),
+        SimpleCovariance(),
+        AnalyticalNonlinearShrinkage(),
+    )
+
+    A = rand(20, 20)  # AnalyticalNonlinearShrinkage requires at least 12 samples
+    nda = NamedDimsArray{(:a, :b)}(A)
+
+    @testset "$(typeof(e))" for e in estimators
+        @test cov(e, nda) == cov(e, A)
     end
 end

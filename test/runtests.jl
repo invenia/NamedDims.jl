@@ -1,6 +1,10 @@
-using NamedDims
 using BenchmarkTools
+using ChainRulesTestUtils
+using NamedDims
+using SparseArrays
 using Test
+
+include("test_helpers.jl")
 
 const testfiles = (
     "name_core.jl",
@@ -9,7 +13,11 @@ const testfiles = (
     "functions.jl",
     "functions_dims.jl",
     "functions_math.jl",
+    "cat.jl",
+    "functions_linearalgebra.jl",
     "broadcasting.jl",
+    "chainrules.jl",
+    "fft.jl",
     "tracker_compat.jl",
 )
 

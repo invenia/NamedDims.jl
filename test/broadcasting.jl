@@ -114,8 +114,12 @@ using Tracker
 
         @test dimnames(z .= ab .+ a_) == (:a, :b)
         @test dimnames(a_ .= ba' .+ ab) == (:a, :b)
-    end
 
+        # https://github.com/invenia/NamedDims.jl/issues/175
+        nda1 = NamedDimsArray(zeros(2, 2), (:a, :b))
+        nda2 = NamedDimsArray([1.0 2.0;], (:a, :b))
+        @test (nda1 .= nda2) == (parent(nda1) .= parent(nda2))
+    end
 end
 
 @testset "Competing Wrappers" begin
@@ -129,4 +133,27 @@ end
         @test typeof(nda .- ta) <: NamedDimsArray
         @test typeof(parent(nda .- ta)) <: TrackedArray
     end
+end
+
+@testset "Broadcasting against Tuples" begin
+    # https://github.com/invenia/NamedDims.jl/issues/140
+    nda = NamedDimsArray(zeros(4), :foo)
+    @test (nda .+ (1,2,3,4)) isa NamedDimsArray{(:foo,)}
+    @test (nda .+ (1,2,3,4)) == [1, 2, 3, 4]
+
+    @test ((1,2,3,4) .+ nda) isa NamedDimsArray{(:foo,)}
+    @test ((1,2,3,4) .+ nda) == [1, 2, 3, 4]
+end
+
+function foo(a, b, c, d)
+    @. a -= 0.5 * d * b * c
+    return a
+end
+@testset "Regression test against allocations in broadcasting #187" begin
+    # https://github.com/invenia/NamedDims.jl/issues/187
+    a = NamedDimsArray{(:z,)}(rand(5))
+    b = NamedDimsArray{(:z,)}(rand(5))
+    c = rand()
+    d = rand()
+    @test_modern 0 == @ballocated foo($a, $b, $c, $d)
 end
