@@ -30,9 +30,7 @@ for (mod, funs) in (
 end
 
 # 1 Arg, 2 Results
-for (mod, funs) in (
-    (:Base, (:findmax, :findmin)),
-)
+for (mod, funs) in ((:Base, (:findmax, :findmin)),)
     for fun in funs
         @eval function $mod.$fun(a::NamedDimsArray; dims=:, kwargs...)
             numerical_dims = dim(a, dims)
