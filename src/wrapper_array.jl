@@ -148,7 +148,11 @@ for f in (:getindex, :view, :dotview)
             inds = order_named_inds(A; named_inds...)
             return Base.$f(A, inds...)
         end
+    end
+end
 
+for f in (:getindex, :view)
+    @eval begin
         @propagate_inbounds function Base.$f(a::NamedDimsArray, raw_inds...)
             inds = Base.to_indices(parent(a), raw_inds)
             data = Base.$f(parent(a), inds...)
