@@ -17,7 +17,7 @@ end
 
 # 1 Arg
 for (mod, funs) in (
-    (:Base, (:sum, :prod, :maximum, :minimum, :extrema)),
+    (:Base, (:sum, :prod, :maximum, :minimum, :extrema, :argmax, :argmin)),
     (:Statistics, (:mean, :std, :var, :median)),
 )
     for fun in funs
@@ -25,6 +25,19 @@ for (mod, funs) in (
             numerical_dims = dim(a, dims)
             data = $mod.$fun(parent(a); dims=numerical_dims, kwargs...)
             return nameddimsarray_result(a, data, numerical_dims)
+        end
+    end
+end
+
+# 1 Arg, 2 Results
+for (mod, funs) in ((:Base, (:findmax, :findmin)),)
+    for fun in funs
+        @eval function $mod.$fun(a::NamedDimsArray; dims=:, kwargs...)
+            numerical_dims = dim(a, dims)
+            data = $mod.$fun(parent(a); dims=numerical_dims, kwargs...)
+            map(data) do item  # value and index
+                nameddimsarray_result(a, item, numerical_dims)
+            end
         end
     end
 end

@@ -7,11 +7,19 @@ using Statistics
     a = [10 20; 31 40]
     nda = NamedDimsArray(a, (:x, :y))
 
-    @testset "$f" for f in (sum, prod, maximum, minimum, extrema)
+    @testset "$f" for f in (sum, prod, maximum, minimum, extrema, argmax, argmin)
         @test f(nda) == f(a)
         @test f(nda; dims=:x) == f(nda; dims=1) == f(a; dims=1)
 
         @test dimnames(f(nda; dims=:x)) == (:x, :y) == dimnames(f(nda; dims=1))
+    end
+
+    @testset "$f" for f in (findmax, findmin)
+        @test f(nda) == f(a)
+        @test f(nda; dims=:x) == f(nda; dims=1) == f(a; dims=1)
+
+        @test dimnames(f(nda; dims=:x)[1]) == (:x, :y) == dimnames(f(nda; dims=1)[1])  # value
+        @test dimnames(f(nda; dims=:x)[2]) == (:x, :y) == dimnames(f(nda; dims=1)[2])  # index
     end
 
     @testset "$f" for f in (cumsum, cumprod, sort, sortslices)
