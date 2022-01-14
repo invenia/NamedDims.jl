@@ -15,15 +15,17 @@ function Base.showarg(io::IO, A::NamedDimsArray{L,T,N}, outer) where {L,T,N}
     print(io, "NamedDimsArray(")
     Base.showarg(io, parent(A), false)
     print(io, ", ", ColourString(N == 1 ? QuoteNode(L[1]) : L), ")")
+    return nothing
 end
 
 function Base.print_matrix(io::IO, A::NamedDimsArray)
     s1 = ColourString("↓ ", dimnames(A, 1), "  ")
-    if ndims(A)==2
+    if ndims(A) == 2
         println(io, " "^Base.Unicode.textwidth(s1), ColourString("→ ", dimnames(A, 2)))
     end
     ioc = IOContext(io, :displaysize => displaysize(io) .- (1, 0))
     Base.print_matrix(ioc, parent(A), s1)
+    return nothing
 end
 
 # This exists because including ascii colour codes in the string `s1` passed
@@ -39,7 +41,6 @@ Base.textwidth(x::ColourString) = textwidth(x.string)
 Base.print(io::IO, x::ColourString) = printstyled(io, x.string; color=:magenta)
 
 if VERSION > v"1.6.0-DEV.1561" # 809f27c53df7a54388a687a847e9494e0d29bd4f
-
     function Base._show_nd_label(io::IO, A::NamedDimsArray, idxs)
         print(io, "[:, :, ")
         for i in 1:length(idxs)
@@ -47,5 +48,4 @@ if VERSION > v"1.6.0-DEV.1561" # 809f27c53df7a54388a687a847e9494e0d29bd4f
             i == length(idxs) ? println(io, "] =") : print(io, ", ")
         end
     end
-
 end

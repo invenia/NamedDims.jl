@@ -286,7 +286,7 @@ end
 @testset "show" begin
     nda = NamedDimsArray([1 2; 3 4], (:x, :y))
     @test occursin("(:x, :y)", string(nda))
-    ndv = NamedDimsArray([1,2,3], :x)
+    ndv = NamedDimsArray([1, 2, 3], :x)
     @test occursin("], :x)", string(ndv))
     @test eval(Meta.parse(string(ndv))) isa NamedDimsArray{(:x,)}
 
