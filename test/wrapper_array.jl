@@ -283,6 +283,18 @@ end
     @test stride(nda, :b) == 3 == stride(nda, 2) == stride(x, 2)
 end
 
+@testset "show" begin
+    nda = NamedDimsArray([1 2; 3 4], (:x, :y))
+    @test occursin("(:x, :y)", string(nda))
+    ndv = NamedDimsArray([1, 2, 3], :x)
+    @test occursin("], :x)", string(ndv))
+    @test eval(Meta.parse(string(ndv))) isa NamedDimsArray{(:x,)}
+
+    str = repr(MIME"text/plain"(), nda) # mime => 3-arg show
+    @test occursin("2×2 NamedDimsArray(::", str)
+    @test occursin("→ y", str)
+end
+
 const cnda = NamedDimsArray([10 20; 30 40], (:x, :y))
 @testset "allocations: wrapper" begin
     @test 0 == @ballocated parent(cnda)
