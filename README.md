@@ -4,7 +4,7 @@
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://invenia.github.io/NamedDims.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://invenia.github.io/NamedDims.jl/dev)
 -->
-[![CI](https://github.com/Invenia/Intervals.jl/workflows/CI/badge.svg)](https://github.com/Invenia/Intervals.jl/actions?query=workflow%3ACI)
+[![CI](https://github.com/Invenia/NamedDims.jl/workflows/CI/badge.svg)](https://github.com/Invenia/NamedDims.jl/actions?query=workflow%3ACI)
 [![Codecov](https://codecov.io/gh/invenia/NamedDims.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/invenia/NamedDims.jl)
 [![PkgEval](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/N/NamedDims.svg)](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/report.html)
 [![code style blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
