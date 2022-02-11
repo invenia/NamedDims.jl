@@ -296,6 +296,12 @@ using Statistics
         @test isapprox(nda, nda4; atol=2π)
     end
 
+    @testset "deleteat!" begin
+        ndv = NamedDimsArray{(:a,)}([1, 2, 3, 4, 5, 6.0])
+        @test ndv == deleteat!(ndv, 1) == NamedDimsArray{(:a,)}([2, 3, 4, 5, 6.0])
+        @test ndv == deleteat!(ndv, 1:2) == NamedDimsArray{(:a,)}([4, 5, 6.0])
+        @test ndv == deleteat!(ndv, (1, 3)) == NamedDimsArray{(:a,)}([5.0])
+    end
 end  # Base
 
 @testset "Statistics" begin
