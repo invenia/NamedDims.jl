@@ -212,3 +212,11 @@ function collect_product(x)
     all_names = tuple_cat(dimnames.(x.iter.iterators)...)
     return NamedDimsArray(data, all_names)
 end
+
+##############################################
+# NamedDimsVector only
+
+function Base.deleteat!(v::NamedDimsVector, inds)
+    deleteat!(parent(v), inds)
+    return v
+end
