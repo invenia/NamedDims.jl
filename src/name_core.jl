@@ -296,7 +296,7 @@ function unify_names_longest(names_a, names_b)
 end
 
 function unify_names_longest(
-    names_a, names_b, names_c::Vararg{<:NTuple{Nd,Symbol} where {Nd},N},
+    names_a, names_b, names_c::Vararg{NTuple{Nd,Symbol} where {Nd},N},
 ) where {N}
     return unify_names_longest(names_a, unify_names_longest(names_b, names_c...))
 end
@@ -326,7 +326,7 @@ function unify_names_shortest(names_a, names_b)
 end
 
 function unify_names_shortest(
-    names_a, names_b, names_c::Vararg{<:NTuple{Nd,Symbol} where {Nd},N},
+    names_a, names_b, names_c::Vararg{NTuple{Nd,Symbol} where {Nd},N},
 ) where {N}
     return unify_names_shortest(names_a, unify_names_shortest(names_b, names_c...))
 end
@@ -377,7 +377,7 @@ of the original dimensions, hence has no name.
     return Expr(:call, :compile_time_return_hack, Expr(:tuple, keep_names...))
 end
 
-remaining_dimnames_from_indexing(dn::Tuple, inds::Tuple{Vararg{<:Integer}}) = ()
+remaining_dimnames_from_indexing(dn::Tuple, inds::Tuple{Vararg{Integer}}) = ()
 remaining_dimnames_from_indexing(dn::Tuple, ci::Tuple{CartesianIndex}) = ()
 
 function remaining_dimnames_from_indexing(
