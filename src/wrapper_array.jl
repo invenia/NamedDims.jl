@@ -62,6 +62,8 @@ dim(a::AbstractArray, d) = d
 NamedDimsVecOrMat{L,T} = Union{NamedDimsArray{L,T,1},NamedDimsArray{L,T,2}}
 NamedDimsVector{L,T} = NamedDimsArray{L,T,1}
 
+Base.convert(::Type{T}, x::Array) where {T<:NamedDimsArray} = T(x)
+
 #############################
 # AbstractArray Interface
 # https://docs.julialang.org/en/v1/manual/interfaces/index.html#man-interface-array-1

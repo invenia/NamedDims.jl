@@ -320,3 +320,9 @@ const cnda = NamedDimsArray([10 20; 30 40], (:x, :y))
     @test @ballocated(cnda[x=1]) == @ballocated(cnda[1, :])
     @test 0 == @ballocated cnda[x=1, y=1] = 66
 end
+
+# @testset "convert" begin
+#     nda = NamedDimsArray{(:id, :_)}(rand(5,5))
+#     nda_converted = convert(typeof(nda), rand(5,5))
+#     @test nda_converted isa typeof(nda)
+# end
