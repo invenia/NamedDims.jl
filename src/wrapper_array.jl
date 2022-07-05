@@ -62,9 +62,8 @@ dim(a::AbstractArray, d) = d
 NamedDimsVecOrMat{L,T} = Union{NamedDimsArray{L,T,1},NamedDimsArray{L,T,2}}
 NamedDimsVector{L,T} = NamedDimsArray{L,T,1}
 
-function Base.convert(::Type{<:NamedDimsArray{L,T,N,A}}, x::A) where {L,T,N,A}
-    return NamedDimsArray{L, T, N, A}(x)
-end
+Base.convert(::Type{T}, x::AbstractArray) where {T<:NamedDimsArray} = T(x)
+Base.convert(::Type{T}, x::T) where {T<:NamedDimsArray} = x
 
 #############################
 # AbstractArray Interface
