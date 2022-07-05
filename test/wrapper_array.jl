@@ -322,16 +322,16 @@ const cnda = NamedDimsArray([10 20; 30 40], (:x, :y))
 end
 
 @testset "convert" begin
-    nda1 = NamedDimsArray{(:id, :_)}(rand(5,5))
-    nda2 = NamedDimsArray{(:id2, :_)}(rand(5,5))
+    nda1 = NamedDimsArray{(:id, :_)}(rand(5, 5))
+    nda2 = NamedDimsArray{(:id2, :_)}(rand(5, 5))
     L, T, N, A = typeof(nda1).parameters
 
-    nda1_64 = convert(typeof(nda1), Float64.(rand(5,5)))
-    nda1_16 = convert(typeof(nda1), Float16.(rand(5,5)))
+    nda1_64 = convert(typeof(nda1), Float64.(rand(5, 5)))
+    nda1_16 = convert(typeof(nda1), Float16.(rand(5, 5)))
     @test nda1_64 isa typeof(nda1)
     @test nda1_16 isa typeof(nda1) # Check that the type is preserved
     @test typeof(nda1_16).parameters == Core.svec(L, T, N, A) # Redundant but captures want to preserve eltypes
-    @test_throws MethodError convert(typeof(nda1), rand(5,2,2))
+    @test_throws MethodError convert(typeof(nda1), rand(5, 2, 2))
 
     nda2_id1 = convert(typeof(nda1), nda2) # You can do this, but may bypass some checks
     @test typeof(nda2_id1).parameters == Core.svec(L, T, N, A)
