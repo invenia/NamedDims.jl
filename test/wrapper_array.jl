@@ -322,7 +322,11 @@ const cnda = NamedDimsArray([10 20; 30 40], (:x, :y))
 end
 
 @testset "convert" begin
-    nda = NamedDimsArray{(:id, :_)}(rand(5,5))
-    nda_converted = convert(typeof(nda), rand(5,5))
-    @test nda_converted isa typeof(nda)
+    nda1 = NamedDimsArray{(:id, :_)}(rand(5,5))
+    nda2 = NamedDimsArray{(:id, :id2, :_)}(rand(5,2,3))
+    nda1_c = convert(typeof(nda1), rand(5,5))
+
+    @test nda1_c isa typeof(nda1)
+    @test_throws MethodError convert(typeof(nda2), rand(5,5))
+    
 end
