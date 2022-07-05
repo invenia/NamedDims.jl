@@ -323,10 +323,15 @@ end
 
 @testset "convert" begin
     nda1 = NamedDimsArray{(:id, :_)}(rand(5,5))
-    nda2 = NamedDimsArray{(:id, :id2, :_)}(rand(5,2,3))
-    nda1_c = convert(typeof(nda1), rand(5,5))
+    L, T, N, A = typeof(nda1).parameters
 
-    @test nda1_c isa typeof(nda1)
-    @test_throws MethodError convert(typeof(nda2), rand(5,5))
-    
+    nda1_64 = convert(typeof(nda1), Float64.(rand(5,5)))
+    nda1_16 = convert(typeof(nda1), Float16.(rand(5,5)))
+
+    @test nda1_64 isa typeof(nda1)
+    @test nda1_16 isa typeof(nda1) # Check that the type is preserved
+    @test typeof(nda1_16).parameters == Core.svec(L, T, N, A) # Redundant but captures want to preserve eltypes
+
+    @test_throws MethodError convert(typeof(nda1), rand(5,2,2))
+
 end
