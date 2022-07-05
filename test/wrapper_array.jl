@@ -335,5 +335,4 @@ end
 
     nda2_id1 = convert(typeof(nda1), nda2) # You can do this, but may bypass some checks
     @test typeof(nda2_id1).parameters == Core.svec(L, T, N, A)
-
 end
