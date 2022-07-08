@@ -52,8 +52,10 @@ end
 # Using `CoVector` results in Method ambiguities; have to define more specific methods.
 for A in (
     Adjoint{<:Number,<:AbstractVector},
+    Adjoint{<:Any,<:AbstractVector}, # https://github.com/invenia/NamedDims.jl/issues/198
+    Transpose{<:Any,<:AbstractVector}, # https://github.com/invenia/NamedDims.jl/issues/198
     Transpose{<:Real,<:AbstractVector{<:Real}},
-    Transpose{<:Any, <:AbstractMatrix{T}} where T,  # resolves ambiguity error in AxisKeys
+    Transpose{<:Any,<:AbstractMatrix{T}} where {T},  # resolves ambiguity error in AxisKeys
 )
     @eval function Base.:*(a::$A, b::NamedDimsArray{L,T,1,<:AbstractVector{T}}) where {L,T}
         return *(a, parent(b))
