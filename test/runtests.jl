@@ -1,4 +1,5 @@
 using BenchmarkTools
+using ChainRulesCore
 using ChainRulesTestUtils
 using NamedDims
 using SparseArrays

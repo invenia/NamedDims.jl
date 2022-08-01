@@ -6,12 +6,35 @@
 
     @testset "ProjectTo" begin
         nda = NamedDimsArray{(:a, :b)}(rand(3, 3))
-        proj = ProjectTo(nda)
 
-        x = rand(3, 3)
-        @inferred proj(x)
-        projected = proj(x)
-        @test projected isa NamedDimsArray{(:a, :b)}
-        @test projected.data == x
+        @testset "(:c, :d) -> (:a, :b) == error" begin
+            ndb = NamedDimsArray{(:c, :d)}(rand(3, 3))
+            @test_throws DimensionMismatch ProjectTo(nda)(ndb)
+        end
+
+        @testset "(:_, :_) -> (:a, :b) == (:a, :b)" begin
+            x = rand(3, 3)
+            projected = @inferred ProjectTo(nda)(x)
+            @test dimnames(projected) == dimnames(nda)
+        end
+
+        @testset "(:a, :_) -> (:a, :b) == (:a, :b)" begin
+            nd1 = NamedDimsArray{(:a, :_)}(rand(3, 3))
+            projected = @inferred ProjectTo(nda)(nd1)
+            @test dimnames(projected) == dimnames(nda)
+        end
+
+        @testset "(:a, :b) -> (:a, :_) == (:a, :b)" begin
+            nd1 = NamedDimsArray{(:a, :_)}(rand(3, 3))
+            projected = @inferred ProjectTo(nd1)(nda) # switched order compared to above
+            @test dimnames(projected) == dimnames(nda)
+        end
+
+        @testset "(:_, :b) -> (:a, :_) == (:a, :b)" begin
+            nd1 = NamedDimsArray{(:a, :_)}(rand(3, 3))
+            nd2 = NamedDimsArray{(:_, :b)}(rand(3, 3))
+            projected = @inferred ProjectTo(nd1)(nd2)
+            @test dimnames(projected) == (:a, :b)
+        end
     end
 end
