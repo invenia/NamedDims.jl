@@ -14,7 +14,7 @@ function ChainRulesCore.ProjectTo(x::NamedDimsArray)
     return ProjectTo{NamedDimsArray{dimnames(x)}}(; data=ProjectTo(parent(x)))
 end
 
-(project::ProjectTo{NamedDimsArray})(dx::AbstractZero) = dx
+(project::ProjectTo{NDA})(dx::AbstractZero) where {NDA<:NamedDimsArray} = dx
 function (project::ProjectTo{NDA})(dx) where {NDA<:NamedDimsArray}
     names = unify_names(dimnames(NDA), dimnames(dx))
     return NamedDimsArray{names}(project.data(parent(dx)))

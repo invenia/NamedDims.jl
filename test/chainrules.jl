@@ -7,6 +7,10 @@
     @testset "ProjectTo" begin
         nda = NamedDimsArray{(:a, :b)}(rand(3, 3))
 
+        @testset "NoTangent()" begin
+            @test NoTangent() == ProjectTo(nda)(NoTangent())
+        end
+
         @testset "(:c, :d) -> (:a, :b) == error" begin
             ndb = NamedDimsArray{(:c, :d)}(rand(3, 3))
             @test_throws DimensionMismatch ProjectTo(nda)(ndb)
