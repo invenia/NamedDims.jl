@@ -26,6 +26,7 @@ Base.propertynames(named::NamedFactorization; kwargs...) = propertynames(parent(
 Base.iterate(named::NamedFactorization{L, T, <:LU}) where {L, T} = (named.L, Val(:U))
 Base.iterate(named::NamedFactorization{L, T, <:LQ}) where {L, T} = (named.L, Val(:Q))
 Base.iterate(named::NamedFactorization{L, T, <:SVD}) where {L, T} = (named.U, Val(:S))
+Base.iterate(named::NamedFactorization{L, T, <:Cholesky}) where {L, T} = (named.L, Val(:U))
 function Base.iterate(
     named::NamedFactorization{L, T, <:Union{QR, LinearAlgebra.QRCompactWY, QRPivoted}}
 ) where {L, T}
@@ -40,7 +41,7 @@ function Base.iterate(named::NamedFactorization, st::Val{D}) where D
 end
 
 # Convenience constructors
-for func in (:lu, :lu!, :lq, :lq!, :svd, :svd!, :qr, :qr!)
+for func in (:lu, :lu!, :lq, :lq!, :svd, :svd!, :qr, :qr!, :cholesky)
     @eval begin
         function LinearAlgebra.$func(nda::NamedDimsArray{L, T}, args...; kwargs...) where {L, T}
             return NamedFactorization{L}($func(parent(nda), args...; kwargs...))
@@ -77,6 +78,20 @@ function Base.getproperty(fact::NamedFactorization{L, T, <:LQ}, d::Symbol) where
         return NamedDimsArray{(n1, :_)}(inner)
     elseif d === :Q
         return NamedDimsArray{(:_, n2)}(inner)
+    else
+        return inner
+    end
+end
+
+# cholesky
+function Base.getproperty(fact::NamedFactorization{L, T, <:Cholesky}, d::Symbol) where {L, T}
+    inner = getproperty(parent(fact), d)
+    n1, n2 = L
+    @assert n1 == n2 # Must be identical given square pdmat?
+    if d === :L
+        return NamedDimsArray{(n1, n2)}(inner)
+    elseif d === :U
+        return NamedDimsArray{(n1, n2)}(inner)
     else
         return inner
     end

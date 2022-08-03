@@ -10,13 +10,17 @@ if !isdefined(@__MODULE__, :ColumnNorm)
     NoPivot() = Val(false)
 end
 
-function baseline_tests(fact, identity)
+_test_data(::Val{:rectangle}) = [1.0 2 3; 4 5 6];
+_test_data(::Val{:pdmat}) =   [8.0  7.0  6.0  5.0; 7.0  8.0  6.0  6.0; 6.0  6.0  6.0  5.0; 5.0  6.0  5.0  5.0]
+_test_names(::Val{:rectangle}) = (:foo, :bar)
+_test_names(::Val{:pdmat}) = (:foo, :foo)
+
+function baseline_tests(fact, identity; test_data_type = :rectangle)
     # A set of generic tests to ensure that our components don't accidentally reverse the
     # `:foo` and `:bar` labels for any components
     @testset "Baseline" begin
-        names = (:foo, :bar)
-        sz = (2, 3)
-        data = [1.0 2 3; 4 5 6]
+        names = _test_names(Val{test_data_type}())
+        data = _test_data(Val{test_data_type}())
         nda = NamedDimsArray{names}(data)
 
         base_fact = fact(data)
@@ -41,7 +45,7 @@ function baseline_tests(fact, identity)
             _named isa NamedDimsArray && @testset "Test name for dim $d" for d in 1:ndims(_named)
                 # Don't think it make sense for an factorization to produce properties with
                 # dimension sizes outside 1, 2 or 3
-                @test size(_named, d) in (1, 2, 3)
+                @test d in (1, 2, 3)
 
                 if size(_named, d) == 1
                     # Neither name makes sense here
@@ -52,6 +56,9 @@ function baseline_tests(fact, identity)
                 elseif size(_named, d) == 3
                     # Name must either be :bar or :_
                     @test dimnames(_named, d) in (:bar, :_)
+                elseif size(_named, d) == 4
+                    # Name can only be foo, as this is the pdmat case
+                    @test dimnames(_named, d) in (:foo,)
                 end
             end
         end
@@ -141,6 +148,21 @@ end
             end
         end
     end
+end
+
+@testset "cholesky" begin
+    baseline_tests(cholesky, S -> S.L * S.L'; test_data_type = :pdmat)
+    baseline_tests(cholesky, S -> S.U' * S.U; test_data_type = :pdmat)
+
+    # Explicit `dimnames` tests for readability
+    nda = NamedDimsArray{(:foo, :foo)}(_test_data(Val{:pdmat}()))
+    x = cholesky(nda)
+    @test size(x) == size(parent(x))
+    @test dimnames(x.L) == (:foo, :foo)
+    @test dimnames(x.U) == (:foo, :foo)
+
+    # # Idenity opperations should give back original dimnames
+    # @test dimnames(x.L * x.Q) == (:foo, :bar)
 end
 
 @testset "#164 factorization eltype not same as input eltype" begin
