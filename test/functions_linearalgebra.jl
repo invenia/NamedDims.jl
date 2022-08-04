@@ -17,7 +17,7 @@ end
 _test_names(::Val{:rectangle}) = (:foo, :bar)
 _test_names(::Val{:pdmat}) = (:foo, :foo)
 
-function baseline_tests(fact, identity; test_data_type = :rectangle)
+function baseline_tests(fact, identity; test_data_type=:rectangle)
     # A set of generic tests to ensure that our components don't accidentally reverse the
     # `:foo` and `:bar` labels for any components
     @testset "Baseline" begin
@@ -44,7 +44,8 @@ function baseline_tests(fact, identity; test_data_type = :rectangle)
             @test size(_base) == size(_named)
 
             # If our property is a NamedDimsArray make sure that the names make sense
-            _named isa NamedDimsArray && @testset "Test name for dim $d" for d in 1:ndims(_named)
+            _named isa NamedDimsArray && @testset "Test name for dim $d" for d in
+                                                                             1:ndims(_named)
                 # Don't think it make sense for an factorization to produce properties with
                 # dimension sizes outside 1, 2 or 3
                 @test d in (1, 2, 3)

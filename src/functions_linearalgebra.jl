@@ -28,8 +28,8 @@ Base.iterate(named::NamedFactorization{L,T,<:LQ}) where {L,T} = (named.L, Val(:Q
 Base.iterate(named::NamedFactorization{L,T,<:SVD}) where {L,T} = (named.U, Val(:S))
 Base.iterate(named::NamedFactorization{L,T,<:Cholesky}) where {L,T} = (named.L, Val(:U))
 function Base.iterate(
-    named::NamedFactorization{L, T, <:Union{QR, LinearAlgebra.QRCompactWY, QRPivoted}}
-) where {L, T}
+    named::NamedFactorization{L,T,<:Union{QR,LinearAlgebra.QRCompactWY,QRPivoted}}
+) where {L,T}
     return (named.Q, Val(:R))
 end
 
@@ -43,7 +43,9 @@ end
 # Convenience constructors
 for func in (:lu, :lu!, :lq, :lq!, :svd, :svd!, :qr, :qr!, :cholesky)
     @eval begin
-        function LinearAlgebra.$func(nda::NamedDimsArray{L, T}, args...; kwargs...) where {L, T}
+        function LinearAlgebra.$func(
+            nda::NamedDimsArray{L,T}, args...; kwargs...
+        ) where {L,T}
             return NamedFactorization{L}($func(parent(nda), args...; kwargs...))
         end
     end
@@ -96,10 +98,11 @@ function NamedFactorization{L}(fact::Cholesky{T}) where {L,T}
         NamedFactorization{L,T,Cholesky{T}}(fact)
     else
         throw(DimensionMismatch("$n1 != $n2"))
+    end
 end
 
 ## svd
-function Base.getproperty(fact::NamedFactorization{L, T, <:SVD}, d::Symbol) where {L, T}
+function Base.getproperty(fact::NamedFactorization{L,T,<:SVD}, d::Symbol) where {L,T}
     inner = getproperty(parent(fact), d)
     n1, n2 = L
     # Naming based off the SVD visualization on wikipedia
