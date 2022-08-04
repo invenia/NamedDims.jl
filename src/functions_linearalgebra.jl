@@ -84,17 +84,17 @@ function Base.getproperty(fact::NamedFactorization{L, T, <:LQ}, d::Symbol) where
 end
 
 # cholesky
+
 function Base.getproperty(fact::NamedFactorization{L, T, <:Cholesky}, d::Symbol) where {L, T}
     inner = getproperty(parent(fact), d)
     n1, n2 = L
-    @assert n1 == n2 # Must be identical given square pdmat?
-    if d === :L
-        return NamedDimsArray{(n1, n2)}(inner)
-    elseif d === :U
-        return NamedDimsArray{(n1, n2)}(inner)
-    else
-        return inner
-    end
+    return d in (:L, :U) ? NamedDimsArray{(n1, n2)}(inner) : inner
+end
+function NamedFactorization{L}(fact::Cholesky{T}) where {L, T}
+    n1, n2 = L
+    isequal(n1, n2) ? 
+        NamedFactorization{L,T,Cholesky{T}}(fact) : 
+        throw(DimensionMismatch("$n1 != $n2"))
 end
 
 ## svd
