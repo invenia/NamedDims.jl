@@ -1,7 +1,7 @@
 name = "NamedDims"
 uuid = "356022a1-0364-5f58-8944-0da4b18d706f"
 authors = ["Invenia Technical Computing Corporation"]
-version = "0.2.50"
+version = "0.3.0"
 
 [deps]
 AbstractFFTs = "621f4979-c628-5d54-868e-fcf4e3e8185c"
@@ -20,7 +20,7 @@ ChainRulesTestUtils = "1"
 CovarianceEstimation = "0.2.4"
 Requires = "0.5, 1"
 Tracker = "0.2.2"
-julia = "1"
+julia = "1.6"
 
 [extras]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
