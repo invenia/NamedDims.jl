@@ -203,11 +203,11 @@ end
 @testset "isposdef" begin
     A = [1 2; 2 50]
 
-    @test isposdef(A)
+    @assert isposdef(A)
     @test isposdef(NamedDimsArray{(:foo, :foo)}(A))
 
     B = Float64.(A)
-    @test isposdef!(B)
+    @assert isposdef!(B)
     B = Float64.(A)
     @test isposdef!(NamedDimsArray{(:foo, :foo)}(B))
 end
