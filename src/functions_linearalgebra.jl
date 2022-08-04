@@ -173,3 +173,5 @@ end
 
 # Diagonal on a nameddim presently loses its nameddimsness. So just pass through for now.
 LinearAlgebra.:\(A::Diagonal, B::NamedDimsArray) = LinearAlgebra.:\(A, parent(B))
+
+LinearAlgebra.isposdef(A::NamedDimsArray) = isposdef(parent(A))
