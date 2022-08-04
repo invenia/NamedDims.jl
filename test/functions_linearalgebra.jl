@@ -11,7 +11,9 @@ if !isdefined(@__MODULE__, :ColumnNorm)
 end
 
 _test_data(::Val{:rectangle}) = [1.0 2 3; 4 5 6];
-_test_data(::Val{:pdmat}) =   [8.0  7.0  6.0  5.0; 7.0  8.0  6.0  6.0; 6.0  6.0  6.0  5.0; 5.0  6.0  5.0  5.0]
+function _test_data(::Val{:pdmat})
+    return [8.0 7.0 6.0 5.0; 7.0 8.0 6.0 6.0; 6.0 6.0 6.0 5.0; 5.0 6.0 5.0 5.0]
+end
 _test_names(::Val{:rectangle}) = (:foo, :bar)
 _test_names(::Val{:pdmat}) = (:foo, :foo)
 
@@ -151,8 +153,8 @@ end
 end
 
 @testset "cholesky" begin
-    baseline_tests(cholesky, S -> S.L * S.L'; test_data_type = :pdmat)
-    baseline_tests(cholesky, S -> S.U' * S.U; test_data_type = :pdmat)
+    baseline_tests(cholesky, S -> S.L * S.L'; test_data_type=:pdmat)
+    baseline_tests(cholesky, S -> S.U' * S.U; test_data_type=:pdmat)
 
     # Explicit `dimnames` tests for readability
     nda = NamedDimsArray{(:foo, :foo)}(_test_data(Val{:pdmat}()))
@@ -163,7 +165,6 @@ end
     @test dimnames(x.U) == (:foo, :foo)
 
     @test_throws DimensionMismatch cholesky(nda_mismatch)
-
 end
 
 @testset "#164 factorization eltype not same as input eltype" begin

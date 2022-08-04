@@ -23,10 +23,10 @@ Base.size(named::NamedFactorization) = size(parent(named))
 Base.propertynames(named::NamedFactorization; kwargs...) = propertynames(parent(named))
 
 # Factorization type specific initial iterate calls
-Base.iterate(named::NamedFactorization{L, T, <:LU}) where {L, T} = (named.L, Val(:U))
-Base.iterate(named::NamedFactorization{L, T, <:LQ}) where {L, T} = (named.L, Val(:Q))
-Base.iterate(named::NamedFactorization{L, T, <:SVD}) where {L, T} = (named.U, Val(:S))
-Base.iterate(named::NamedFactorization{L, T, <:Cholesky}) where {L, T} = (named.L, Val(:U))
+Base.iterate(named::NamedFactorization{L,T,<:LU}) where {L,T} = (named.L, Val(:U))
+Base.iterate(named::NamedFactorization{L,T,<:LQ}) where {L,T} = (named.L, Val(:Q))
+Base.iterate(named::NamedFactorization{L,T,<:SVD}) where {L,T} = (named.U, Val(:S))
+Base.iterate(named::NamedFactorization{L,T,<:Cholesky}) where {L,T} = (named.L, Val(:U))
 function Base.iterate(
     named::NamedFactorization{L, T, <:Union{QR, LinearAlgebra.QRCompactWY, QRPivoted}}
 ) where {L, T}
@@ -85,15 +85,16 @@ end
 
 # cholesky
 
-function Base.getproperty(fact::NamedFactorization{L, T, <:Cholesky}, d::Symbol) where {L, T}
+function Base.getproperty(fact::NamedFactorization{L,T,<:Cholesky}, d::Symbol) where {L,T}
     inner = getproperty(parent(fact), d)
     n1, n2 = L
     return d in (:L, :U) ? NamedDimsArray{(n1, n2)}(inner) : inner
 end
-function NamedFactorization{L}(fact::Cholesky{T}) where {L, T}
+function NamedFactorization{L}(fact::Cholesky{T}) where {L,T}
     n1, n2 = L
-    isequal(n1, n2) ? 
-        NamedFactorization{L,T,Cholesky{T}}(fact) : 
+    return if isequal(n1, n2)
+        NamedFactorization{L,T,Cholesky{T}}(fact)
+    else
         throw(DimensionMismatch("$n1 != $n2"))
 end
 
