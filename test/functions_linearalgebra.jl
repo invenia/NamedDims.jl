@@ -156,13 +156,14 @@ end
 
     # Explicit `dimnames` tests for readability
     nda = NamedDimsArray{(:foo, :foo)}(_test_data(Val{:pdmat}()))
+    nda_mismatch = NamedDimsArray{(:foo, :bar)}(_test_data(Val{:pdmat}()))
     x = cholesky(nda)
     @test size(x) == size(parent(x))
     @test dimnames(x.L) == (:foo, :foo)
     @test dimnames(x.U) == (:foo, :foo)
 
-    # # Idenity opperations should give back original dimnames
-    # @test dimnames(x.L * x.Q) == (:foo, :bar)
+    @test_throws DimensionMismatch cholesky(nda_mismatch)
+
 end
 
 @testset "#164 factorization eltype not same as input eltype" begin
