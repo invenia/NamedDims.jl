@@ -175,3 +175,8 @@ end
 LinearAlgebra.:\(A::Diagonal, B::NamedDimsArray) = LinearAlgebra.:\(A, parent(B))
 
 LinearAlgebra.isposdef(A::NamedDimsArray) = isposdef(parent(A))
+
+# eigenvectors and eigenvalues do not inherit dimension names
+for f in [:eigen, :eigvals, :det, :logdet, :logabsdet]
+    @eval LinearAlgebra.$f(A::NamedDimsArray) = $f(parent(A))
+end

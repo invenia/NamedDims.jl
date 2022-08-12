@@ -200,6 +200,17 @@ end
     )
 end
 
+@testset "LinearAlgebra: eigen, det" begin
+    A = rand(4, 4)
+    corr = A * A'
+    nda = NamedDimsArray{(:a, :b)}(corr)
+    @test eigen(nda) == eigen(corr)
+    @test eigvals(nda) == eigvals(corr)
+    @test det(nda) == det(corr)
+    @test logdet(nda) == logdet(corr)
+    @test logabsdet(nda) == logabsdet(corr)
+end
+
 @testset "isposdef" begin
     A = [1 2; 2 50]
 
