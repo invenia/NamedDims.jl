@@ -99,7 +99,7 @@ end
         # No error case with name mismatch here, as a Vector has "virtual" wildcard second dimension
 
         @test matrix_prod_names((:foo, :bar), (:bar,)) == (:foo,)
-        @test matrix_prod_names((:foo, :bar), (:_, )) == (:foo,)
+        @test matrix_prod_names((:foo, :bar), (:_,)) == (:foo,)
         @test matrix_prod_names((:foo, :_), (:bar,)) == (:foo,)
         @test matrix_prod_names((:foo, :_), (:_,)) == (:foo,)
         @test_throws DimensionMismatch matrix_prod_names((:foo, :bar), (:nope,))
@@ -117,7 +117,7 @@ end
             @test dimnames(ones(4, 3) * ndb) == (:_, :c)
 
             @test nda * ones(3, 7) == 3ones(2, 7)
-            @test dimnames(nda * ones(3,7)) == (:a, :_)
+            @test dimnames(nda * ones(3, 7)) == (:a, :_)
         end
 
         @testset "Dimension disagreement" begin
@@ -127,7 +127,7 @@ end
 
     @testset "Matrix-Vector" begin
         ndm = NamedDimsArray{(:a, :b)}(ones(1, 1))
-        ndv = NamedDimsArray{(:b, )}(ones(1))
+        ndv = NamedDimsArray{(:b,)}(ones(1))
 
         @test ndm * ndv == ones(1)
         @test dimnames(ndm * ndv) == (:a,)
@@ -135,7 +135,7 @@ end
 
     @testset "Vector-Matrix" begin
         ndm = NamedDimsArray{(:a, :b)}(ones(1, 1))
-        ndv = NamedDimsArray{(:a, )}(ones(1))
+        ndv = NamedDimsArray{(:a,)}(ones(1))
 
         @test ndv * ndm == ones(1, 1)
         @test dimnames(ndv * ndm) == (:a, :b)
@@ -175,9 +175,9 @@ end
     special_types = (Adjoint, Diagonal, Symmetric, Tridiagonal, SymTridiagonal, BitArray,)
 
     @testset "matrix" begin
-        ndm = NamedDimsArray{(:a, :b)}(ones(5,5))
+        ndm = NamedDimsArray{(:a, :b)}(ones(5, 5))
         @testset "$T" for T in special_types
-            x = T(ones(5,5))
+            x = T(ones(5, 5))
             @test dimnames(x * ndm) == (:_, :b)
             @test dimnames(ndm * x) == (:a, :_)
 
@@ -189,7 +189,7 @@ end
     @testset "vector" begin
         ndv = NamedDimsArray{(:vec,)}(ones(5))
         @testset "$T" for T in special_types
-            x = T(ones(5,5))
+            x = T(ones(5, 5))
             @test dimnames(x * ndv) == (:_,)
             @test dimnames(ndv' * x) == (:_, :_)
 
@@ -208,6 +208,13 @@ end
     @test inv(nda) * nda ≈ NamedDimsArray{(:b, :b)}([1.0 0; 0 1])
 end
 
+@testset "diff" begin
+    arr = [1.0 2; 3 4]
+    nda = NamedDimsArray{(:a, :b)}(arr)
+    @test unname(diff(nda; dims=:a)) == diff(arr; dims=1)
+    @test typeof(diff(nda; dims=:a)) == typeof(nda)
+    @test diff(nda; dims=:b) == diff(nda; dims=2)
+end
 
 @testset "cov/cor" begin
     @testset "symmetric_names" begin
