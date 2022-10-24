@@ -216,7 +216,6 @@ end
     @test diff(nda; dims=:b) == diff(nda; dims=2)
 end
 
-
 @testset "cov/cor" begin
     @testset "symmetric_names" begin
         @test symmetric_names((:a, :b), 1) == (:b, :b)
