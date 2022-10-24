@@ -211,7 +211,7 @@ end
 @testset "diff" begin
     arr = [1.0 2; 3 4]
     nda = NamedDimsArray{(:a, :b)}(arr)
-    @test unname(diff(nda; dims=:a)) == diff(arr; dims=1)
+    @test diff(nda; dims=:a) == diff(arr; dims=1)
     @test typeof(diff(nda; dims=:a)) == typeof(nda)
     @test diff(nda; dims=:b) == diff(nda; dims=2)
 end
