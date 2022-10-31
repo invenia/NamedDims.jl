@@ -95,8 +95,8 @@ for (f, d) in zip((vcat, hcat), (1, 2))
         end
 
         @testset "reduce forms" begin
-            @test reduce(f, [nda, nda]) == f(nda, nda)
-            @test reduce(f, [ndv, ndv]) == f(ndv, ndv)
+            @test @inferred(reduce(f, [nda, nda])) == f(nda, nda)
+            @test @inferred(reduce(f, [ndv, ndv])) == f(ndv, ndv)
 
             v1 = NamedDimsArray([a, a], dimnames(nda, d))
             v2 = NamedDimsArray([a, nda, a, nda], dimnames(nda, d))

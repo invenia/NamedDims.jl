@@ -68,7 +68,7 @@ for (f, nf, tf, tup) in
             return $nf(mapreduce(dimnames, unify_names_longest, A), A)
         end
 
-        function $nf(Linner, A)
+        @inline function $nf(Linner, A)
             Louter = ($tup..., dimnames(A)...)
             Lnew = unify_names_longest(Linner, Louter)
             data = Base.$tf(mapreduce(eltype, promote_type, A), A) # same as Base
