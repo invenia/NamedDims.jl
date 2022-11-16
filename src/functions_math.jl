@@ -120,6 +120,11 @@ function Base.inv(nda::NamedDimsArray{L,T,2}) where {L,T}
     return NamedDimsArray{names}(data)
 end
 
+function Base.diff(nda::NamedDimsArray{L}; dims) where {L}
+    data = diff(parent(nda); dims=dim(L, dims))
+    return NamedDimsArray{L}(data)
+end
+
 # Statistics
 for fun in (:cor, :cov)
     @eval function Statistics.$fun(a::NamedDimsArray{L,T,2}; dims=1, kwargs...) where {L,T}
