@@ -1,4 +1,3 @@
-using Test: approx_full
 using LinearAlgebra
 using NamedDims
 using NamedDims: dimnames

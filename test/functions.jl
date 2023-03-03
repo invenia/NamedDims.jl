@@ -97,8 +97,21 @@ using Statistics
                 sum(eachslice(a; dims=3)) ==
                 slices[1] + slices[2]
             )
-            @test_throws ArgumentError eachslice(nda; dims=(1, 2))
-            @test_throws ArgumentError eachslice(a; dims=(1, 2))
+
+            supports_eachslice_multidim = 
+                try
+                    eachslice(a; dims=(1, 2))
+                    true
+                catch
+                    false
+                end
+
+            if supports_eachslice_multidim
+                eachslice(nda; dims=(1, 2)) == eachslice(a; dims=(1, 2))
+            else
+                @test_throws ArgumentError eachslice(nda; dims=(1, 2))
+                @test_throws ArgumentError eachslice(a; dims=(1, 2))
+            end
 
             @test_throws UndefKeywordError eachslice(nda)
             @test_throws UndefKeywordError eachslice(a)
