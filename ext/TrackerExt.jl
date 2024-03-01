@@ -1,4 +1,7 @@
-# Tracker.jl Compat
+module TrackerExt
+
+isdefined(Base, :get_extension) ? (using Tracker) : (using ..Tracker)
+using NamedDims: NamedDims, dimnames, NamedDimsStyle, NamedDimsArray, @declare_matmul
 
 # The following blocks ever constructing TrackedArrays of NamedDimArrays.
 # This is not strictly forbidden (thus is commented out) but is useful for debugging things
@@ -32,4 +35,6 @@ for f in (:forward, :back, :back!, :grad, :istracked, :tracker)
     @eval function Tracker.$f(nda::NamedDimsArray, args...)
         return Tracker.$f(parent(nda), args...)
     end
+end
+
 end
