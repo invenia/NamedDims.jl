@@ -2,7 +2,6 @@ module NamedDims
 using Base: @propagate_inbounds
 using Base.Broadcast:
     Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
-using ChainRulesCore
 using LinearAlgebra
 using AbstractFFTs
 using Pkg
@@ -19,7 +18,6 @@ include("show.jl")
 include("name_operations.jl")
 
 include("broadcasting.jl")
-include("chainrules.jl")
 
 include("functions.jl")
 include("functions_dims.jl")
@@ -36,6 +34,7 @@ include("functions_linearalgebra.jl")
     using Requires
 end
 @static if !isdefined(Base, :get_extension)
+    include("../ext/ChainRulesCoreExt.jl")
     include("../ext/CovarianceEstimationExt.jl")
     
     function __init__()

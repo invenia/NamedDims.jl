@@ -13,11 +13,13 @@ Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [weakdeps]
+ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 CovarianceEstimation = "587fd27a-f159-11e8-2dae-1979310e6154"
 Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
 
 [extensions]
+ChainRulesCoreExt = "ChainRulesCore"
 CovarianceEstimationExt = "CovarianceEstimation"
 TrackerExt = "Tracker"
 
@@ -33,6 +35,7 @@ julia = "1.6"
 
 [extras]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 ChainRulesTestUtils = "cdddcdb0-9152-4a09-a978-84456f9df70a"
 CovarianceEstimation = "587fd27a-f159-11e8-2dae-1979310e6154"
 FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
@@ -42,4 +45,4 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
 
 [targets]
-test = ["BenchmarkTools", "ChainRulesTestUtils", "CovarianceEstimation", "FFTW", "OffsetArrays", "SparseArrays", "Test", "Tracker"]
+test = ["BenchmarkTools", "ChainRulesCore", "ChainRulesTestUtils", "CovarianceEstimation", "FFTW", "OffsetArrays", "SparseArrays", "Test", "Tracker"]
