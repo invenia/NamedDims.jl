@@ -3,7 +3,6 @@ using Base: @propagate_inbounds
 using Base.Broadcast:
     Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
 using ChainRulesCore
-using CovarianceEstimation
 using LinearAlgebra
 using AbstractFFTs
 using Pkg
@@ -38,5 +37,8 @@ include("fft.jl")
 @deprecate refine_names NamedDimsArray true
 
 include("functions_linearalgebra.jl")
+@static if !isdefined(Base, :get_extension)
+    include("../ext/CovarianceEstimationExt.jl")
+end
 
 end # module
