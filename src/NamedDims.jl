@@ -3,7 +3,6 @@ using Base: @propagate_inbounds
 using Base.Broadcast:
     Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
 using LinearAlgebra
-using AbstractFFTs
 using Pkg
 using Statistics
 
@@ -34,6 +33,7 @@ include("functions_linearalgebra.jl")
     using Requires
 end
 @static if !isdefined(Base, :get_extension)
+    include("../ext/AbstractFFTsExt.jl")
     include("../ext/ChainRulesCoreExt.jl")
     include("../ext/CovarianceEstimationExt.jl")
     
