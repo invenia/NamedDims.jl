@@ -1,3 +1,9 @@
+module ChainRulesCoreExt
+
+using ChainRulesCore
+using NamedDims: NamedDimsArray, dimnames, unify_names
+
+
 _NamedDimsArray_pullback(ȳ::AbstractArray) = (NoTangent(), ȳ, NoTangent())
 _NamedDimsArray_pullback(ȳ::Tangent) = (NoTangent(), ȳ.data, NoTangent())
 _NamedDimsArray_pullback(ȳ::AbstractThunk) = _NamedDimsArray_pullback(unthunk(ȳ))
@@ -18,4 +24,6 @@ end
 function (project::ProjectTo{NDA})(dx) where {NDA<:NamedDimsArray}
     names = unify_names(dimnames(NDA), dimnames(dx))
     return NamedDimsArray{names}(project.data(parent(dx)))
+end
+
 end
