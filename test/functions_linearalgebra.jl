@@ -221,3 +221,9 @@ end
     B = Float64.(A)
     @test isposdef!(NamedDimsArray{(:foo, :foo)}(B))
 end
+
+@testset "#212 copy_oftype should defer to method for parent array" begin
+    # https://github.com/invenia/NamedDims.jl/issues/212
+    nda = NamedDimsArray{(:foo, :bar)}(Symmetric([1 2 3; 4 5 4; 3 2 1]))  # Int eltype
+    @test LinearAlgebra.copy_oftype(nda, Float64) == nda
+end

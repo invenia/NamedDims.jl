@@ -178,3 +178,8 @@ LinearAlgebra.:\(A::Diagonal, B::NamedDimsArray) = LinearAlgebra.:\(A, parent(B)
 for f in [:isposdef, :eigen, :eigvals, :det, :logdet, :logabsdet]
     @eval LinearAlgebra.$f(A::NamedDimsArray) = $f(parent(A))
 end
+
+# fix issue #212 copy_oftype should defer to method for parent array
+function LinearAlgebra.copy_oftype(A::NamedDimsArray, ::Type{T}) where {T}
+    return NamedDimsArray(LinearAlgebra.copy_oftype(parent(A), T), dimnames(A))
+end
