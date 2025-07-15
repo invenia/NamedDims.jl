@@ -3,7 +3,6 @@ using Base: @propagate_inbounds
 using Base.Broadcast:
     Broadcasted, BroadcastStyle, DefaultArrayStyle, AbstractArrayStyle, Unknown
 using LinearAlgebra
-using Pkg
 using Statistics
 
 export NamedDimsArray, dim, rename, unname, dimnames
