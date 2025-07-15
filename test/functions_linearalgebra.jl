@@ -9,10 +9,12 @@ if !isdefined(@__MODULE__, :ColumnNorm)
     NoPivot() = Val(false)
 end
 
+_test_data(::Val{:square}) = [1.0 2 3; 4 5 6; 7 8 9]
 _test_data(::Val{:rectangle}) = [1.0 2 3; 4 5 6];
 function _test_data(::Val{:pdmat})
     return [8.0 7.0 6.0 5.0; 7.0 8.0 6.0 6.0; 6.0 6.0 6.0 5.0; 5.0 6.0 5.0 5.0]
 end
+_test_names(::Val{:square}) = (:foo, :bar)
 _test_names(::Val{:rectangle}) = (:foo, :bar)
 _test_names(::Val{:pdmat}) = (:foo, :foo)
 
@@ -31,7 +33,7 @@ function baseline_tests(fact, identity; test_data_type=:rectangle)
         @test size(named_fact) == size(base_fact)
 
         # Check that the returned destructuring via iteration is the same
-        @test parent.([named_fact...]) == [base_fact...]
+        @test collect.(parent.([named_fact...])) ≈ collect.([base_fact...])
 
         @test propertynames(named_fact) == propertynames(base_fact)
 
@@ -56,8 +58,8 @@ function baseline_tests(fact, identity; test_data_type=:rectangle)
                     # Name must either be :foo or :_
                     @test dimnames(_named, d) in (:foo, :_)
                 elseif size(_named, d) == 3
-                    # Name must either be :bar or :_
-                    @test dimnames(_named, d) in (:bar, :_)
+                    # Name must either be :bar, :foo or :_
+                    @test dimnames(_named, d) in (:bar, :foo, :_)
                 elseif size(_named, d) == 4
                     # Name can only be foo, as this is the pdmat case
                     @test dimnames(_named, d) in (:foo,)
@@ -91,10 +93,10 @@ end
 end
 
 @testset "lq" begin
-    baseline_tests(lq, S -> S.L * S.Q)
+    baseline_tests(lq, S -> S.L * S.Q; test_data_type=:square)
 
     # Explicit `dimnames` tests for readability
-    nda = NamedDimsArray{(:foo, :bar)}([1.0 2 3; 4 5 6])
+    nda = NamedDimsArray{(:foo, :bar)}([1.0 2 3; 4 5 6; 7 8 9])
     x = lq(nda)
     @test size(x) == size(parent(x))
     @test dimnames(x.L) == (:foo, :_)

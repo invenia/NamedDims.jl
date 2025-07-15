@@ -79,7 +79,7 @@ function Base.getproperty(fact::NamedFactorization{L, T, <:LQ}, d::Symbol) where
     if d === :L
         return NamedDimsArray{(n1, :_)}(inner)
     elseif d === :Q
-        return NamedDimsArray{(:_, n2)}(inner)
+        return NamedDimsArray{(:_, n2)}(Matrix(inner))  # lq.Q is not a matrix anymore in LinearAlgebra
     else
         return inner
     end
@@ -126,7 +126,7 @@ function Base.getproperty(
     inner = getproperty(parent(fact), d)
     n1, n2 = L
     if d === :Q
-        return NamedDimsArray{(n1,:_)}(inner)
+        return NamedDimsArray{(n1,:_)}(Matrix(inner))  # qr.Q is not a matrix anymore in LinearAlgebra
     elseif d === :R
         return NamedDimsArray{(:_, n2)}(inner)
     elseif F <: QRPivoted && d === :P
