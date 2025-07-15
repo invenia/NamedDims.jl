@@ -28,13 +28,17 @@ end
 
 Base.vcat(a::NamedDimsArray{L}) where {L} = a
 
-for (T, S) in [
-    (:NamedDimsVecOrMat, :NamedDimsVecOrMat),
-    (:NamedDimsVecOrMat, :AbstractVecOrMat),
-    (:AbstractVecOrMat, :NamedDimsVecOrMat),
+for (T, S, U) in [
+    (:NamedDimsVecOrMat, :NamedDimsVecOrMat, :AbstractVecOrMat),
+    (:NamedDimsVecOrMat, :AbstractVecOrMat, :AbstractVecOrMat),
+    (:AbstractVecOrMat, :NamedDimsVecOrMat, :AbstractVecOrMat),
+    # needed since Julia 1.10 because of ambiguities introduced by SparseArrays
+    (:(NamedDimsVecOrMat{<:Any,<:Number}), :(NamedDimsVecOrMat{<:Any,<:Number}), :(AbstractVecOrMat{<:Number})),
+    (:(NamedDimsVecOrMat{<:Any,<:Number}), :(AbstractVecOrMat{<:Number}), :(AbstractVecOrMat{<:Number})),
+    (:(AbstractVecOrMat{<:Number}), :(NamedDimsVecOrMat{<:Any,<:Number}), :(AbstractVecOrMat{<:Number})),
 ]
     for (fun, d) in zip((:vcat, :hcat), (1, 2))
-        @eval function Base.$fun(a::$T, b::$S, cs::AbstractVecOrMat...)
+        @eval function Base.$fun(a::$T, b::$S, cs::$U...)
             combL = unify_names_longest(dimnames(a), dimnames(b), dimnames.(cs)...)
             newL = expand_dimnames(combL, $d)
             data = Base.$fun(unname(a), unname(b), unname.(cs)...)
