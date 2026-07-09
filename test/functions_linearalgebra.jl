@@ -3,12 +3,6 @@ using NamedDims
 using NamedDims: dimnames
 using Test
 
-if !isdefined(@__MODULE__, :ColumnNorm)
-    # Make work on old julia versions
-    ColumnNorm() = Val(true)
-    NoPivot() = Val(false)
-end
-
 _test_data(::Val{:square}) = [1.0 2 3; 4 5 6; 7 8 9]
 _test_data(::Val{:rectangle}) = [1.0 2 3; 4 5 6];
 function _test_data(::Val{:pdmat})

@@ -59,16 +59,14 @@ for (mod, funs) in ((:Base, (:cumsum, :cumprod, :sort, :sort!, :sortslices)),)
     end
 end
 
-if VERSION > v"1.1-"
-    function Base.eachslice(a::NamedDimsArray{L}; dims, kwargs...) where {L}
-        numerical_dims = dim(a, dims)
-        slices = eachslice(parent(a); dims=numerical_dims, kwargs...)
-        return Base.Generator(slices) do slice
-            # For unknown reasons (something to do with hoisting?) having this in the
-            # function passed to `Generator` actually results in less memory being allocated
-            names = remaining_dimnames_after_dropping(L, numerical_dims)
-            return NamedDimsArray(slice, names)
-        end
+function Base.eachslice(a::NamedDimsArray{L}; dims, kwargs...) where {L}
+    numerical_dims = dim(a, dims)
+    slices = eachslice(parent(a); dims=numerical_dims, kwargs...)
+    return Base.Generator(slices) do slice
+        # For unknown reasons (something to do with hoisting?) having this in the
+        # function passed to `Generator` actually results in less memory being allocated
+        names = remaining_dimnames_after_dropping(L, numerical_dims)
+        return NamedDimsArray(slice, names)
     end
 end
 

@@ -301,14 +301,11 @@ const cnda = NamedDimsArray([10 20; 30 40], (:x, :y))
     @test 0 == @ballocated dimnames(cnda)
 
     # These tests use `@allocated` as for some reason `@ballocated` reports 1 alloc
-    if VERSION >= v"1.4" # see https://github.com/invenia/NamedDims.jl/issues/115
-        @test_broken 0 == @allocated NamedDimsArray(cnda, (:x, :y))
-        @test_broken 0 == @allocated NamedDimsArray(cnda, (:x, :_))
-    elseif VERSION >= v"1.1"
+    if VERSION >= v"1.11"
         @test 0 == @allocated NamedDimsArray(cnda, (:x, :y))
         @test 0 == @allocated NamedDimsArray(cnda, (:x, :_))
-    else
-        @test 0 == @allocated NamedDimsArray(cnda, (:x, :y))
+    else  # Julia 1.10 still allocates here; see https://github.com/invenia/NamedDims.jl/issues/115
+        @test_broken 0 == @allocated NamedDimsArray(cnda, (:x, :y))
         @test_broken 0 == @allocated NamedDimsArray(cnda, (:x, :_))
     end
 
