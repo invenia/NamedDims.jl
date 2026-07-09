@@ -11,10 +11,9 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - "1.6"
-          - "1.9"
           - "1.10"
           - "1"    # Latest Release
+          - "pre"
         os:
           - ubuntu-latest
           - macOS-latest

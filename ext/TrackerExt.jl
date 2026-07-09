@@ -1,6 +1,6 @@
 module TrackerExt
 
-isdefined(Base, :get_extension) ? (using Tracker) : (using ..Tracker)
+using Tracker
 using NamedDims: NamedDims, dimnames, NamedDimsStyle, NamedDimsArray, @declare_matmul
 
 # The following blocks ever constructing TrackedArrays of NamedDimArrays.
