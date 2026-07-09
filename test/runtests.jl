@@ -1,3 +1,4 @@
+using Adapt
 using BenchmarkTools
 using ChainRulesCore
 using ChainRulesTestUtils
@@ -20,6 +21,7 @@ const testfiles = (
     "chainrules.jl",
     "fft.jl",
     "tracker_compat.jl",
+    "adapt.jl",
 )
 
 @testset "NamedDims.jl" begin
