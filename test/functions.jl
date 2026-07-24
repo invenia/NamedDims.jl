@@ -45,15 +45,13 @@ using Statistics
         sort!(NamedDimsArray(veca, :vec); order=Base.Reverse)
         @test issorted(veca; order=Base.Reverse)
 
-        # Higher-dim case: `dims` keyword in `sort!` requires Julia v1.1+
-        if VERSION > v"1.1-"
-            sort!(nda; dims=:y)
-            @test issorted(a[2, :])
-            @test_throws UndefKeywordError sort!(nda)
+        # Higher-dim case: `dims` keyword in `sort!`
+        sort!(nda; dims=:y)
+        @test issorted(a[2, :])
+        @test_throws UndefKeywordError sort!(nda)
 
-            sort!(nda; dims=:x, order=Base.Reverse)
-            @test issorted(a[:, 1]; order=Base.Reverse)
-        end
+        sort!(nda; dims=:x, order=Base.Reverse)
+        @test issorted(a[:, 1]; order=Base.Reverse)
     end
 
     @testset "$f!" for (f,f!) in zip((sum, prod, maximum, minimum), (sum!, prod!, maximum!, minimum!))
@@ -86,42 +84,40 @@ using Statistics
     end
 
     @testset "eachslice" begin
-        if VERSION > v"1.1-"
-            slices = [[111 121; 211 221], [112 122; 212 222]]
-            a = cat(slices...; dims=3)
-            nda = NamedDimsArray(a, (:a, :b, :c))
+        slices = [[111 121; 211 221], [112 122; 212 222]]
+        a = cat(slices...; dims=3)
+        nda = NamedDimsArray(a, (:a, :b, :c))
 
-            @test (
-                sum(eachslice(nda; dims=:c)) ==
-                sum(eachslice(nda; dims=3)) ==
-                sum(eachslice(a; dims=3)) ==
-                slices[1] + slices[2]
-            )
+        @test (
+            sum(eachslice(nda; dims=:c)) ==
+            sum(eachslice(nda; dims=3)) ==
+            sum(eachslice(a; dims=3)) ==
+            slices[1] + slices[2]
+        )
 
-            supports_eachslice_multidim = 
-                try
-                    eachslice(a; dims=(1, 2))
-                    true
-                catch
-                    false
-                end
-
-            if supports_eachslice_multidim
-                eachslice(nda; dims=(1, 2)) == eachslice(a; dims=(1, 2))
-            else
-                @test_throws ArgumentError eachslice(nda; dims=(1, 2))
-                @test_throws ArgumentError eachslice(a; dims=(1, 2))
+        supports_eachslice_multidim =
+            try
+                eachslice(a; dims=(1, 2))
+                true
+            catch
+                false
             end
 
-            @test_throws UndefKeywordError eachslice(nda)
-            @test_throws UndefKeywordError eachslice(a)
-
-            @test (
-                dimnames(first(eachslice(nda; dims=:b))) ==
-                dimnames(first(eachslice(nda; dims=2))) ==
-                (:a, :c)
-            )
+        if supports_eachslice_multidim
+            eachslice(nda; dims=(1, 2)) == eachslice(a; dims=(1, 2))
+        else
+            @test_throws ArgumentError eachslice(nda; dims=(1, 2))
+            @test_throws ArgumentError eachslice(a; dims=(1, 2))
         end
+
+        @test_throws UndefKeywordError eachslice(nda)
+        @test_throws UndefKeywordError eachslice(a)
+
+        @test (
+            dimnames(first(eachslice(nda; dims=:b))) ==
+            dimnames(first(eachslice(nda; dims=2))) ==
+            (:a, :c)
+        )
     end
 
     @testset "mapslices" begin
@@ -189,14 +185,9 @@ using Statistics
 
         @test count(nda) == count(a) == 3
 
-        if VERSION >= v"1.5"
-            @test parent(count(nda, dims=:x)) == count(a, dims=1) == [2 1]
-            @test dimnames(count(nda, dims=:x)) ==
-                  dimnames(count(nda, dims=:y)) == (:x, :y)
-        else
-            @test_throws Exception count(nda; dims=:x)
-            @test_throws Exception count(a; dims=1)
-        end
+        @test parent(count(nda, dims=:x)) == count(a, dims=1) == [2 1]
+        @test dimnames(count(nda, dims=:x)) ==
+              dimnames(count(nda, dims=:y)) == (:x, :y)
     end
 
     @testset "push!, pop!, etc" begin
@@ -285,11 +276,9 @@ using Statistics
         # Iterators.flatten -- no obvious name to use
         @test dimnames([x+y for x in nda for y in ndv]) == (:_,)
 
-        if VERSION >= v"1.1"
-            # can't see inside eachslice generators, until:
-            # https://github.com/JuliaLang/julia/pull/32310
-            @test dimnames([sum(c) for c in eachcol(nda)]) == (:_,)
-        end
+        # can't see inside eachslice generators, until:
+        # https://github.com/JuliaLang/julia/pull/32310
+        @test dimnames([sum(c) for c in eachcol(nda)]) == (:_,)
     end
 
     @testset "equality" begin
